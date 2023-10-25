@@ -5,7 +5,7 @@ def main():
     print("Hello!")
 
 class Master:
-    def __init__(self, steps, frames, tempo):
+    def __init__(self, steps, frames, tempo, staff_ids):
         self.steps = steps
         self.frames = frames
         self.tempo = tempo
@@ -13,7 +13,7 @@ class Master:
         self.eventGrid = []
         for i in range(self.steps*self.frames):
 
-            frameData = {'frame-id': 0, 'tag': "", 'step': 0, 'frame': 0, 'time': 0, 'triggered': False}
+            frameData = {'frame_id': 0, 'tag': "", 'step': 0, 'frame': 0, 'time': 0, 'triggered': False}
             frameData['frame_id'] = i
             frameData['step'] = int(i/self.frames)
             frameData['frame'] = int(i % self.frames)
@@ -21,6 +21,13 @@ class Master:
             frameData['time'] = self.tempo * frameData['step'] + self.tempo * frameData['frame'] / self.frames
 
             self.timeGrid.append(frameData)
+    
+        self.staff_ids = staff_ids
+        self.staff = []
+
+        for staff_id in self.staff_ids:
+            staffData = {'staff_id': staff_id, 'event': None, 'triggered': False}
+
 
     def play(self):
         # current timestamp in seconds
