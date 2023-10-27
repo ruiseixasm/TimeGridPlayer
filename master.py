@@ -11,8 +11,9 @@ class Master:
         self.tempo = tempo
 
         self.timeGrid = []
-        self.staffEvents = []
+        self.rulerTypes = ['keys', 'events']
         self.staffRulers = []
+        self.staffEvents = []
 
         for i in range(self.steps*self.frames):
 
@@ -37,12 +38,6 @@ class Master:
                 actualTime = time.time() - startTime
                 print(f"{nextFrameID}\t{self.timeGrid[nextFrameID]['position']}\t{actualTime:.6f}\t{actualTime - lastTime:.6f}")
 
-                actual_position = [self.timeGrid[nextFrameID]['position']]
-
-                actual_events = [
-                    dictionary for dictionary in self.staffEvents if dictionary['position'] in actual_position
-                ]
-
                 self.timeGrid[nextFrameID]['triggered'] = True
                 nextFrameID += 1
                 lastTime = time.time() - startTime
@@ -50,37 +45,71 @@ class Master:
     def tick(self):
         pass
         
-    def addRuler(self, name, position, ruler):
-        newRuler = {
-            'name': name,
-            'position': position,
-            'ruler': ruler,
-            'triggered': False
-        }
-        self.staffRulers.append(newRuler)
+    def addRuler(self, type, name, group, lines):
+        if (type in self.rulerTypes and self.getRuler(type, name) == None):
+            newRuler = {
+                'type': type,
+                'name': name,
+                'group': group,
+                'lines': lines, # list
+                'position': None
+            }
+            self.staffRulers.append(newRuler)
+            return True
+        return False
+
+    def getRuler(self, type, name):
+        for staffRuler in self.staffRulers:
+            if staffRuler['name'] == name and staffRuler['type'] == type:
+                return staffRuler
+        return None
     
-    def listRulers(self, position):
-        pass
+    def filterRulers(self, types = [], names = [], groups = [], positions = []):
+        filtered_rulers = self.staffRulers
+        if (len(types) > 0):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['type'] in types
+            ]
+        if (len(names) > 0):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['name'] in names
+            ]
+        if (len(groups) > 0):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['group'] in groups
+            ]
+        if (len(positions) > 0):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['position'] in positions
+            ]
+        return filtered_rulers
 
-    def addEvents(self, name, position, events):
-        newEvents = {
-            'name': name,
-            'position': position,
-            'events': events,
-            'triggered': False
-        }
-        self.staffEvents.append(newEvents)
+    def placeRuler(self, type, name, position):
+        self.getRuler(type, name)['position'] = position
 
-    def listEvents(self, position):
-        pass
+    def removeRuler(self, type, name):
+        self.placeRuler(type, name, None)
+
+    def deleteRuler(self, type, name):
+        for i in range(len(self.staffRulers)):
+            if self.staffRulers[i]['name'] == name and self.staffRulers[i]['type'] == type:
+                del(self.staffRulers[i])
+                break
+    
+    def listRulers(self):
+        for staffRuler in self.staffRulers:
+            print(staffRuler)
+
                 
     def __str__(self):
         finalString = ""
         for frame in self.timeGrid:
             finalString += f"{frame['frame_id']}\t{frame['position']}\t{frame['time']}\n"
         return finalString
-
-
 
 if __name__ == "__main__":
     main()
