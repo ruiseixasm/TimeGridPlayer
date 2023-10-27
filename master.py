@@ -14,6 +14,7 @@ class Master:
         self.rulerTypes = ['keys', 'events']
         self.staffLines = 0
         self.staffRulers = []
+        self.staffGroups = {'keys': [], 'events': []}
         self.staffEvents = []
 
         for i in range(self.steps*self.frames):
@@ -83,23 +84,40 @@ class Master:
     def placeRuler(self, type, name, position):
         ruler = self.getRuler(type, name)
         if (ruler != None):
-            ruler['position'] = position
-            ruler['sequence'] = self.getPositionSequence(position)
-            if (position != None):
+            if (position != None): # add ruler to staff
+                if (ruler['position'] == None): # not on staff
+                    existent_staffgroup = False
+                    for staffGroup in self.staffGroups[type]:
+                        if (staffGroup == ruler['group']):
+                            existent_staffgroup = True
+                            break
+                    if (not existent_staffgroup):
+                        self.staffGroups[type].append(ruler['group'])
+
+                ruler['position'] = position
+                ruler['sequence'] = self.getPositionSequence(position)
                 ruler_lines = len(ruler['lines'])
                 if(ruler_lines > self.staffLines):
                     self.staffLines = ruler_lines
-            else:
-                placed_rullers = [
+            elif (ruler['position'] != None): # remove ruler from staff
+                ruler['position'] = position
+                ruler['sequence'] = self.getPositionSequence(position)
+
+                placed_rulers = [
                         staffRuler
-                            for staffRuler in self.staffRulers if staffRuler['position'] not in [position]
+                            for staffRuler in self.staffRulers if staffRuler['position'] not in [None]
                     ]
                 self.staffLines = 0
-                for placed_ruller in placed_rullers:
-                    ruler_lines = len(placed_ruller['lines'])
+                for placed_ruler in placed_rulers:
+                    ruler_lines = len(placed_ruler['lines'])
                     if(ruler_lines > self.staffLines):
                         self.staffLines = ruler_lines
-
+                group_rulers = [
+                        staffRuler
+                            for staffRuler in placed_rulers if staffRuler['group'] in [ruler['group']]
+                ]
+                if (len(group_rulers) == 0):
+                    self.staffGroups[type].remove(ruler['group'])
 
     def removeRuler(self, type, name):
         self.placeRuler(type, name, None)
@@ -113,41 +131,54 @@ class Master:
     def listRulers(self):
         for staffRuler in self.staffRulers:
             print(staffRuler)
+    
+    def listStaffGroups(self):
+        for type in self.rulerTypes:
+            for group in self.staffGroups[type]:
+                print(f"{type}\t{group}")
 
-
-    def stackStaffRulers(self, type, group, position, sequence = None):
+    def stackStaffRulers(self, types = [], groups = [], position = None, sequence = None):
         if (sequence == None and position != None):
             sequence = self.getPositionSequence(position)
-        filtered_rulers = self.filterRulers(types = [type], groups = [group])
-        left_rulers = []
-        for filtered_ruler in filtered_rulers:
-            if (filtered_ruler['sequence'] <= sequence):
-                left_rulers.append(filtered_ruler)
-        top_ruler = []
-        top_ruler.append(left_rulers[0])
-        for left_ruler in left_rulers:
-            if (left_ruler['sequence'] > top_ruler[0]['sequence']):
-                top_ruler[0] = left_ruler
-        dictionary_copy = top_ruler[0].copy()
-        top_ruler[0] = dictionary_copy # copy by value
+        if (len(types) == 0):
+            types = self.rulerTypes
+        top_rulers = []
+        for type in types:
+            if (len(groups) == 0):
+                groups = self.staffGroups[type]
+            for group in groups:
+                filtered_rulers = self.filterRulers([type], [], [group])
+                left_rulers = []
+                for filtered_ruler in filtered_rulers:
+                    if (filtered_ruler['sequence'] <= sequence):
+                        left_rulers.append(filtered_ruler)
+                stack_dictionary = left_rulers[0]
+                for left_ruler in left_rulers:
+                    if (left_ruler['sequence'] > stack_dictionary['sequence']):
+                        stack_dictionary = left_ruler
 
-        lower_sequence = top_ruler[0]['sequence']
-        while (not (lower_sequence < 0)):
+                stack_dictionary = stack_dictionary.copy() # copy by value
+                stack_dictionary = stack_dictionary
 
-            lower_rulers = [
-                staffRuler
-                    for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
-            ]
-            
-            for lower_ruler in lower_rulers:
-                for i in range(len(lower_ruler['lines'])):
-                    if (not (i < len(top_ruler[0]['lines']))):
-                        top_ruler[0]['lines'].append(lower_ruler['lines'][i])
-                    elif (top_ruler[0]['lines'][i] == None):
-                        top_ruler[0]['lines'][i] = lower_ruler['lines'][i]
+                lower_sequence = stack_dictionary['sequence']
+                while (not (lower_sequence < 0)):
 
-            lower_sequence -= 1
-        return top_ruler
+                    lower_rulers = [
+                        staffRuler
+                            for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
+                    ]
+                    
+                    for lower_ruler in lower_rulers:
+                        for i in range(len(lower_ruler['lines'])):
+                            if (not (i < len(stack_dictionary['lines']))):
+                                stack_dictionary['lines'].append(lower_ruler['lines'][i])
+                            elif (stack_dictionary['lines'][i] == None):
+                                stack_dictionary['lines'][i] = lower_ruler['lines'][i]
+
+                    lower_sequence -= 1
+
+                top_rulers.append(stack_dictionary)
+        return top_rulers
     
     def play(self):
         # current timestamp in seconds
