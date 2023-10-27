@@ -1,20 +1,35 @@
-import time
-
 def main():
     print("Hello!")
 
-class Master:
+class Event:
 
-    def __init__(self, steps, frames, tempo):
+    def __init__(self, steps, frames, play_range=[], MASTER=False):
+
+        self.master = MASTER
+        self.play_mode = self.master
+
         self.steps = steps
         self.frames = frames
-        self.tempo = tempo
+
+        self.play_range = play_range
+        if (len(play_range) == 0):
+            self.play_range = [0, self.steps*self.frames - 1]
+        elif (len(play_range) == 1):
+            self.play_range = [0, play_range[0]]
+        else:
+            if (self.play_range[0] == None):
+                self.play_range[0] = 0
+            if (self.play_range[1] == None):
+                self.play_range[1] = self.steps*self.frames - 1
+        self.nextSequence = self.play_range[0]
+
+        # OPTIMIZERS
+        self.rulerTypes = ['keys', 'events']
+        self.staffGroups = {'keys': [], 'events': []}
+        self.staffLines = 0
 
         self.timeGrid = []
-        self.rulerTypes = ['keys', 'events']
-        self.staffLines = 0
         self.staffRulers = []
-        self.staffGroups = {'keys': [], 'events': []}
         self.staffEvents = []
 
         for i in range(self.steps*self.frames):
@@ -24,7 +39,6 @@ class Master:
             frameData['step'] = int(i/self.frames)
             frameData['frame'] = int(i % self.frames)
             frameData['position'] = str(frameData['step']) + "." + str(frameData['frame'])
-            frameData['time'] = self.tempo * frameData['step'] + self.tempo * frameData['frame'] / self.frames
 
             self.timeGrid.append(frameData)
 
@@ -57,8 +71,13 @@ class Master:
                 return staffRuler
         return None
     
-    def filterRulers(self, types = [], names = [], groups = [], positions = []):
+    def filterRulers(self, types = [], names = [], groups = [], positions = [], ON_STAFF = False):
         filtered_rulers = self.staffRulers
+        if (ON_STAFF):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['position'] not in [None]
+            ]
         if (len(types) > 0):
             filtered_rulers = [
                 staffRuler
@@ -103,10 +122,7 @@ class Master:
                 ruler['position'] = position
                 ruler['sequence'] = self.getPositionSequence(position)
 
-                placed_rulers = [
-                        staffRuler
-                            for staffRuler in self.staffRulers if staffRuler['position'] not in [None]
-                    ]
+                placed_rulers = self.filterRulers(ON_STAFF=True)
                 self.staffLines = 0 # REQUIRES self.staffLines
                 for placed_ruler in placed_rulers:
                     ruler_lines = len(placed_ruler['lines'])
@@ -147,11 +163,7 @@ class Master:
             if (len(groups) == 0):
                 groups = self.staffGroups[type] # REQUIRES self.staffGroups
             for group in groups:
-                filtered_rulers = self.filterRulers([type], [], [group])
-                filtered_rulers = [
-                        staffRuler
-                            for staffRuler in filtered_rulers if staffRuler['position'] not in [None]
-                    ]
+                filtered_rulers = self.filterRulers([type], [], [group], ON_STAFF=True)
                 left_rulers = []
                 for filtered_ruler in filtered_rulers:
                     if (filtered_ruler['sequence'] <= sequence):
@@ -187,29 +199,41 @@ class Master:
         return top_rulers
     
     def play(self):
-        # current timestamp in seconds
-        print("Timestamp:", time.time())
-        nextFrameID = 0
-        startTime = time.time()
-        lastTime = time.time() - startTime
-        while nextFrameID < len(self.timeGrid):
-            if (time.time() - startTime > self.timeGrid[nextFrameID]['time']):
+        self.play_mode = True
 
-                position = self.timeGrid[nextFrameID]['position']
-                frameStaffEvents = self.filterRulers(positions=[position])
+    def connectClock(self, clock):
+        self.clock = clock
+        self.clock.attach(self)
+
+    def pulse(self, tempo):
+        #print(f"CALLED:\t{self.play_mode}")
+        if (self.play_mode):
+
+            #print(f"\tPULSE: {self.nextSequence}")
+
+            if (self.nextSequence <= self.play_range[1]):
+
+                position = self.timeGrid[self.nextSequence]['position']
+                frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ON_STAFF=True)
                 if (len(frameStaffEvents) > 0):
                     frameStackedKeys = self.stackStaffRulers(['keys'], [], position)
-                    print(frameStackedKeys)
+                    print("\n\n\n")
+                    for staffEvent in frameStaffEvents:
+                        for line in range(len(staffEvent['lines'])):
+                            if (staffEvent['lines'][line] != None):
+                                staffEvent['lines'][line](line, frameStackedKeys)
+                    print("\n\n\n")
 
-                actualTime = time.time() - startTime
-                print(f"{nextFrameID}\t{position}\t{actualTime:.6f}\t{actualTime - lastTime:.6f}")
+                print(f"{self.nextSequence}\t{position}")
 
-                self.timeGrid[nextFrameID]['triggered'] = True
-                nextFrameID += 1
-                lastTime = time.time() - startTime
+                self.timeGrid[self.nextSequence]['triggered'] = True
+                self.nextSequence += 1
 
-    def tick(self):
-        pass
+            else:
+                if (self.master):
+                    self.clock.detachAll()
+                self.play_mode = False
+                self.nextSequence = self.play_range[0]
                     
     def __str__(self):
         finalString = ""
@@ -218,6 +242,41 @@ class Master:
             finalString += f"{frame['sequence']}\t{frame['position']}\t{frame['time']:.6f}\t{frame['time'] - last_time:.6f}\n"
             last_time = frame['time']
         return finalString
+    
+
+class Master(Event):
+    
+    def __init__(self, steps, frames):
+        super().__init__(steps, frames, MASTER=True)
+
+class Note(Event):
+    
+    def __init__(self, steps, frames):
+        super().__init__(steps, frames)
+
+    def play(self, line, staffKeys):
+        self.note = staffKeys[0]['lines'][line]
+        super().play_mode = True
+
+    def on(self):
+        print(f"note ON:\t{self.note}")
+
+    def off(self):
+        print(f"note OFF:\t{self.note}")
+
+class Trigger(Event):
+    
+    def __init__(self):
+        super().__init__(0, 0)
+
+    def play(self, staffKeys):
+        ...
+
+    def on(self):
+        ...
+
+    def off(self):
+        ...
 
 if __name__ == "__main__":
     main()

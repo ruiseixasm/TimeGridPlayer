@@ -1,6 +1,7 @@
-from master import Master
+import clock
+import event
 
-master = Master(4, 4, 3.123)
+master = event.Master(10, 6)
 
 master.addRuler("keys", "first", "generic", [None, 'c#', None, None, 'e', None])
 master.addRuler("keys", "second", "generic", ['c', 'c#', 'd', None, 'e', None])
@@ -28,12 +29,25 @@ print(master.stackStaffRulers(["keys"], [], "3.0"))
 master.listRulers()
 #print(master.filterRulers(positions = ["1.1"]))
 
-print_hello = lambda rule : print("Hello ", rule)
+print_hello = lambda line, staffKeys : print(f"Hello\tLine: {line}\t{staffKeys}")
 
-master.addRuler("events", "first", "generic", [
+master.addRuler("events", "first", "messages", [
         None,
         print_hello, None,
-        lambda rule : print("Hi ", rule),
+        lambda line, staffKeys : print(f"Hi\tLine: {line}\t{staffKeys}"),
         None, None
     ])
+
+master.placeRuler("events", "first", "3.0")
+
+master.listStaffGroups()
+
+print(master.filterRulers(["events"]))
+
+
+note = event.Note(1, 6)
+
+master_clock = clock.Clock(60, 6)
+master.connectClock(master_clock)
 master.play()
+master_clock.start()
