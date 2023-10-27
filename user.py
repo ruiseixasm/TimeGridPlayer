@@ -36,4 +36,4 @@ master.addRuler("events", "first", "generic", [
         lambda rule : print("Hi ", rule),
         None, None
     ])
-#master.play()
+master.play()

@@ -148,36 +148,42 @@ class Master:
                 groups = self.staffGroups[type] # REQUIRES self.staffGroups
             for group in groups:
                 filtered_rulers = self.filterRulers([type], [], [group])
+                filtered_rulers = [
+                        staffRuler
+                            for staffRuler in filtered_rulers if staffRuler['position'] not in [None]
+                    ]
                 left_rulers = []
                 for filtered_ruler in filtered_rulers:
                     if (filtered_ruler['sequence'] <= sequence):
                         left_rulers.append(filtered_ruler)
-                stack_dictionary = left_rulers[0]
-                for left_ruler in left_rulers:
-                    if (left_ruler['sequence'] > stack_dictionary['sequence']):
-                        stack_dictionary = left_ruler
+                
+                if (len(left_rulers) > 0):
+                    stack_dictionary = left_rulers[0]
+                    for left_ruler in left_rulers:
+                        if (left_ruler['sequence'] > stack_dictionary['sequence']):
+                            stack_dictionary = left_ruler
 
-                stack_dictionary = stack_dictionary.copy() # copy by value
-                stack_dictionary = stack_dictionary
+                    stack_dictionary = stack_dictionary.copy() # copy by value
+                    stack_dictionary = stack_dictionary
 
-                lower_sequence = stack_dictionary['sequence']
-                while (not (lower_sequence < 0)):
+                    lower_sequence = stack_dictionary['sequence']
+                    while (not (lower_sequence < 0)):
 
-                    lower_rulers = [
-                        staffRuler
-                            for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
-                    ]
-                    
-                    for lower_ruler in lower_rulers:
-                        for i in range(len(lower_ruler['lines'])):
-                            if (not (i < len(stack_dictionary['lines']))):
-                                stack_dictionary['lines'].append(lower_ruler['lines'][i])
-                            elif (stack_dictionary['lines'][i] == None):
-                                stack_dictionary['lines'][i] = lower_ruler['lines'][i]
+                        lower_rulers = [
+                            staffRuler
+                                for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
+                        ]
+                        
+                        for lower_ruler in lower_rulers:
+                            for i in range(len(lower_ruler['lines'])):
+                                if (not (i < len(stack_dictionary['lines']))):
+                                    stack_dictionary['lines'].append(lower_ruler['lines'][i])
+                                elif (stack_dictionary['lines'][i] == None):
+                                    stack_dictionary['lines'][i] = lower_ruler['lines'][i]
 
-                    lower_sequence -= 1
+                        lower_sequence -= 1
 
-                top_rulers.append(stack_dictionary)
+                    top_rulers.append(stack_dictionary)
         return top_rulers
     
     def play(self):
@@ -188,8 +194,15 @@ class Master:
         lastTime = time.time() - startTime
         while nextFrameID < len(self.timeGrid):
             if (time.time() - startTime > self.timeGrid[nextFrameID]['time']):
+
+                position = self.timeGrid[nextFrameID]['position']
+                frameStaffEvents = self.filterRulers(positions=[position])
+                if (len(frameStaffEvents) > 0):
+                    frameStackedKeys = self.stackStaffRulers(['keys'], [], position)
+                    print(frameStackedKeys)
+
                 actualTime = time.time() - startTime
-                print(f"{nextFrameID}\t{self.timeGrid[nextFrameID]['position']}\t{actualTime:.6f}\t{actualTime - lastTime:.6f}")
+                print(f"{nextFrameID}\t{position}\t{actualTime:.6f}\t{actualTime - lastTime:.6f}")
 
                 self.timeGrid[nextFrameID]['triggered'] = True
                 nextFrameID += 1
