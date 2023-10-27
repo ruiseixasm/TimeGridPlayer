@@ -87,7 +87,7 @@ class Master:
             if (position != None): # add ruler to staff
                 if (ruler['position'] == None): # not on staff
                     existent_staffgroup = False
-                    for staffGroup in self.staffGroups[type]:
+                    for staffGroup in self.staffGroups[type]: # REQUIRES self.staffGroups
                         if (staffGroup == ruler['group']):
                             existent_staffgroup = True
                             break
@@ -97,7 +97,7 @@ class Master:
                 ruler['position'] = position
                 ruler['sequence'] = self.getPositionSequence(position)
                 ruler_lines = len(ruler['lines'])
-                if(ruler_lines > self.staffLines):
+                if(ruler_lines > self.staffLines): # REQUIRES self.staffLines
                     self.staffLines = ruler_lines
             elif (ruler['position'] != None): # remove ruler from staff
                 ruler['position'] = position
@@ -107,7 +107,7 @@ class Master:
                         staffRuler
                             for staffRuler in self.staffRulers if staffRuler['position'] not in [None]
                     ]
-                self.staffLines = 0
+                self.staffLines = 0 # REQUIRES self.staffLines
                 for placed_ruler in placed_rulers:
                     ruler_lines = len(placed_ruler['lines'])
                     if(ruler_lines > self.staffLines):
@@ -117,7 +117,7 @@ class Master:
                             for staffRuler in placed_rulers if staffRuler['group'] in [ruler['group']]
                 ]
                 if (len(group_rulers) == 0):
-                    self.staffGroups[type].remove(ruler['group'])
+                    self.staffGroups[type].remove(ruler['group']) # REQUIRES self.staffGroups
 
     def removeRuler(self, type, name):
         self.placeRuler(type, name, None)
@@ -134,7 +134,7 @@ class Master:
     
     def listStaffGroups(self):
         for type in self.rulerTypes:
-            for group in self.staffGroups[type]:
+            for group in self.staffGroups[type]: # REQUIRES self.staffGroups
                 print(f"{type}\t{group}")
 
     def stackStaffRulers(self, types = [], groups = [], position = None, sequence = None):
@@ -145,7 +145,7 @@ class Master:
         top_rulers = []
         for type in types:
             if (len(groups) == 0):
-                groups = self.staffGroups[type]
+                groups = self.staffGroups[type] # REQUIRES self.staffGroups
             for group in groups:
                 filtered_rulers = self.filterRulers([type], [], [group])
                 left_rulers = []
