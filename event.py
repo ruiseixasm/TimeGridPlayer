@@ -12,18 +12,6 @@ class Event:
         self.steps = steps
         self.frames = frames
 
-        self.play_range = play_range
-        if (len(play_range) == 0):
-            self.play_range = [0, self.steps*self.frames - 1]
-        elif (len(play_range) == 1):
-            self.play_range = [0, play_range[0]]
-        else:
-            if (self.play_range[0] == None):
-                self.play_range[0] = 0
-            if (self.play_range[1] == None):
-                self.play_range[1] = self.steps*self.frames - 1
-        self.nextSequence = self.play_range[0]
-
         # OPTIMIZERS
         self.rulerTypes = ['keys', 'events']
         self.staffGroups = {'keys': [], 'events': []}
@@ -41,6 +29,18 @@ class Event:
             frameData['position'] = str(frameData['step']) + "." + str(frameData['frame'])
 
             self.timeGrid.append(frameData)
+
+        # SET RANGES
+        self.play_range_sequence = [0, self.steps*self.frames - 1]
+        if (len(play_range) == 1):
+            self.play_range_sequence[1] = self.getPositionSequence(play_range[0])
+        elif (len(play_range) > 1):
+            if (self.play_range_sequence[0] != None):
+                self.play_range_sequence[0] = max(0, self.getPositionSequence(play_range[0]))
+            if (self.play_range_sequence[1] != None):
+                self.play_range_sequence[1] = min(self.getPositionSequence(play_range[1]), self.play_range_sequence[1])
+        self.nextSequence = self.play_range_sequence[0]
+
 
     def getPositionSequence(self, position):
         if (position != None):
@@ -219,7 +219,7 @@ class Event:
 
             #print(f"\tPULSE: {self.nextSequence}")
 
-            if (self.nextSequence <= self.play_range[1]):
+            if (self.nextSequence <= self.play_range_sequence[1]):
 
                 position = self.timeGrid[self.nextSequence]['position']
                 frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ON_STAFF=True)
@@ -234,7 +234,6 @@ class Event:
                                     frameStakedKeysRuler['line'] = event_line + staffEvent['offset'] - frameStakedKeysRuler['offset']
                                     if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
                                         frameStakedKeysRuler['line'] = None
-                                    frameStakedKeysRuler['line'] = event_line + staffEvent['offset'] - frameStakedKeysRuler['offset']
                                 staffEvent['lines'][event_line](staffEvent, frameStackedKeys)
                     print("\n\n")
 
@@ -247,7 +246,7 @@ class Event:
                 if (self.master):
                     self.clock.detachAll()
                 self.play_mode = False
-                self.nextSequence = self.play_range[0]
+                self.nextSequence = self.play_range_sequence[0]
                     
     def __str__(self):
         finalString = ""
