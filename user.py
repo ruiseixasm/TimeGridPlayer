@@ -1,7 +1,7 @@
 import clock
 import event
 
-master = event.Master("master", 10, 6)
+master = event.Master("master", 10, 4)
 
 master.addRuler("keys", "first", "generic", [None, 'c#', None, None, 'e', None])
 master.addRuler("keys", "second", "generic", ['c', 'c#', 'd', None, 'e', None])
@@ -16,10 +16,10 @@ print(master)
 master.listStaffGroups()
 master.placeRuler("keys", "first", "2.1")
 master.placeRuler("keys", "second", "1.1")
-master.placeRuler("keys", "third", "3.1")
+master.placeRuler("keys", "third", "3.1", -1)
 master.listStaffGroups()
 master.placeRuler("keys", "fourth", "3.0")
-master.placeRuler("keys", "fifth", "1.0")
+master.placeRuler("keys", "fifth", "1.0", -2)
 master.placeRuler("keys", "sixth", "2.0")
 master.listStaffGroups()
 
@@ -47,7 +47,7 @@ print(master.filterRulers(["events"]))
 
 note = event.Note("note", 1, 6)
 
-master_clock = clock.Clock(60, 6)
+master_clock = clock.Clock(80, 6)
 master.connectClock(master_clock)
 master.play()
 master_clock.start()

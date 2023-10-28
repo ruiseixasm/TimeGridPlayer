@@ -58,9 +58,9 @@ class Event:
                 'name': name,
                 'group': group,
                 'lines': lines, # list
-                'offset': 0,
                 'position': None,
-                'sequence': None
+                'sequence': None,
+                'offset': 0
             }
             self.staffRulers.append(newRuler)
             return True
@@ -101,7 +101,7 @@ class Event:
             ]
         return filtered_rulers
 
-    def placeRuler(self, type, name, position):
+    def placeRuler(self, type, name, position, offset = None):
         ruler = self.getRuler(type, name)
         if (ruler != None):
             if (position != None): # add ruler to staff
@@ -126,6 +126,8 @@ class Event:
 
             ruler['position'] = position
             ruler['sequence'] = self.getPositionSequence(position)
+            if (offset != None):
+                ruler['offset'] = offset
 
     def removeRuler(self, type, name):
         self.placeRuler(type, name, None)
@@ -179,9 +181,9 @@ class Event:
                             'name': self.name,
                             'group': group,
                             'lines': [None] * (tail_offset - head_offset + 1), # list
-                            'offset': head_offset,
                             'position': position,
-                            'sequence': sequence
+                            'sequence': sequence,
+                            'offset': head_offset
                         }
 
                         lower_sequence = sequence
@@ -222,13 +224,19 @@ class Event:
                 position = self.timeGrid[self.nextSequence]['position']
                 frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ON_STAFF=True)
                 if (len(frameStaffEvents) > 0):
-                    frameStackedKeys = self.stackStaffRulers(['keys'], [], position)
-                    print("\n\n\n")
-                    for staffEvent in frameStaffEvents:
-                        for line in range(len(staffEvent['lines'])):
-                            if (staffEvent['lines'][line] != None):
-                                staffEvent['lines'][line](line, frameStackedKeys)
-                    print("\n\n\n")
+                    frameStackedKeys = self.stackStaffRulers(['keys'], [], position) # list of multiple rulers
+                    print("\n\n")
+                    for staffEvent in frameStaffEvents: # single ruler events
+                        for event_line in range(len(staffEvent['lines'])):
+                            if (staffEvent['lines'][event_line] != None):
+                                staffEvent['line'] = event_line
+                                for frameStakedKeysRuler in frameStackedKeys:
+                                    frameStakedKeysRuler['line'] = event_line + staffEvent['offset'] - frameStakedKeysRuler['offset']
+                                    if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
+                                        frameStakedKeysRuler['line'] = None
+                                    frameStakedKeysRuler['line'] = event_line + staffEvent['offset'] - frameStakedKeysRuler['offset']
+                                staffEvent['lines'][event_line](staffEvent, frameStackedKeys)
+                    print("\n\n")
 
                 print(f"{self.nextSequence}\t{position}")
 
