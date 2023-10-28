@@ -72,7 +72,7 @@ class Event:
                 return staffRuler
         return None
     
-    def filterRulers(self, types = [], names = [], groups = [], positions = [], ENABLED_ONLY = False):
+    def filterRulers(self, types = [], groups = [], names = [], positions = [], ENABLED_ONLY = False):
         filtered_rulers = self.staffRulers
         if (ENABLED_ONLY):
             filtered_rulers = [
@@ -84,15 +84,15 @@ class Event:
                 staffRuler
                     for staffRuler in filtered_rulers if staffRuler['type'] in types
             ]
-        if (len(names) > 0):
-            filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['name'] in names
-            ]
         if (len(groups) > 0):
             filtered_rulers = [
                 staffRuler
                     for staffRuler in filtered_rulers if staffRuler['group'] in groups
+            ]
+        if (len(names) > 0):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['name'] in names
             ]
         if (len(positions) > 0):
             filtered_rulers = [
@@ -101,20 +101,24 @@ class Event:
             ]
         return filtered_rulers
     
-    def enableRuler(self, type, name):
-        ruler = self.getRuler(type, name)
-        if (ruler != None):
-            if (ruler['sequence'] != None):
-                ruler['position'] = self.timeGrid[ruler['sequence']]['position']
-                return True
-        return False
+    def enableRulers(self, types = [], groups = [], names = [], positions = []):
+        rulers = self.filterRulers(types, groups, names, positions)
+        enabled = False
+        if (len(rulers) > 0):
+            for ruler in rulers:
+                if (ruler['sequence'] != None):
+                    ruler['position'] = self.timeGrid[ruler['sequence']]['position']
+                    enabled = True
+        return enabled
 
-    def disableRuler(self, type, name):
-        ruler = self.getRuler(type, name)
-        if (ruler != None):
-            ruler['position'] = None
-            return True
-        return False
+    def disableRulers(self, types = [], groups = [], names = [], positions = []):
+        rulers = self.filterRulers(types, groups, names, positions, ENABLED_ONLY = True)
+        enabled = False
+        if (len(rulers) > 0):
+            for ruler in rulers:
+                ruler['position'] = None
+            enabled = True
+        return enabled
 
     def placeRuler(self, type, name, position, offset = None):
         ruler = self.getRuler(type, name)
@@ -175,7 +179,7 @@ class Event:
                 if (len(groups) == 0):
                     groups = self.staffGroups[type] # REQUIRES self.staffGroups
                 for group in groups:
-                    filtered_rulers = self.filterRulers([type], [], [group], ENABLED_ONLY=True)
+                    filtered_rulers = self.filterRulers([type], [group], ENABLED_ONLY=True)
                     left_rulers = []
                     for filtered_ruler in filtered_rulers:
                         if (filtered_ruler['sequence'] <= sequence):
