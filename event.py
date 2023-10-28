@@ -72,12 +72,17 @@ class Event:
                 return staffRuler
         return None
     
-    def filterRulers(self, types = [], groups = [], names = [], positions = [], ENABLED_ONLY = False):
+    def filterRulers(self, types = [], groups = [], names = [], positions = [], ENABLED_ONLY = False, ON_STAFF = False):
         filtered_rulers = self.staffRulers
         if (ENABLED_ONLY):
             filtered_rulers = [
                 staffRuler
                     for staffRuler in filtered_rulers if staffRuler['position'] not in [None] # Without a given position it's considered disabled!
+            ]
+        if (ON_STAFF):
+            filtered_rulers = [
+                staffRuler
+                    for staffRuler in filtered_rulers if staffRuler['sequence'] not in [None] # Without a given position it's considered disabled!
             ]
         if (len(types) > 0):
             filtered_rulers = [
@@ -102,23 +107,20 @@ class Event:
         return filtered_rulers
     
     def enableRulers(self, types = [], groups = [], names = [], positions = []):
-        rulers = self.filterRulers(types, groups, names, positions)
-        enabled = False
+        rulers = self.filterRulers(types, groups, names, positions, ON_STAFF=True)
         if (len(rulers) > 0):
             for ruler in rulers:
-                if (ruler['sequence'] != None):
-                    ruler['position'] = self.timeGrid[ruler['sequence']]['position']
-                    enabled = True
-        return enabled
+                ruler['position'] = self.timeGrid[ruler['sequence']]['position']
+            return True
+        return False
 
     def disableRulers(self, types = [], groups = [], names = [], positions = []):
         rulers = self.filterRulers(types, groups, names, positions, ENABLED_ONLY = True)
-        enabled = False
         if (len(rulers) > 0):
             for ruler in rulers:
                 ruler['position'] = None
-            enabled = True
-        return enabled
+            return True
+        return False
 
     def placeRuler(self, type, name, position, offset = None):
         ruler = self.getRuler(type, name)
