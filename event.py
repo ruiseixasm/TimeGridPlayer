@@ -3,11 +3,12 @@ def main():
 
 class Event:
 
-    def __init__(self, steps, frames, play_range=[], MASTER=False):
+    def __init__(self, name, steps, frames, play_range=[], MASTER=False):
 
         self.master = MASTER
         self.play_mode = self.master
 
+        self.name = name
         self.steps = steps
         self.frames = frames
 
@@ -26,7 +27,6 @@ class Event:
         # OPTIMIZERS
         self.rulerTypes = ['keys', 'events']
         self.staffGroups = {'keys': [], 'events': []}
-        self.staffLines = 0
 
         self.timeGrid = []
         self.staffRulers = []
@@ -58,6 +58,7 @@ class Event:
                 'name': name,
                 'group': group,
                 'lines': lines, # list
+                'offset': 0,
                 'position': None,
                 'sequence': None
             }
@@ -113,27 +114,18 @@ class Event:
                     if (not existent_staffgroup):
                         self.staffGroups[type].append(ruler['group'])
 
-                ruler['position'] = position
-                ruler['sequence'] = self.getPositionSequence(position)
-                ruler_lines = len(ruler['lines'])
-                if(ruler_lines > self.staffLines): # REQUIRES self.staffLines
-                    self.staffLines = ruler_lines
             elif (ruler['position'] != None): # remove ruler from staff
-                ruler['position'] = position
-                ruler['sequence'] = self.getPositionSequence(position)
 
                 placed_rulers = self.filterRulers(ON_STAFF=True)
-                self.staffLines = 0 # REQUIRES self.staffLines
-                for placed_ruler in placed_rulers:
-                    ruler_lines = len(placed_ruler['lines'])
-                    if(ruler_lines > self.staffLines):
-                        self.staffLines = ruler_lines
                 group_rulers = [
                         staffRuler
                             for staffRuler in placed_rulers if staffRuler['group'] in [ruler['group']]
                 ]
                 if (len(group_rulers) == 0):
                     self.staffGroups[type].remove(ruler['group']) # REQUIRES self.staffGroups
+
+            ruler['position'] = position
+            ruler['sequence'] = self.getPositionSequence(position)
 
     def removeRuler(self, type, name):
         self.placeRuler(type, name, None)
@@ -154,48 +146,62 @@ class Event:
                 print(f"{type}\t{group}")
 
     def stackStaffRulers(self, types = [], groups = [], position = None, sequence = None):
-        if (sequence == None and position != None):
-            sequence = self.getPositionSequence(position)
-        if (len(types) == 0):
-            types = self.rulerTypes
         top_rulers = []
-        for type in types:
-            if (len(groups) == 0):
-                groups = self.staffGroups[type] # REQUIRES self.staffGroups
-            for group in groups:
-                filtered_rulers = self.filterRulers([type], [], [group], ON_STAFF=True)
-                left_rulers = []
-                for filtered_ruler in filtered_rulers:
-                    if (filtered_ruler['sequence'] <= sequence):
-                        left_rulers.append(filtered_ruler)
-                
-                if (len(left_rulers) > 0):
-                    stack_dictionary = left_rulers[0]
-                    for left_ruler in left_rulers:
-                        if (left_ruler['sequence'] > stack_dictionary['sequence']):
-                            stack_dictionary = left_ruler
+        if (sequence != None or position != None):
+            if (position == None or sequence != None):
+                position = self.timeGrid[sequence]['position']
+            if (sequence == None):
+                sequence = self.getPositionSequence(position)
+            if (len(types) == 0):
+                types = self.rulerTypes
+            for type in types:
+                if (len(groups) == 0):
+                    groups = self.staffGroups[type] # REQUIRES self.staffGroups
+                for group in groups:
+                    filtered_rulers = self.filterRulers([type], [], [group], ON_STAFF=True)
+                    left_rulers = []
+                    for filtered_ruler in filtered_rulers:
+                        if (filtered_ruler['sequence'] <= sequence):
+                            left_rulers.append(filtered_ruler)
+                    
+                    if (len(left_rulers) > 0): # left rulers ONLY!
 
-                    stack_dictionary = stack_dictionary.copy() # copy by value
-                    stack_dictionary = stack_dictionary
-
-                    lower_sequence = stack_dictionary['sequence']
-                    while (not (lower_sequence < 0)):
-
-                        lower_rulers = [
-                            staffRuler
-                                for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
-                        ]
+                        head_offset = 0
+                        tail_offset = 0
+                        for left_ruler in left_rulers:
+                            if left_ruler['offset'] < head_offset:
+                                head_offset = left_ruler['offset']
+                            if (len(left_ruler['lines']) + left_ruler['offset'] > tail_offset):
+                                tail_offset = len(left_ruler['lines']) - 1 + left_ruler['offset']
                         
-                        for lower_ruler in lower_rulers:
-                            for i in range(len(lower_ruler['lines'])):
-                                if (not (i < len(stack_dictionary['lines']))):
-                                    stack_dictionary['lines'].append(lower_ruler['lines'][i])
-                                elif (stack_dictionary['lines'][i] == None):
-                                    stack_dictionary['lines'][i] = lower_ruler['lines'][i]
+                        stackedRuler = {
+                            'type': type,
+                            'name': self.name,
+                            'group': group,
+                            'lines': [None] * (tail_offset - head_offset + 1), # list
+                            'offset': head_offset,
+                            'position': position,
+                            'sequence': sequence
+                        }
 
-                        lower_sequence -= 1
+                        lower_sequence = sequence
 
-                    top_rulers.append(stack_dictionary)
+                        while (not (lower_sequence < 0)):
+
+                            lower_rulers = [
+                                staffRuler
+                                    for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
+                            ]
+                            
+                            for lower_ruler in lower_rulers:
+                                for i in range(len(lower_ruler['lines'])):
+                                    line = i + lower_ruler['offset']
+                                    if (stackedRuler['lines'][line] == None):
+                                        stackedRuler['lines'][line] = lower_ruler['lines'][i]
+
+                            lower_sequence -= 1
+
+                        top_rulers.append(stackedRuler)
         return top_rulers
     
     def play(self):
@@ -246,13 +252,13 @@ class Event:
 
 class Master(Event):
     
-    def __init__(self, steps, frames):
-        super().__init__(steps, frames, MASTER=True)
+    def __init__(self, name, steps, frames):
+        super().__init__(name, steps, frames, MASTER=True)
 
 class Note(Event):
     
-    def __init__(self, steps, frames):
-        super().__init__(steps, frames)
+    def __init__(self, name, steps, frames):
+        super().__init__(name, steps, frames)
 
     def play(self, line, staffKeys):
         self.note = staffKeys[0]['lines'][line]
@@ -266,8 +272,8 @@ class Note(Event):
 
 class Trigger(Event):
     
-    def __init__(self):
-        super().__init__(0, 0)
+    def __init__(self, name):
+        super().__init__(name, 0, 0)
 
     def play(self, staffKeys):
         ...

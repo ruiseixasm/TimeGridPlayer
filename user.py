@@ -1,7 +1,7 @@
 import clock
 import event
 
-master = event.Master(10, 6)
+master = event.Master("master", 10, 6)
 
 master.addRuler("keys", "first", "generic", [None, 'c#', None, None, 'e', None])
 master.addRuler("keys", "second", "generic", ['c', 'c#', 'd', None, 'e', None])
@@ -45,7 +45,7 @@ master.listStaffGroups()
 print(master.filterRulers(["events"]))
 
 
-note = event.Note(1, 6)
+note = event.Note("note", 1, 6)
 
 master_clock = clock.Clock(60, 6)
 master.connectClock(master_clock)
