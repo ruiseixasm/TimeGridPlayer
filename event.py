@@ -72,12 +72,12 @@ class Event:
                 return staffRuler
         return None
     
-    def filterRulers(self, types = [], names = [], groups = [], positions = [], ON_STAFF = False):
+    def filterRulers(self, types = [], names = [], groups = [], positions = [], ENABLED_ONLY = False):
         filtered_rulers = self.staffRulers
-        if (ON_STAFF):
+        if (ENABLED_ONLY):
             filtered_rulers = [
                 staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['position'] not in [None]
+                    for staffRuler in filtered_rulers if staffRuler['position'] not in [None] # Without a given position it's considered disabled!
             ]
         if (len(types) > 0):
             filtered_rulers = [
@@ -100,6 +100,21 @@ class Event:
                     for staffRuler in filtered_rulers if staffRuler['position'] in positions
             ]
         return filtered_rulers
+    
+    def enableRuler(self, type, name):
+        ruler = self.getRuler(type, name)
+        if (ruler != None):
+            if (ruler['sequence'] != None):
+                ruler['position'] = self.timeGrid[ruler['sequence']]['position']
+                return True
+        return False
+
+    def disableRuler(self, type, name):
+        ruler = self.getRuler(type, name)
+        if (ruler != None):
+            ruler['position'] = None
+            return True
+        return False
 
     def placeRuler(self, type, name, position, offset = None):
         ruler = self.getRuler(type, name)
@@ -116,7 +131,7 @@ class Event:
 
             elif (ruler['position'] != None): # remove ruler from staff
 
-                placed_rulers = self.filterRulers(ON_STAFF=True)
+                placed_rulers = self.filterRulers(ENABLED_ONLY=True)
                 group_rulers = [
                         staffRuler
                             for staffRuler in placed_rulers if staffRuler['group'] in [ruler['group']]
@@ -160,7 +175,7 @@ class Event:
                 if (len(groups) == 0):
                     groups = self.staffGroups[type] # REQUIRES self.staffGroups
                 for group in groups:
-                    filtered_rulers = self.filterRulers([type], [], [group], ON_STAFF=True)
+                    filtered_rulers = self.filterRulers([type], [], [group], ENABLED_ONLY=True)
                     left_rulers = []
                     for filtered_ruler in filtered_rulers:
                         if (filtered_ruler['sequence'] <= sequence):
@@ -222,7 +237,7 @@ class Event:
             if (self.nextSequence <= self.play_range_sequence[1]):
 
                 position = self.timeGrid[self.nextSequence]['position']
-                frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ON_STAFF=True)
+                frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ENABLED_ONLY=True)
                 if (len(frameStaffEvents) > 0):
                     frameStackedKeys = self.stackStaffRulers(['keys'], [], position) # list of multiple rulers
                     print("\n\n")
