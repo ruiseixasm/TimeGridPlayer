@@ -53,28 +53,7 @@ class Event:
             timeGridFrame = [ timeFrame for timeFrame in timeGridFrame if timeFrame['frame'] in [step_frame[1]] ]
             return timeGridFrame[0]['sequence']
         return None
-
-    def addRuler(self, type, name, group, lines):
-        if (type in self.rulerTypes and self.getRuler(type, name) == None):
-            newRuler = {
-                'type': type,
-                'name': name,
-                'group': group,
-                'lines': lines, # list
-                'position': None,
-                'sequence': None,
-                'offset': 0
-            }
-            self.staffRulers.append(newRuler)
-            return True
-        return False
-
-    def getRuler(self, type, name):
-        for staffRuler in self.staffRulers:
-            if staffRuler['name'] == name and staffRuler['type'] == type:
-                return staffRuler
-        return None
-    
+ 
     def filterRulers(self, types = [], groups = [], names = [], positions = [], ENABLED_ONLY = False, DISABLED_ONLY=False, ON_STAFF = False):
         filtered_rulers = self.staffRulers
         if (ENABLED_ONLY):
@@ -120,8 +99,8 @@ class Event:
             for ruler in rulers:
                 ruler['position'] = self.timeGrid[ruler['sequence']]['position']
                 self.timeGrid[ruler['sequence']]['enabled_rulers'][ruler['type']] += 1
-            return True
-        return False
+        return rulers
+
 
     def disableRulers(self, types = [], groups = [], names = [], positions = []):
         rulers = self.filterRulers(types, groups, names, positions, ENABLED_ONLY = True)
@@ -130,8 +109,7 @@ class Event:
                 ruler['position'] = None
                 if (ruler['sequence'] != None): # avoids compiler error
                     self.timeGrid[ruler['sequence']]['enabled_rulers'][ruler['type']] -= 1
-            return True
-        return False
+        return rulers
 
     def placeRuler(self, type, name, position, offset = None):
         ruler = self.getRuler(type, name)
@@ -166,16 +144,40 @@ class Event:
             ruler['sequence'] = sequence
             if (offset != None):
                 ruler['offset'] = offset
+        return ruler
 
     def removeRuler(self, type, name):
         self.placeRuler(type, name, None)
 
-    def deleteRuler(self, type, name):
-        for i in range(len(self.staffRulers)):
-            if self.staffRulers[i]['name'] == name and self.staffRulers[i]['type'] == type:
-                del(self.staffRulers[i])
-                break
+    def deleteRulers(self, types = [], groups = [], names = []):
+        rulers = self.disableRulers(type, types, groups, names) # makes sure ruler gets disabled first
+        for ruler in rulers:
+            # Using list comprehension
+            self.rulerTypes[ruler['type']] = [
+                i for i in self.rulerTypes[ruler['type']] if not (self.rulerTypes[ruler['type']]['name'] == ruler['name'])
+            ]
     
+    def addRuler(self, type, group, name, lines):
+        if (type in self.rulerTypes and self.getRuler(type, name) == None):
+            newRuler = {
+                'type': type,
+                'group': group,
+                'name': name,
+                'lines': lines, # list
+                'position': None,
+                'sequence': None,
+                'offset': 0
+            }
+            self.staffRulers.append(newRuler)
+            return True
+        return False
+
+    def getRuler(self, type, name):
+        for staffRuler in self.staffRulers:
+            if staffRuler['name'] == name and staffRuler['type'] == type:
+                return staffRuler
+        return None
+   
     def listRulers(self):
         for staffRuler in self.staffRulers:
             print(staffRuler)
@@ -260,8 +262,9 @@ class Event:
             if (self.nextSequence <= self.play_range_sequence[1]):
 
                 position = self.timeGrid[self.nextSequence]['position']
+                total_key_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['keys']
                 total_event_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['events']
-                print(f"{self.nextSequence}\t{position}\t{total_event_rulers}")
+                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_event_rulers}")
 
                 if (total_event_rulers > 0):
                     frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ENABLED_ONLY=True)
@@ -318,15 +321,11 @@ class Trigger(Event):
     
     def __init__(self, name):
         super().__init__(name, 0, 0)
+        super().addRuler("events", "trigger", name, [self.play])
+        super().placeRuler("events", name, "0.0")
 
     def play(self, staffKeys):
-        ...
-
-    def on(self):
-        ...
-
-    def off(self):
-        ...
+        print("TRIGGERED")
 
 if __name__ == "__main__":
     main()
