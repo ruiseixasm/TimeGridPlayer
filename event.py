@@ -213,7 +213,7 @@ class Event:
                     groups = self.rulerGroups[type] # REQUIRES self.rulerGroups
                 for group in groups:
                     filtered_rulers = self.filterRulers([type], [group], ENABLED_ONLY=True)
-                    
+
                     # Using list comprehension
                     left_rulers = [
                         ruler for ruler in filtered_rulers if not (ruler['sequence'] > sequence)
@@ -243,16 +243,21 @@ class Event:
 
                         while (not (lower_sequence < 0)):
 
-                            lower_rulers = [
-                                staffRuler
-                                    for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
-                            ]
-                            
-                            for lower_ruler in lower_rulers:
-                                for i in range(len(lower_ruler['lines'])):
-                                    line = i + lower_ruler['offset']
-                                    if (stackedRuler['lines'][line] == None):
-                                        stackedRuler['lines'][line] = lower_ruler['lines'][i]
+                            total_key_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
+                            total_event_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
+
+                            if (total_key_rulers > 0):
+
+                                lower_rulers = [
+                                    staffRuler
+                                        for staffRuler in left_rulers if staffRuler['sequence'] in [lower_sequence]
+                                ]
+                                
+                                for lower_ruler in lower_rulers:
+                                    for i in range(len(lower_ruler['lines'])):
+                                        line = i + lower_ruler['offset']
+                                        if (stackedRuler['lines'][line] == None):
+                                            stackedRuler['lines'][line] = lower_ruler['lines'][i]
 
                             lower_sequence -= 1
 
