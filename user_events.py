@@ -11,9 +11,9 @@ master.connectClock(master_clock)
 note.connectClock(master_clock)
 trigger.connectClock(master_clock)
 
-master.addRuler("actions", "triggers", trigger.name, [trigger.actionPlay])
-master.addRuler("actions", "notes", note.name, [note.actionPlay])
-master.addRuler("actions", "notes", note.name + "_2", [note.actionPlay])
+master.addRuler("actions", "triggers", trigger.name, [trigger.actionExternalTrigger])
+master.addRuler("actions", "notes", note.name, [note.actionExternalTrigger])
+master.addRuler("actions", "notes", note.name + "_2", [note.actionExternalTrigger])
 
 master.placeRuler('actions', trigger.name,"1.1")
 master.placeRuler('actions', note.name,"2.1")
@@ -53,7 +53,7 @@ master.placeRuler("keys", "sixth", "2.0")
 
 
 
-master.actionPlay()
+master.actionExternalTrigger()
 
 
 

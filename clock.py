@@ -10,8 +10,11 @@ class Clock(): # Subject
         return 60.0 / steps_minute / frames_step
     
     def setClock(self, steps_minute, frames_step):
-        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False, 'pulse_counter': 0}
+        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False, 'sequence': 0}
         self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
+
+    def getClockTempo(self):
+        return self.tempo
 
     def notify(self):
         """Alert the observers"""
@@ -51,9 +54,9 @@ class Clock(): # Subject
 
         startTime = None
         nextTime = 0
-        frame = 0
+        sequence = 0
         while (len(self._observers) > 0):
-            if (frame < first_sequence or (last_sequence != None and frame > last_sequence)):
+            if (sequence < first_sequence or (last_sequence != None and sequence > last_sequence)):
                 self.tempo['fast_forward'] = True
             else:
                 self.tempo['fast_forward'] = False
@@ -62,12 +65,12 @@ class Clock(): # Subject
                     nextTime = startTime
 
             if nextTime < time.time() or self.tempo['fast_forward'] == True:
-                frame += 1
-                self.tempo['pulse_counter'] = frame
+                self.tempo['sequence'] = sequence
+                sequence += 1
                 self.notify()
                 if (startTime != None):
-                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + frame * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
-                    nextTime = startTime + (frame - first_sequence) * self.frame_duration
+                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + sequence * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
+                    nextTime = startTime + (sequence - first_sequence) * self.frame_duration
 
 
 # MIDI beat clock defines the following real-time messages:
