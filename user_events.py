@@ -5,7 +5,7 @@ master_clock = clock.Clock(80, 6)
 
 master = action.Master("master", 10, 4)
 trigger = action.Trigger("trigger")
-note = action.Note("note", 2, 4, ["1.0"])
+note = action.Note("note", 2, 4, [None, "1.0"])
 
 master.connectClock(master_clock)
 note.connectClock(master_clock)
@@ -57,5 +57,6 @@ master.actionPlay()
 
 
 
+#master_clock.start()
 
-master_clock.start()
+master_clock.start(4, ["4.0", "6.0"])

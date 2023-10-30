@@ -4,7 +4,7 @@ class Clock(): # Subject
     def __init__(self, steps_minute, frames_step):
         """create an empty observer list"""
         self._observers = []
-        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step}
+        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False}
         self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
 
     def getFrameDuration(self, steps_minute, frames_step): # in seconds
@@ -32,16 +32,38 @@ class Clock(): # Subject
         """Remove all observers from the observer list"""
         self._observers = []
 
-    def start(self):
-        startTime = time.time() # in seconds
-        nextTime = startTime
+
+    def start(self, frames_step = None, clock_range = []):
+
+        first_sequence = 0
+        last_sequence = None
+
+        if (frames_step != None and len(clock_range) == 2):
+            if (clock_range[0] != None):
+                step_frame = clock_range[0].split('.')
+                first_sequence = int(step_frame[0]) * frames_step + int(step_frame[1])
+            if (clock_range[1] != None):
+                step_frame = clock_range[1].split('.')
+                last_sequence = int(step_frame[0]) * frames_step + int(step_frame[1]) - 1 # Excludes last sequence
+
+        startTime = None
+        nextTime = 0
         frame = 0
         while (len(self._observers) > 0):
-            if nextTime < time.time():
+            if (frame < first_sequence or (last_sequence != None and frame > last_sequence)):
+                self.tempo['fast_forward'] = True
+            else:
+                self.tempo['fast_forward'] = False
+                if (startTime == None):
+                    startTime = time.time() # in seconds
+                    nextTime = startTime
+
+            if nextTime < time.time() or self.tempo['fast_forward'] == True:
                 self.notify()
                 frame += 1
-                #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + frame * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
-                nextTime = startTime + frame * self.frame_duration
+                if (startTime != None):
+                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + frame * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
+                    nextTime = startTime + (frame - first_sequence) * self.frame_duration
 
 
 # MIDI beat clock defines the following real-time messages:

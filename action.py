@@ -3,14 +3,14 @@ def main():
 
 class Action:
 
-    def __init__(self, name, steps, frames, play_range=[], MASTER=False):
+    def __init__(self, name, steps, frames_step, play_range=[], MASTER=False):
 
         self.master = MASTER
         self.play_mode = self.master
 
         self.name = name
         self.steps = max(1, steps)
-        self.frames = max(1, frames)
+        self.frames_step = max(1, frames_step)
 
         # OPTIMIZERS
         self.rulerTypes = ['keys', 'actions']
@@ -19,13 +19,13 @@ class Action:
         self.timeGrid = []
         self.staffRulers = []
 
-        for i in range(self.steps*self.frames):
+        for i in range(self.steps*self.frames_step):
 
             frameData = {
                 'sequence': i,
                 'position': None,
-                'step': int(i/self.frames),
-                'frame': int(i % self.frames),
+                'step': int(i/self.frames_step),
+                'frame': int(i % self.frames_step),
                 'enabled_rulers': {'keys': 0, 'actions': 0}
             }
             frameData['position'] = str(frameData['step']) + "." + str(frameData['frame'])
@@ -33,24 +33,20 @@ class Action:
             self.timeGrid.append(frameData)
 
         # SET RANGES
-        self.play_range_sequences = [0, self.steps*self.frames - 1]
-        if (len(play_range) == 1):
-            last_sequence = self.getPositionSequence(play_range[0])
-            if (last_sequence != None):
-                self.play_range_sequences[1] = last_sequence
-        elif (len(play_range) > 1):
+        self.play_range_sequences = [0, self.steps*self.frames_step - 1]
+
+        if (len(play_range) == 2):
+
             if (play_range[0] != None):
-                first_sequence = self.getPositionSequence(play_range[0])
-                if (first_sequence != None):
-                    self.play_range_sequences[0] = first_sequence
-            if (play_range[1] != None): # NEEDS TO BE MAJORATED TO THE RESPECTIVE FRAME (-1)
-                last_sequence = self.getPositionSequence(play_range[0])
-                if (last_sequence != None):
-                    self.play_range_sequences[1] = last_sequence
-                
-        start_position = self.timeGrid[self.play_range_sequences[0]]['position']
-        finish_position = self.timeGrid[self.play_range_sequences[1]]['position']
-        self.play_range_positions = [start_position, finish_position]
+                step_frame = play_range[0].split('.')
+                self.play_range_sequences[0] = min(self.play_range_sequences[1], int(step_frame[0]) * frames_step + int(step_frame[1]))
+            if (play_range[1] != None):
+                step_frame = play_range[1].split('.')
+                self.play_range_sequences[1] = min(self.play_range_sequences[1], int(step_frame[0]) * frames_step + int(step_frame[1]) - 1) # Excludes last sequence
+
+        first_position = self.timeGrid[self.play_range_sequences[0]]['position']
+        last_position = self.timeGrid[self.play_range_sequences[1]]['position']
+        self.play_range_positions = [first_position, last_position]
 
         self.nextSequence = self.play_range_sequences[0]
             
@@ -77,7 +73,7 @@ class Action:
                 position = self.timeGrid[self.nextSequence]['position']
                 total_key_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['keys']
                 total_action_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['actions']
-                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}")
+                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}")
 
                 if (total_action_rulers > 0):
                     frameStaffActions = self.filterRulers(types=["actions"], positions=[position], ENABLED_ONLY=True)
@@ -348,14 +344,14 @@ class Action:
 
         rulers = self.filterRulers(types = [type], groups = [group], names = [name], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
-        lower_slack = self.steps*self.frames - 1
+        lower_slack = self.steps*self.frames_step - 1
         upper_slack = lower_slack
 
         modulus_position = modulus_reference[0]
         for rule in rulers:
             if (modulus_position % modulus_selector[0] == 0):
                 lower_slack = min(lower_slack, rule['sequence'])
-                upper_slack = min(upper_slack, self.steps*self.frames - 1 - rule['sequence'])
+                upper_slack = min(upper_slack, self.steps*self.frames_step - 1 - rule['sequence'])
             modulus_position += 1
 
         increments[0] = max(-lower_slack, increments[0]) # Horizontal sliding can't slide out of the grid
@@ -445,14 +441,14 @@ class Note(Action):
     
     def __init__(self, name, steps, frames, play_range=[]):
         super().__init__(name, steps, frames, play_range) # not self init
-        start_position = self.play_range_positions[0]
-        finish_position = self.play_range_positions[1]
+        first_position = self.play_range_positions[0]
+        last_position = self.play_range_positions[1]
 
         if (self.addRuler("actions", "notes", "note_on", [self.actionOn])):
-            self.placeRuler('actions', "note_on", start_position)
+            self.placeRuler('actions', "note_on", first_position)
 
         if (self.addRuler("actions", "notes", "note_off", [self.actionOff])):
-            self.placeRuler('actions', "note_off", finish_position)
+            self.placeRuler('actions', "note_off", last_position)
 
     ### ACTIONS ###
 
