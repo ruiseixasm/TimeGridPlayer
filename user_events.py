@@ -1,7 +1,7 @@
 import clock
 import action
 
-master_clock = clock.Clock(80, 6)
+master_clock = clock.Clock(80, 4)
 
 master = action.Master("master", 10, 4)
 trigger = action.Trigger("trigger")
@@ -59,4 +59,4 @@ master.actionPlay()
 
 #master_clock.start()
 
-master_clock.start(4, ["4.0", "6.0"])
+master_clock.start(["4.0", "6.0"])

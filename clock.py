@@ -4,11 +4,14 @@ class Clock(): # Subject
     def __init__(self, steps_minute, frames_step):
         """create an empty observer list"""
         self._observers = []
-        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False}
-        self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
+        self.setClock(steps_minute, frames_step)
 
     def getFrameDuration(self, steps_minute, frames_step): # in seconds
         return 60.0 / steps_minute / frames_step
+    
+    def setClock(self, steps_minute, frames_step):
+        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False}
+        self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
 
     def notify(self):
         """Alert the observers"""
@@ -33,18 +36,18 @@ class Clock(): # Subject
         self._observers = []
 
 
-    def start(self, frames_step = None, clock_range = []):
+    def start(self, clock_range = []):
 
         first_sequence = 0
         last_sequence = None
 
-        if (frames_step != None and len(clock_range) == 2):
+        if (len(clock_range) == 2):
             if (clock_range[0] != None):
                 step_frame = clock_range[0].split('.')
-                first_sequence = int(step_frame[0]) * frames_step + int(step_frame[1])
+                first_sequence = int(step_frame[0]) * self.tempo['frames_step'] + int(step_frame[1])
             if (clock_range[1] != None):
                 step_frame = clock_range[1].split('.')
-                last_sequence = int(step_frame[0]) * frames_step + int(step_frame[1]) - 1 # Excludes last sequence
+                last_sequence = int(step_frame[0]) * self.tempo['frames_step'] + int(step_frame[1]) - 1 # Excludes last sequence
 
         startTime = None
         nextTime = 0
