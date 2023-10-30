@@ -73,7 +73,7 @@ class Action:
                 position = self.timeGrid[self.nextSequence]['position']
                 total_key_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['keys']
                 total_action_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['actions']
-                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}")
+                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulses_counter']}")
 
                 if (total_action_rulers > 0):
                     frameStaffActions = self.filterRulers(types=["actions"], positions=[position], ENABLED_ONLY=True)

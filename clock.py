@@ -10,7 +10,7 @@ class Clock(): # Subject
         return 60.0 / steps_minute / frames_step
     
     def setClock(self, steps_minute, frames_step):
-        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False}
+        self.tempo = {'pulses_counter': 0, 'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False}
         self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
 
     def notify(self):
@@ -62,8 +62,9 @@ class Clock(): # Subject
                     nextTime = startTime
 
             if nextTime < time.time() or self.tempo['fast_forward'] == True:
-                self.notify()
                 frame += 1
+                self.tempo['pulses_counter'] = frame
+                self.notify()
                 if (startTime != None):
                     #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + frame * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
                     nextTime = startTime + (frame - first_sequence) * self.frame_duration
