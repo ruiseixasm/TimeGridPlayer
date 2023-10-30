@@ -87,7 +87,7 @@ class Action:
                                     frameStakedKeysRuler['line'] = action_line + staffAction['offset'] - frameStakedKeysRuler['offset']
                                     if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
                                         frameStakedKeysRuler['line'] = None
-                                staffAction['lines'][action_line](staffAction, stackedKeys)
+                                staffAction['lines'][action_line](staffAction, stackedKeys, tempo)
                     print("")
 
                 self.nextSequence += 1
@@ -428,7 +428,7 @@ class Action:
 
     ### ACTIONS ###
 
-    def actionPlay(self, staffAction = {}, stackedKeys = []):
+    def actionPlay(self, staffAction = {}, stackedKeys = [], tempo = {}):
         self.play_mode = True
 
 
@@ -452,18 +452,19 @@ class Note(Action):
 
     ### ACTIONS ###
 
-    def actionPlay(self, staffAction = {}, stackedKeys = []):
+    def actionPlay(self, staffAction = {}, stackedKeys = [], tempo = {}):
         if (len(stackedKeys) > 0):
             given_lines = stackedKeys[0]['lines']
             key_line = stackedKeys[0]['line']
             key_value = given_lines[key_line]
             self.note = key_value # may need tranlation!
-            self.play_mode = True
+            if (not tempo['fast_forward']):
+                self.play_mode = True
 
-    def actionOn(self, staffAction = {}, stackedKeys = []):
+    def actionOn(self, staffAction = {}, stackedKeys = [], tempo = {}):
         print(f"note ON:\t{self.note}")
 
-    def actionOff(self, staffAction = {}, stackedKeys = []):
+    def actionOff(self, staffAction = {}, stackedKeys = [], tempo = {}):
         print(f"note OFF:\t{self.note}")
 
 class Trigger(Action):
@@ -474,7 +475,7 @@ class Trigger(Action):
 
     ### ACTIONS ###
 
-    def actionPlay(self, staffAction = {}, stackedKeys = []):
+    def actionPlay(self, staffAction = {}, stackedKeys = [], tempo = {}):
         print("TRIGGERED")
 
 if __name__ == "__main__":
