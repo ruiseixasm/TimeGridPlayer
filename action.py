@@ -52,6 +52,7 @@ class Action:
 
         self.clock = None
         self.clocked_actions = []
+        self.next_clocked_sequence = -1
             
     def __str__(self):
         finalString = ""
@@ -74,6 +75,10 @@ class Action:
             clocked_action['source'] = "clock" # to know the source of the trigger
             clocked_action['stack_id'] = len(self.clocked_actions)
             self.clocked_actions.append(clocked_action)
+            if (not self.next_clocked_sequence < clock_tempo['sequence']):
+                self.next_clocked_sequence = min(self.next_clocked_sequence, clocked_action['sequence'])
+            else:
+                self.next_clocked_sequence = clocked_action['sequence']
 
     def pulse(self, tempo):
         #print(f"CALLED:\t{self.play_mode}")
@@ -86,7 +91,7 @@ class Action:
                 position = self.timeGrid[self.nextSequence]['position']
                 total_key_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['keys']
                 total_action_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['actions']
-                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['sequence']}")
+                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['sequence']}\t{self.next_clocked_sequence}")
 
                 if (total_action_rulers > 0):
                     frameStaffActions = self.filterRulers(types=["actions"], positions=[position], ENABLED_ONLY=True)
@@ -113,7 +118,7 @@ class Action:
                 self.nextSequence = self.play_range_sequences[0]
 
         # clock triggers staked to be called
-        if (len(self.clocked_actions) > 0):
+        if (self.next_clocked_sequence == tempo['sequence']):
             clockedActions = [
                 clockedAction for clockedAction in self.clocked_actions if clockedAction['sequence'] == tempo['sequence']
             ].copy() # To enable deletion of the original list while looping
