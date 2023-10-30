@@ -1,22 +1,22 @@
 import clock
-import event
+import action
 
 master_clock = clock.Clock(80, 6)
 
-master = event.Master("master", 10, 4)
-trigger = event.Trigger("trigger")
-note = event.Note("note", 2, 4, ["1.0"])
+master = action.Master("master", 10, 4)
+trigger = action.Trigger("trigger")
+note = action.Note("note", 2, 4, ["1.0"])
 
 master.connectClock(master_clock)
 note.connectClock(master_clock)
 trigger.connectClock(master_clock)
 
-master.addRuler("events", "triggers", trigger.name, [trigger.play])
-master.addRuler("events", "notes", note.name, [note.play])
+master.addRuler("actions", "triggers", trigger.name, [trigger.play])
+master.addRuler("actions", "notes", note.name, [note.play])
 
-master.placeRuler('events', trigger.name,"1.1")
-master.placeRuler('events', note.name,"2.1")
-print(master.filterRulers(["events"]))
+master.placeRuler('actions', trigger.name,"1.1")
+master.placeRuler('actions', note.name,"2.1")
+print(master.filterRulers(["actions"]))
 
 
 

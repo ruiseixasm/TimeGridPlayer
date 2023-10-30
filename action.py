@@ -1,7 +1,7 @@
 def main():
     print("Hello!")
 
-class Event:
+class Action:
 
     def __init__(self, name, steps, frames, play_range=[], MASTER=False):
 
@@ -13,12 +13,11 @@ class Event:
         self.frames = max(1, frames)
 
         # OPTIMIZERS
-        self.rulerTypes = ['keys', 'events']
-        self.rulerGroups = {'keys': [], 'events': []}
+        self.rulerTypes = ['keys', 'actions']
+        self.rulerGroups = {'keys': [], 'actions': []}
 
         self.timeGrid = []
         self.staffRulers = []
-        self.staffEvents = []
 
         for i in range(self.steps*self.frames):
 
@@ -27,7 +26,7 @@ class Event:
                 'position': None,
                 'step': int(i/self.frames),
                 'frame': int(i % self.frames),
-                'enabled_rulers': {'keys': 0, 'events': 0}
+                'enabled_rulers': {'keys': 0, 'actions': 0}
             }
             frameData['position'] = str(frameData['step']) + "." + str(frameData['frame'])
 
@@ -244,7 +243,7 @@ class Event:
                         while (not (lower_sequence < 0)):
 
                             total_key_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
-                            total_event_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
+                            total_action_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
 
                             if (total_key_rulers > 0):
 
@@ -281,22 +280,22 @@ class Event:
 
                 position = self.timeGrid[self.nextSequence]['position']
                 total_key_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['keys']
-                total_event_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['events']
-                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_event_rulers}")
+                total_action_rulers = self.timeGrid[self.nextSequence]['enabled_rulers']['actions']
+                print(f"{self.nextSequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}")
 
-                if (total_event_rulers > 0):
-                    frameStaffEvents = self.filterRulers(types=["events"], positions=[position], ENABLED_ONLY=True)
+                if (total_action_rulers > 0):
+                    frameStaffActions = self.filterRulers(types=["actions"], positions=[position], ENABLED_ONLY=True)
                     frameStackedKeys = self.stackStaffRulers(['keys'], [], position) # list of multiple rulers
                     print("")
-                    for staffEvent in frameStaffEvents: # single ruler events
-                        for event_line in range(len(staffEvent['lines'])):
-                            if (staffEvent['lines'][event_line] != None):
-                                staffEvent['line'] = event_line
+                    for staffAction in frameStaffActions: # single ruler actions
+                        for action_line in range(len(staffAction['lines'])):
+                            if (staffAction['lines'][action_line] != None):
+                                staffAction['line'] = action_line
                                 for frameStakedKeysRuler in frameStackedKeys:
-                                    frameStakedKeysRuler['line'] = event_line + staffEvent['offset'] - frameStakedKeysRuler['offset']
+                                    frameStakedKeysRuler['line'] = action_line + staffAction['offset'] - frameStakedKeysRuler['offset']
                                     if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
                                         frameStakedKeysRuler['line'] = None
-                                staffEvent['lines'][event_line](staffEvent, frameStackedKeys)
+                                staffAction['lines'][action_line](staffAction, frameStackedKeys)
                     print("")
 
                 self.nextSequence += 1
@@ -315,25 +314,25 @@ class Event:
         return finalString
     
 
-class Master(Event):
+class Master(Action):
     
     def __init__(self, name, steps, frames):
         super().__init__(name, steps, frames, MASTER=True) # not self init
 
-class Note(Event):
+class Note(Action):
     
     def __init__(self, name, steps, frames, play_range=[]):
         super().__init__(name, steps, frames, play_range) # not self init
         start_position = self.play_range_positions[0]
         finish_position = self.play_range_positions[1]
 
-        if (self.addRuler("events", "notes", "note_on", [self.on])):
-            self.placeRuler('events', "note_on", start_position)
+        if (self.addRuler("actions", "notes", "note_on", [self.on])):
+            self.placeRuler('actions', "note_on", start_position)
 
-        if (self.addRuler("events", "notes", "note_off", [self.off])):
-            self.placeRuler('events', "note_off", finish_position)
+        if (self.addRuler("actions", "notes", "note_off", [self.off])):
+            self.placeRuler('actions', "note_off", finish_position)
 
-    def play(self, staffEvent, frameStackedKeys):
+    def play(self, staffAction, frameStackedKeys):
         if (len(frameStackedKeys) > 0):
             given_lines = frameStackedKeys[0]['lines']
             key_line = frameStackedKeys[0]['line']
@@ -341,19 +340,19 @@ class Note(Event):
             self.note = key_value # may need tranlation!
             self.play_mode = True
 
-    def on(self, staffEvent, frameStackedKeys):
+    def on(self, staffAction, frameStackedKeys):
         print(f"note ON:\t{self.note}")
 
-    def off(self, staffEvent, frameStackedKeys):
+    def off(self, staffAction, frameStackedKeys):
         print(f"note OFF:\t{self.note}")
 
-class Trigger(Event):
+class Trigger(Action):
     
     def __init__(self, name):
         super().__init__(name, 0, 0) # not self init
-        self.addRuler("events", "triggers", name, [self.play])
+        self.addRuler("actions", "triggers", name, [self.play])
 
-    def play(self, staffEvent, frameStackedKeys):
+    def play(self, staffAction, frameStackedKeys):
         print("TRIGGERED")
 
 if __name__ == "__main__":
