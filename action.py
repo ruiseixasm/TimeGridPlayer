@@ -66,7 +66,7 @@ class Action:
         self.clock = clock
         self.clock.attach(self)
 
-    def addClockedAction(self, clocked_action = {'duration': None, 'action': None}):
+    def addClockedAction(self, clocked_action = {'triggered_action': None, 'staff_keys': None, 'duration': None, 'action': None}):
         if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
             step_frame_duration = clocked_action['duration'].split('.')
             clock_tempo = self.clock.getClockTempo()
@@ -123,8 +123,13 @@ class Action:
                 clockedAction for clockedAction in self.clocked_actions if clockedAction['sequence'] == tempo['sequence']
             ].copy() # To enable deletion of the original list while looping
             for clockedAction in clockedActions:
-                clockedAction['action'](clockedAction, [], tempo) # WHERE ACTION IS TRIGGERED
+                clockedAction['action'](clockedAction, clockedAction['staff_keys'], tempo) # WHERE ACTION IS TRIGGERED
+            for clockedAction in clockedActions:
                 del(self.clocked_actions[clockedAction['stack_id']])
+            if (len(self.clocked_actions) > 0):
+                self.next_clocked_sequence = self.clocked_actions[0]['sequence']
+                for clocked_action in self.clocked_actions:
+                    self.next_clocked_sequence = min(self.next_clocked_sequence, clocked_action['sequence'])
 
 
     def getPositionSequence(self, position):
@@ -459,6 +464,8 @@ class Action:
     def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
         self.play_mode = True
 
+    def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+        pass
 
 class Master(Action):
     
@@ -486,11 +493,18 @@ class Note(Action):
                 self.play_mode = True
 
     def actionLocalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
-        if (triggered_action['source'] == "staff"):
-            print(f"note ON:\t{self.note}")
-            self.addClockedAction(clocked_action = {'duration': "1.0", 'action': self.actionLocalTrigger})
+        if (len(stacked_staff_keys) > 0):
+            given_lines = stacked_staff_keys[0]['lines']
+            key_line = stacked_staff_keys[0]['line']
+            key_value = given_lines[key_line]
         else:
-            print(f"note OFF:\t{self.note}")
+            key_value = self.note # may need tranlation!
+        if (triggered_action['source'] == "staff"):
+            print(f"note ON:\t{key_value}")
+            self.addClockedAction(clocked_action = {'triggered_action': triggered_action.copy(), 'staff_keys': stacked_staff_keys.copy(),
+                                                    'duration': "1.0", 'action': self.actionLocalTrigger})
+        else:
+            print(f"note OFF:\t{key_value}")
 
 class Trigger(Action):
     

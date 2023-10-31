@@ -7,10 +7,6 @@ master = action.Master("master", 10, 4)
 trigger = action.Trigger("trigger")
 note = action.Note("note", 2, 4, [None, "1.0"])
 
-master.connectClock(master_clock)
-note.connectClock(master_clock)
-trigger.connectClock(master_clock)
-
 master.addRuler("actions", "triggers", trigger.name, [trigger.actionExternalTrigger])
 master.addRuler("actions", "notes", note.name, [note.actionExternalTrigger])
 master.addRuler("actions", "notes", note.name + "_2", [note.actionExternalTrigger])
@@ -53,10 +49,14 @@ master.placeRuler("keys", "sixth", "2.0")
 
 
 
+master.connectClock(master_clock)
+note.connectClock(master_clock)
+trigger.connectClock(master_clock)
 master.actionExternalTrigger()
-
-
-
-#master_clock.start()
-
+master_clock.start()
+print("\n\n\nNEXT ITERATION\n\n")
+master.connectClock(master_clock)
+note.connectClock(master_clock)
+trigger.connectClock(master_clock)
+master.actionExternalTrigger()
 master_clock.start(["4.0", "6.0"])
