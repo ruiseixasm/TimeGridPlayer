@@ -7,6 +7,7 @@ class Action:
 
         self.master = MASTER
         self.play_mode = self.master
+        self.external_staff_keys = []
 
         self.name = name
         self.steps = max(1, steps)
@@ -302,14 +303,14 @@ class Action:
         if (len(types) == 0):
             types = self.rulerTypes
 
-        top_rulers = []
+        stacked_internal_keys = []
+        remaining_external_keys = self.external_staff_keys[:] # does a shallow copy
         for type in types:
             if (len(groups) == 0):
                 groups = self.rulerGroups[type] # REQUIRES self.rulerGroups
 
             for group in groups:
                 filtered_rulers = self.filterRulers([type], [group], ENABLED_ONLY=True)
-
                 # Using list comprehension
                 left_rulers = [
                     ruler for ruler in filtered_rulers if not (ruler['sequence'] > sequence)
@@ -317,9 +318,16 @@ class Action:
                 
                 if (len(left_rulers) > 0): # left rulers ONLY!
 
+                    external_rulers = [
+                        ruler_keys for ruler_keys in remaining_external_keys if ruler_keys['group'] == group and ruler_keys['type'] == type
+                    ]
+                    remaining_external_keys = [
+                        ruler_keys for ruler_keys in remaining_external_keys if not (ruler_keys['group'] == group and ruler_keys['type'] == type)
+                    ]
+
                     head_offset = 0
                     tail_offset = 0
-                    for left_ruler in left_rulers:
+                    for left_ruler in external_rulers + left_rulers:
                         if left_ruler['offset'] < head_offset:
                             head_offset = left_ruler['offset']
                         if (len(left_ruler['lines']) + left_ruler['offset'] > tail_offset):
@@ -335,12 +343,17 @@ class Action:
                         'offset': head_offset
                     }
 
+                    for external_ruler in external_rulers:
+                        for i in range(len(external_ruler['lines'])):
+                            stacked_line = i + external_ruler['offset'] - stackedRuler['offset']
+                            stackedRuler['lines'][stacked_line] = external_ruler['lines'][i]
+
                     lower_sequence = sequence
 
                     while (not (lower_sequence < 0)):
 
                         total_key_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
-                        total_action_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['keys']
+                        total_action_rulers = self.timeGrid[lower_sequence]['enabled_rulers']['actions']
 
                         if (total_key_rulers > 0):
 
@@ -351,14 +364,14 @@ class Action:
                             
                             for lower_ruler in lower_rulers:
                                 for i in range(len(lower_ruler['lines'])):
-                                    line = i + lower_ruler['offset']
-                                    if (stackedRuler['lines'][line] == None):
-                                        stackedRuler['lines'][line] = lower_ruler['lines'][i]
+                                    stacked_line = i + lower_ruler['offset'] - stackedRuler['offset']
+                                    if (stackedRuler['lines'][stacked_line] == None):
+                                        stackedRuler['lines'][stacked_line] = lower_ruler['lines'][i]
 
                         lower_sequence -= 1
 
-                    top_rulers.append(stackedRuler)
-        return top_rulers
+                    stacked_internal_keys.append(stackedRuler)
+        return stacked_internal_keys + remaining_external_keys
     
     ### OPERATIONS ###
 
@@ -463,6 +476,7 @@ class Action:
 
     def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
         self.play_mode = True
+        self.external_staff_keys = stacked_staff_keys # becomes read only, no need to copy
 
     def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
         pass
@@ -484,13 +498,14 @@ class Note(Action):
     ### ACTIONS ###
 
     def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+        super().actionExternalTrigger(triggered_action, stacked_staff_keys, tempo)
+        if (tempo['fast_forward']):
+            self.play_mode = False
         if (len(stacked_staff_keys) > 0):
             given_lines = stacked_staff_keys[0]['lines']
             key_line = stacked_staff_keys[0]['line']
             key_value = given_lines[key_line]
             self.note = key_value # may need tranlation!
-            if (not tempo['fast_forward']):
-                self.play_mode = True
 
     def actionLocalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
         if (len(stacked_staff_keys) > 0):
