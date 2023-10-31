@@ -5,6 +5,7 @@ class Clock(): # Subject
         """create an empty observer list"""
         self._observers = []
         self.setClock(steps_minute, frames_step)
+        self.clock_running = False
 
     def getFrameDuration(self, steps_minute, frames_step): # in seconds
         return 60.0 / steps_minute / frames_step
@@ -17,7 +18,10 @@ class Clock(): # Subject
         return self.tempo
 
     def notify(self):
-        """Alert the observers"""
+        """Pulses the observers"""
+        # triggers top action observer as the master one on the first sequence
+        if (self.tempo['sequence'] == 0):
+            self._observers[0].actionExternalTrigger()
         for observer in self._observers:
             observer.pulse(self.tempo) # calls the Observers update method
             #print("PULSE")
@@ -38,9 +42,12 @@ class Clock(): # Subject
         """Remove all observers from the observer list"""
         self._observers = []
 
+    def stop(self):
+        self.clock_running = False
 
     def start(self, clock_range = []):
 
+        self.clock_running = True
         first_sequence = 0
         last_sequence = None
 
@@ -55,7 +62,7 @@ class Clock(): # Subject
         startTime = None
         nextTime = 0
         sequence = 0
-        while (len(self._observers) > 0):
+        while (self.clock_running and len(self._observers) > 0):
             if (sequence < first_sequence or (last_sequence != None and sequence > last_sequence)):
                 self.tempo['fast_forward'] = True
             else:

@@ -114,7 +114,7 @@ class Action:
 
             else:
                 if (self.master):
-                    self.clock.detachAll()
+                    self.clock.stop()
                 self.play_mode = False
                 self.nextSequence = self.play_range_sequences[0]
 
