@@ -6,6 +6,7 @@ class Clock(): # Subject
         self._observers = []
         self.setClock(steps_minute, frames_step)
         self.clock_running = False
+        self.observer_id = 0
 
     def getFrameDuration(self, steps_minute, frames_step): # in seconds
         return 60.0 / steps_minute / frames_step
@@ -19,11 +20,13 @@ class Clock(): # Subject
 
     def notify(self):
         """Pulses the observers"""
+        self.observer_id = 0
         # triggers top action observer as the master one on the first sequence
         if (self.tempo['sequence'] == 0):
             self._observers[0].actionExternalTrigger()
         for observer in self._observers:
             observer.pulse(self.tempo) # calls the Observers update method
+            self.observer_id += 1
             #print("PULSE")
 
     def attach(self, observer):
@@ -43,7 +46,8 @@ class Clock(): # Subject
         self._observers = []
 
     def stop(self):
-        self.clock_running = False
+        if (self.observer_id == 0):
+            self.clock_running = False
 
     def start(self, clock_range = []):
 

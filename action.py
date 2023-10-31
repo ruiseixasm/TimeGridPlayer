@@ -3,10 +3,9 @@ def main():
 
 class Action:
 
-    def __init__(self, name, steps, frames_step, play_range=[], MASTER=False):
+    def __init__(self, name, steps, frames_step, play_range=[]):
 
-        self.master = MASTER
-        self.play_mode = self.master
+        self.play_mode = False
         self.external_staff_keys = []
 
         self.name = name
@@ -113,8 +112,7 @@ class Action:
                 self.nextSequence += 1
 
             else:
-                if (self.master):
-                    self.clock.stop()
+                self.clock.stop()
                 self.play_mode = False
                 self.nextSequence = self.play_range_sequences[0]
 
@@ -484,7 +482,7 @@ class Action:
 class Master(Action):
     
     def __init__(self, name, steps, frames):
-        super().__init__(name, steps, frames, MASTER=True) # not self init
+        super().__init__(name, steps, frames) # not self init
 
 class Note(Action):
     
