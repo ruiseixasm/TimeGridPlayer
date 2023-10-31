@@ -7,9 +7,9 @@ master = action.Master("master", 10, 4)
 trigger = action.Trigger("trigger")
 note = action.Note("note", 2, 4, [None, "1.0"])
 
-master.addRuler("actions", "triggers", trigger.name, [trigger.actionExternalTrigger])
-master.addRuler("actions", "notes", note.name, [note.actionExternalTrigger])
-master.addRuler("actions", "notes", note.name + "_2", [note.actionExternalTrigger])
+master.addRuler("actions", "triggers", trigger.name, [trigger])
+master.addRuler("actions", "notes", note.name, [note])
+master.addRuler("actions", "notes", note.name + "_2", [note])
 
 master.placeRuler('actions', trigger.name,"1.1")
 master.placeRuler('actions', note.name,"2.1")

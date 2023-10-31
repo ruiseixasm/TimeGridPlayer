@@ -45,8 +45,8 @@ class Clock(): # Subject
         """Remove all observers from the observer list"""
         self._observers = []
 
-    def stop(self):
-        if (self.observer_id == 0):
+    def stop(self, FORCE_STOP = False):
+        if (self.observer_id == 0 or FORCE_STOP):
             self.clock_running = False
 
     def start(self, clock_range = []):

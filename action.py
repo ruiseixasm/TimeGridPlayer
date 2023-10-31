@@ -106,7 +106,12 @@ class Action:
                                     frameStakedKeysRuler['line'] = action_line + triggered_action['offset'] - frameStakedKeysRuler['offset']
                                     if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
                                         frameStakedKeysRuler['line'] = None # in case key line is out of range of the triggered action line
-                                triggered_action['lines'][action_line](triggered_action, stacked_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                                        
+                                action_object = triggered_action['lines'][action_line]
+                                if (action_object == self):        
+                                    action_object.actionInternalTrigger(triggered_action, stacked_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                                else:        
+                                    action_object.actionExternalTrigger(triggered_action, stacked_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
                     print("")
 
                 self.nextSequence += 1
@@ -121,8 +126,14 @@ class Action:
             clockedActions = [
                 clockedAction for clockedAction in self.clocked_actions if clockedAction['sequence'] == tempo['sequence']
             ].copy() # To enable deletion of the original list while looping
+
             for clockedAction in clockedActions:
-                clockedAction['action'](clockedAction, clockedAction['staff_keys'], tempo) # WHERE ACTION IS TRIGGERED
+                action_object = clockedAction['action']
+                if (action_object == self):        
+                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_keys'], tempo) # WHERE ACTION IS TRIGGERED
+                else:        
+                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_keys'], tempo) # WHERE ACTION IS TRIGGERED
+                    
             for clockedAction in clockedActions:
                 del(self.clocked_actions[clockedAction['stack_id']])
             if (len(self.clocked_actions) > 0):
@@ -490,7 +501,7 @@ class Note(Action):
         super().__init__(name, steps, frames, play_range) # not self init
         first_position = self.play_range_positions[0]
 
-        if (self.addRuler("actions", "notes", "note_on", [self.actionLocalTrigger])):
+        if (self.addRuler("actions", "notes", "note_on", [self])):
             self.placeRuler('actions', "note_on", first_position)
 
     ### ACTIONS ###
@@ -505,7 +516,8 @@ class Note(Action):
             key_value = given_lines[key_line]
             self.note = key_value # may need tranlation!
 
-    def actionLocalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+    def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+        super().actionInternalTrigger(triggered_action, stacked_staff_keys, tempo)
         if (len(stacked_staff_keys) > 0):
             given_lines = stacked_staff_keys[0]['lines']
             key_line = stacked_staff_keys[0]['line']
@@ -515,7 +527,7 @@ class Note(Action):
         if (triggered_action['source'] == "staff"):
             print(f"note ON:\t{key_value}")
             self.addClockedAction(clocked_action = {'triggered_action': triggered_action.copy(), 'staff_keys': stacked_staff_keys.copy(),
-                                                    'duration': "1.0", 'action': self.actionLocalTrigger})
+                                                    'duration': "1.0", 'action': self})
         else:
             print(f"note OFF:\t{key_value}")
 
@@ -523,14 +535,16 @@ class Trigger(Action):
     
     def __init__(self, name):
         super().__init__(name, 0, 0) # not self init
-        self.addRuler("actions", "triggers", name, [self.actionLocalTrigger])
+        self.addRuler("actions", "triggers", name, [self])
 
     ### ACTIONS ###
 
     def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+        super().actionExternalTrigger(triggered_action, stacked_staff_keys, tempo)
         print("EXTERNALLY TRIGGERED")
 
-    def actionLocalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+    def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+        super().actionInternalTrigger(triggered_action, stacked_staff_keys, tempo)
         print("LOCALLY TRIGGERED")
 
 if __name__ == "__main__":
