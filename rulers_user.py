@@ -23,3 +23,8 @@ userRulers.print()
 copied_rulers.print()
 
 print(copied_rulers.list())
+
+print("\n\n")
+
+add_rulers = userRulers + copied_rulers
+add_rulers.print()

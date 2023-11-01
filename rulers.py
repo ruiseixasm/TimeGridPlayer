@@ -13,6 +13,13 @@ class Rulers():
         if root_self != None:
             self.root_self = root_self # type Rulers
 
+    # + Operator Overloading in Python
+    def __add__(self, other):
+        left_list = self.copy().list()
+        right_list = other.copy().list()
+        add_list = left_list + right_list
+        return Rulers(add_list)
+    
     # self is the list to work with!
 
     # def cleanRulers(self):
