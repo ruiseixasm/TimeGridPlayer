@@ -3,27 +3,27 @@ import action
 
 master_clock = clock.Clock(80, 4)
 
-master = action.Master("master", 10, 4)
-trigger = action.Trigger("trigger")
-note = action.Note("note", 2, 4, [None, "1.0"])
+master = action.Master(10, 4)
+trigger = action.Trigger()
+note = action.Note(2, 4, [None, "1.0"])
 
-master.addRuler("actions", "triggers", trigger.name, [trigger])
-master.addRuler("actions", "notes", note.name, [note])
-master.addRuler("actions", "notes", note.name + "_2", [note])
+master.addRuler("actions", "triggers", [trigger])
+master.addRuler("actions", "notes", [note])
+master.addRuler("actions", "notes", [note])
 
-master.placeRuler('actions', trigger.name,"1.1")
-master.placeRuler('actions', note.name,"2.1")
-master.placeRuler('actions', note.name + "_2","4.1")
+master.placeRuler('actions', "1.1")
+master.placeRuler('actions', "2.1")
+master.placeRuler('actions', "4.1")
 print(master.filterRulers(["actions"]))
 
 
 
-master.addRuler("keys", "generic", "first", [None, 'c#', None, None, 'e', None])
-master.addRuler("keys", "generic", "second", ['c', 'c#', 'd', None, 'e', None])
-master.addRuler("keys", "generic", "third", ['d', 'c#', 'd', 'd#', 'e', None])
-master.addRuler("keys", "specific", "fourth", [None, 'c#', None, None, 'e', None])
-master.addRuler("keys", "specific", "fifth", ['a', 'b', 'd', None, 'f', None])
-master.addRuler("keys", "specific", "sixth", [None, 'c#', 'd', 'd#', 'e', None])
+master.addRuler("keys", "generic", [None, 'c#', None, None, 'e', None])
+master.addRuler("keys", "generic", ['c', 'c#', 'd', None, 'e', None])
+master.addRuler("keys", "generic", ['d', 'c#', 'd', 'd#', 'e', None])
+master.addRuler("keys", "specific", [None, 'c#', None, None, 'e', None])
+master.addRuler("keys", "specific", ['a', 'b', 'd', None, 'f', None])
+master.addRuler("keys", "specific", [None, 'c#', 'd', 'd#', 'e', None])
 #print(master)
 
 #master.listRulers()

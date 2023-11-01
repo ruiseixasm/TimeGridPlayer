@@ -3,12 +3,11 @@ def main():
 
 class Action:
 
-    def __init__(self, name, steps, frames_step, play_range=[]):
+    def __init__(self, steps, frames_step, play_range=[]):
 
         self.play_mode = False
         self.external_staff_keys = []
 
-        self.name = name
         self.steps = max(1, steps)
         self.frames_step = max(1, frames_step)
 
@@ -106,7 +105,7 @@ class Action:
                                     frameStakedKeysRuler['line'] = action_line + triggered_action['offset'] - frameStakedKeysRuler['offset']
                                     if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
                                         frameStakedKeysRuler['line'] = None # in case key line is out of range of the triggered action line
-                                        
+
                                 action_object = triggered_action['lines'][action_line]
                                 if (action_object == self):        
                                     action_object.actionInternalTrigger(triggered_action, stacked_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
@@ -152,17 +151,11 @@ class Action:
                 return timeGridFrame[0]['sequence']
         return None
  
-    def filterRulers(self, types = [], groups = [], names = [], positions = [], sequeces = [], sequeces_range = [], ENABLED_ONLY = False, ON_STAFF = False, INSIDE_RANGE = False):
+    def filterRulers(self, types = [], groups = [], positions = [], sequeces = [], sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
         filtered_rulers = self.staffRulers
         if (ENABLED_ONLY):
             filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['position'] not in [None] # Without a given position it's considered disabled!
-            ]
-        if (ON_STAFF or INSIDE_RANGE or (len(sequeces_range) > 0 and sequeces_range != [None])):
-            filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['sequence'] not in [None] # Without a given position it's considered disabled!
+                staffRuler for staffRuler in filtered_rulers if staffRuler['enabled'] == True
             ]
         if (INSIDE_RANGE):
             # Using list comprehension
@@ -179,11 +172,6 @@ class Action:
             filtered_rulers = [
                 staffRuler
                     for staffRuler in filtered_rulers if staffRuler['group'] in groups
-            ]
-        if (len(names) > 0 and names != [None]):
-            filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['name'] in names
             ]
         if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
             filtered_rulers = [
@@ -206,25 +194,71 @@ class Action:
             ]
         return filtered_rulers
     
-    def enableRulers(self, types = [], groups = [], names = [], positions = []):
-        rulers = self.filterRulers(types, groups, names, positions = [None], ON_STAFF=True) # positions = [None] means NOT enabled
-        if (len(rulers) > 0):
-            for ruler in rulers:
-                ruler['position'] = self.timeGrid[ruler['sequence']]['position']
-                self.timeGrid[ruler['sequence']]['enabled_rulers'][ruler['type']] += 1
-        return rulers
+    # def enableRulers(self, types = [], groups = [], positions = []):
+    #     rulers = self.filterRulers(types, groups, positions = [None], ON_STAFF=True) # positions = [None] means NOT enabled
+    #     if (len(rulers) > 0):
+    #         for ruler in rulers:
+    #             ruler['position'] = self.timeGrid[ruler['sequence']]['position']
+    #             self.timeGrid[ruler['sequence']]['enabled_rulers'][ruler['type']] += 1
+    #     return rulers
 
-    def disableRulers(self, types = [], groups = [], names = [], positions = []):
-        rulers = self.filterRulers(types, groups, names, positions, ENABLED_ONLY = True)
-        if (len(rulers) > 0):
-            for ruler in rulers:
-                ruler['position'] = None
-                if (ruler['sequence'] != None): # avoids compiler error
-                    self.timeGrid[ruler['sequence']]['enabled_rulers'][ruler['type']] -= 1
-        return rulers
+    # def disableRulers(self, types = [], groups = [], positions = []):
+    #     rulers = self.filterRulers(types, groups, positions, ENABLED_ONLY = True)
+    #     if (len(rulers) > 0):
+    #         for ruler in rulers:
+    #             ruler['position'] = None
+    #             if (ruler['sequence'] != None): # avoids compiler error
+    #                 self.timeGrid[ruler['sequence']]['enabled_rulers'][ruler['type']] -= 1
+    #     return rulers
 
-    def placeRuler(self, type, name, position, offset = None):
-        ruler = self.getRuler(type, name)
+    def addRuler(self, ruler):
+        if ruler != None and len(ruler) > 0:
+            if (ruler['type'] in self.rulerTypes):
+                if 'group' not in ruler or ruler['group'] == None:
+                    ruler['group'] = "main"
+                if 'lines' not in ruler or ruler['lines'] == None or len(ruler['lines']) == 0:
+                    ruler['lines'] = [None]
+                if 'position' not in ruler or ruler['position'] == None: # Needs to add pattern matching
+                    ruler['position'] = "0.0"
+
+                rulers = self.filterRulers([type], [group], [position])
+                if (len(rulers) > 0):
+                    ...
+                else:
+                    newRuler = {
+                        'type': type,
+                        'group': group,
+                        'lines': lines, # list
+                        'position': None,
+                        'sequence': None,
+                        'offset': 0,
+                        'enabled': True
+                    }
+                    self.staffRulers.append(newRuler)
+                    return True
+        return False
+
+    def addRuler(self, type, group, position, lines):
+        if (type in self.rulerTypes):
+            rulers = self.filterRulers([type], [group], [position])
+            if (len(rulers) > 0):
+                ...
+            else:
+                newRuler = {
+                    'type': type,
+                    'group': group,
+                    'lines': lines, # list
+                    'position': None,
+                    'sequence': None,
+                    'offset': 0,
+                    'enabled': True
+                }
+                self.staffRulers.append(newRuler)
+                return True
+        return False
+
+    def addRuler(self, type, position, offset = None):
+        ruler = self.getRuler(type)
         if (ruler != None):
             sequence = self.getPositionSequence(position)
             if (position != None): # add ruler to staff
@@ -258,35 +292,20 @@ class Action:
                 ruler['offset'] = offset
         return ruler
 
-    def removeRuler(self, type, name):
-        self.placeRuler(type, name, None)
+    # def removeRuler(self, type):
+    #     self.placeRuler(type, None)
 
-    def deleteRulers(self, types = [], groups = [], names = []):
-        rulers = self.disableRulers(type, types, groups, names) # makes sure ruler gets disabled first
-        for ruler in rulers:
-            # Using list comprehension
-            self.rulerGroups[ruler['type']] = [
-                rulerGroup for rulerGroup in self.rulerGroups[ruler['type']] if not (rulerGroup['name'] == ruler['name'])
-            ]
+    # def deleteRulers(self, types = [], groups = []):
+    #     rulers = self.disableRulers(type, types, groups) # makes sure ruler gets disabled first
+    #     for ruler in rulers:
+    #         # Using list comprehension
+    #         self.rulerGroups[ruler['type']] = [
+    #             rulerGroup for rulerGroup in self.rulerGroups[ruler['type']] if not (rulerGroup['group'] == ruler['group'])
+    #         ]
     
-    def addRuler(self, type, group, name, lines):
-        if (type in self.rulerTypes and self.getRuler(type, name) == None):
-            newRuler = {
-                'type': type,
-                'group': group,
-                'name': name,
-                'lines': lines, # list
-                'position': None,
-                'sequence': None,
-                'offset': 0
-            }
-            self.staffRulers.append(newRuler)
-            return True
-        return False
-
-    def getRuler(self, type, name):
+    def getRuler(self, type, group):
         for staffRuler in self.staffRulers:
-            if staffRuler['name'] == name and staffRuler['type'] == type:
+            if staffRuler['group'] == group and staffRuler['type'] == type:
                 return staffRuler
         return None
    
@@ -344,7 +363,6 @@ class Action:
                     
                     stackedRuler = {
                         'type': type,
-                        'name': self.name,
                         'group': group,
                         'lines': [None] * (tail_offset - head_offset + 1), # list
                         'position': position,
@@ -384,101 +402,101 @@ class Action:
     
     ### OPERATIONS ###
 
-    def operationSwapRulers(self, type, first_ruler_name, second_ruler_name):
-        rulers = self.filterRulers(types = [type], groups = [], names = [first_ruler_name, second_ruler_name])
-        if (len(rulers) == 2):
-            position = rulers[0]['position']
-            sequence = rulers[0]['sequence']
-            rulers[0]['position'] = rulers[1]['position']
-            rulers[0]['sequence'] = rulers[1]['sequence']
-            rulers[1]['position'] = position
-            rulers[1]['sequence'] = sequence
-        return self
+    # def operationSwapRulers(self, type, first_ruler, second_ruler):
+    #     rulers = first_ruler + second_ruler
+    #     if (len(rulers) == 2):
+    #         position = rulers[0]['position']
+    #         sequence = rulers[0]['sequence']
+    #         rulers[0]['position'] = rulers[1]['position']
+    #         rulers[0]['sequence'] = rulers[1]['sequence']
+    #         rulers[1]['position'] = position
+    #         rulers[1]['sequence'] = sequence
+    #     return self
 
-    def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, name = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+    # def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
 
-        rulers = self.filterRulers(types = [type], groups = [group], names = [name], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
-        lower_slack = self.steps*self.frames_step - 1
-        upper_slack = lower_slack
+    #     lower_slack = self.steps*self.frames_step - 1
+    #     upper_slack = lower_slack
 
-        modulus_position = modulus_reference[0]
-        for rule in rulers:
-            if (modulus_position % modulus_selector[0] == 0):
-                lower_slack = min(lower_slack, rule['sequence'])
-                upper_slack = min(upper_slack, self.steps*self.frames_step - 1 - rule['sequence'])
-            modulus_position += 1
+    #     modulus_position = modulus_reference[0]
+    #     for rule in rulers:
+    #         if (modulus_position % modulus_selector[0] == 0):
+    #             lower_slack = min(lower_slack, rule['sequence'])
+    #             upper_slack = min(upper_slack, self.steps*self.frames_step - 1 - rule['sequence'])
+    #         modulus_position += 1
 
-        increments[0] = max(-lower_slack, increments[0]) # Horizontal sliding can't slide out of the grid
-        increments[0] = min(upper_slack, increments[0]) # Horizontal sliding can't slide out of the grid
+    #     increments[0] = max(-lower_slack, increments[0]) # Horizontal sliding can't slide out of the grid
+    #     increments[0] = min(upper_slack, increments[0]) # Horizontal sliding can't slide out of the grid
 
-        modulus_position = modulus_reference[0]
-        for rule in rulers:
-            if (modulus_position % modulus_selector[0] == 0):
-                rule['sequence'] += increments[0]
-                if (rule['position'] != None):
-                    rule['position'] = self.timeGrid[rule['sequence']]['position']
-            modulus_position += 1
+    #     modulus_position = modulus_reference[0]
+    #     for rule in rulers:
+    #         if (modulus_position % modulus_selector[0] == 0):
+    #             rule['sequence'] += increments[0]
+    #             if (rule['position'] != None):
+    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #         modulus_position += 1
 
-        modulus_position = modulus_reference[1]
-        for rule in rulers:
-            if (modulus_position % modulus_selector[1] == 0):
-                rule['offset'] += increments[1]
-            modulus_position += 1
+    #     modulus_position = modulus_reference[1]
+    #     for rule in rulers:
+    #         if (modulus_position % modulus_selector[1] == 0):
+    #             rule['offset'] += increments[1]
+    #         modulus_position += 1
             
-        return self
+    #     return self
 
-    def operationRotateRulers(self, increments = [0, 0], type = None, group = None, name = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+    # def operationRotateRulers(self, increments = [0, 0], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
 
-        rulers = self.filterRulers(types = [type], groups = [group], names = [name], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
-        staff_sequences = []
-        if (increments[0] != 0):
-            for rule in rulers:
-                staff_sequences.append(rule['sequence'])
+    #     staff_sequences = []
+    #     if (increments[0] != 0):
+    #         for rule in rulers:
+    #             staff_sequences.append(rule['sequence'])
         
-        total_sequences = len(staff_sequences)
-        for rule in rulers:
-            if (increments[0] != 0):
-                rule['sequence'] = staff_sequences[increments[0] % total_sequences]
-                if (rule['position'] != None):
-                    rule['position'] = self.timeGrid[rule['sequence']]['position']
-            if (increments[1] != 0):
-                rule_lines = []
-                for line in rule['lines']:
-                    rule_lines.append(line)
-                total_lines = len(rule_lines)
-                for line in rule['lines']:
-                    line = rule_lines[increments[1] % total_lines]
+    #     total_sequences = len(staff_sequences)
+    #     for rule in rulers:
+    #         if (increments[0] != 0):
+    #             rule['sequence'] = staff_sequences[increments[0] % total_sequences]
+    #             if (rule['position'] != None):
+    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #         if (increments[1] != 0):
+    #             rule_lines = []
+    #             for line in rule['lines']:
+    #                 rule_lines.append(line)
+    #             total_lines = len(rule_lines)
+    #             for line in rule['lines']:
+    #                 line = rule_lines[increments[1] % total_lines]
 
-        return self
+    #     return self
 
-    def operationFlipRulers(self, mirrors = [False, False], type = None, group = None, name = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+    # def operationFlipRulers(self, mirrors = [False, False], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
 
-        rulers = self.filterRulers(types = [type], groups = [group], names = [name], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
-        staff_sequences = []
-        if (mirrors[0]):
-            for rule in rulers:
-                staff_sequences.append(rule['sequence'])
+    #     staff_sequences = []
+    #     if (mirrors[0]):
+    #         for rule in rulers:
+    #             staff_sequences.append(rule['sequence'])
         
-        upper_sequence = len(staff_sequences) - 1
-        for rule in rulers:
-            if (mirrors[0]):
-                rule['sequence'] = staff_sequences[upper_sequence]
-                if (rule['position'] != None):
-                    rule['position'] = self.timeGrid[rule['sequence']]['position']
-            upper_sequence -= 1
-            if (mirrors[1]):
-                rule_lines = []
-                for line in rule['lines']:
-                    rule_lines.append(line)
-                upper_line = len(rule_lines) - 1
-                for line in rule['lines']:
-                    line = rule_lines[upper_line]
-                    upper_line -= 1
+    #     upper_sequence = len(staff_sequences) - 1
+    #     for rule in rulers:
+    #         if (mirrors[0]):
+    #             rule['sequence'] = staff_sequences[upper_sequence]
+    #             if (rule['position'] != None):
+    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #         upper_sequence -= 1
+    #         if (mirrors[1]):
+    #             rule_lines = []
+    #             for line in rule['lines']:
+    #                 rule_lines.append(line)
+    #             upper_line = len(rule_lines) - 1
+    #             for line in rule['lines']:
+    #                 line = rule_lines[upper_line]
+    #                 upper_line -= 1
 
-        return self
+    #     return self
 
 
     ### ACTIONS ###
@@ -492,13 +510,13 @@ class Action:
 
 class Master(Action):
     
-    def __init__(self, name, steps, frames):
-        super().__init__(name, steps, frames) # not self init
+    def __init__(self, steps, frames):
+        super().__init__(steps, frames) # not self init
 
 class Note(Action):
     
-    def __init__(self, name, steps, frames, play_range=[]):
-        super().__init__(name, steps, frames, play_range) # not self init
+    def __init__(self, steps, frames, play_range=[]):
+        super().__init__(steps, frames, play_range) # not self init
         first_position = self.play_range_positions[0]
 
         if (self.addRuler("actions", "notes", "note_on", [self])):
@@ -533,9 +551,9 @@ class Note(Action):
 
 class Trigger(Action):
     
-    def __init__(self, name):
-        super().__init__(name, 0, 0) # not self init
-        self.addRuler("actions", "triggers", name, [self])
+    def __init__(self):
+        super().__init__(0, 0) # not self init
+        self.addRuler("actions", "triggers", [self])
 
     ### ACTIONS ###
 
