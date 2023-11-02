@@ -1,8 +1,11 @@
+import staff
+
 class Rulers():
 
-    def __init__(self, rulers_list = None, root_self = None, FROM_RULERS = False):
+    def __init__(self, rulers_list = None, staff_grid = None, root_self = None, FROM_RULERS = False):
 
         self.ruler_types = ['keys', 'actions']
+        self.staff_grid = staff_grid
 
         self.root_self = self
         if root_self != None:
@@ -18,6 +21,13 @@ class Rulers():
 
     def root(self):
         return self.root_self
+            
+    def reroot(self):
+        self.root_self = self
+        return self
+    
+    def updateStaff(self):
+        ...
             
     # + Operator Overloading in Python
     def __add__(self, other):
@@ -53,12 +63,17 @@ class Rulers():
                     ruler['enabled'] = True
 
                 self.rulers_list.append(ruler)
+                if self.staff_grid != None:
+                    self.staff_grid.add([ruler])
 
         return self
     
     def remove(self):
         self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
         self.rulers_list = []
+        if self.staff_grid != None:
+            self.staff_grid.clear()
+            self.staff_grid.add(self.root_self.rulers_list)
         return self
     
     def filter(self, types = [], groups = [], positions = [], position_range = [], ENABLED_ONLY = False):
@@ -242,4 +257,103 @@ class Rulers():
 
 # Python has magic methods to define overloaded behaviour of operators. The comparison operators (<, <=, >, >=, == and !=)
 # can be overloaded by providing definition to __lt__, __le__, __gt__, __ge__, __eq__ and __ne__ magic methods.
-# Following program overloads < and > operators to compare objects of distance class. 
+# Following program overloads < and > operators to compare objects of distance class.
+
+
+   ### OPERATIONS ###
+
+    # def operationSwapRulers(self, type, first_ruler, second_ruler):
+    #     rulers = first_ruler + second_ruler
+    #     if (len(rulers) == 2):
+    #         position = rulers[0]['position']
+    #         sequence = rulers[0]['sequence']
+    #         rulers[0]['position'] = rulers[1]['position']
+    #         rulers[0]['sequence'] = rulers[1]['sequence']
+    #         rulers[1]['position'] = position
+    #         rulers[1]['sequence'] = sequence
+    #     return self
+
+    # def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+
+    #     lower_slack = self.steps*self.frames_step - 1
+    #     upper_slack = lower_slack
+
+    #     modulus_position = modulus_reference[0]
+    #     for rule in rulers:
+    #         if (modulus_position % modulus_selector[0] == 0):
+    #             lower_slack = min(lower_slack, rule['sequence'])
+    #             upper_slack = min(upper_slack, self.steps*self.frames_step - 1 - rule['sequence'])
+    #         modulus_position += 1
+
+    #     increments[0] = max(-lower_slack, increments[0]) # Horizontal sliding can't slide out of the grid
+    #     increments[0] = min(upper_slack, increments[0]) # Horizontal sliding can't slide out of the grid
+
+    #     modulus_position = modulus_reference[0]
+    #     for rule in rulers:
+    #         if (modulus_position % modulus_selector[0] == 0):
+    #             rule['sequence'] += increments[0]
+    #             if (rule['position'] != None):
+    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #         modulus_position += 1
+
+    #     modulus_position = modulus_reference[1]
+    #     for rule in rulers:
+    #         if (modulus_position % modulus_selector[1] == 0):
+    #             rule['offset'] += increments[1]
+    #         modulus_position += 1
+            
+    #     return self
+
+    # def operationRotateRulers(self, increments = [0, 0], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+
+    #     staff_sequences = []
+    #     if (increments[0] != 0):
+    #         for rule in rulers:
+    #             staff_sequences.append(rule['sequence'])
+        
+    #     total_sequences = len(staff_sequences)
+    #     for rule in rulers:
+    #         if (increments[0] != 0):
+    #             rule['sequence'] = staff_sequences[increments[0] % total_sequences]
+    #             if (rule['position'] != None):
+    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #         if (increments[1] != 0):
+    #             rule_lines = []
+    #             for line in rule['lines']:
+    #                 rule_lines.append(line)
+    #             total_lines = len(rule_lines)
+    #             for line in rule['lines']:
+    #                 line = rule_lines[increments[1] % total_lines]
+
+    #     return self
+
+    # def operationFlipRulers(self, mirrors = [False, False], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+
+    #     staff_sequences = []
+    #     if (mirrors[0]):
+    #         for rule in rulers:
+    #             staff_sequences.append(rule['sequence'])
+        
+    #     upper_sequence = len(staff_sequences) - 1
+    #     for rule in rulers:
+    #         if (mirrors[0]):
+    #             rule['sequence'] = staff_sequences[upper_sequence]
+    #             if (rule['position'] != None):
+    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #         upper_sequence -= 1
+    #         if (mirrors[1]):
+    #             rule_lines = []
+    #             for line in rule['lines']:
+    #                 rule_lines.append(line)
+    #             upper_line = len(rule_lines) - 1
+    #             for line in rule['lines']:
+    #                 line = rule_lines[upper_line]
+    #                 upper_line -= 1
+
+    #     return self

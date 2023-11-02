@@ -49,7 +49,7 @@ class Clock(): # Subject
         if (self.observer_id == 0 or FORCE_STOP):
             self.clock_running = False
 
-    def start(self, clock_range = []):
+    def start(self, clock_range = []): # Where a range is set
 
         self.clock_running = True
         first_sequence = 0
