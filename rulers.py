@@ -96,6 +96,18 @@ class Rulers():
             #newRulers.add(ruler.copy())
             newRulers.rulers_list.append(ruler.copy())
         return newRulers
+    
+    def unique(self):
+        multiple_rulers_list = self.rulers_list.copy()
+        single_rulers_list = []
+        for ruler in multiple_rulers_list:
+            if ruler not in single_rulers_list:
+                single_rulers_list.append(ruler)
+
+        return Rulers(single_rulers_list)
+
+
+
 
     def getPosition(self, ruler):
         return ruler['position'] 

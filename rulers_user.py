@@ -28,3 +28,6 @@ print("\n\n")
 
 add_rulers = userRulers + copied_rulers
 add_rulers.print()
+
+print("\nUNIQUE\n")
+add_rulers.unique().print()
