@@ -1,24 +1,31 @@
 class Rulers():
 
-    def __init__(self, rulers_list = None, root_self = None):
+    def __init__(self, rulers_list = None, root_self = None, FROM_RULERS = False):
 
         self.ruler_types = ['keys', 'actions']
 
-        self.rulers_list = []
-        if (rulers_list != None):
-            for ruler in rulers_list:
-                self.add(ruler)
-            
         self.root_self = self
         if root_self != None:
             self.root_self = root_self # type Rulers
 
+        self.rulers_list = []
+        if (rulers_list != None):
+            if (FROM_RULERS):
+                self.rulers_list = rulers_list
+            else:
+                for ruler in rulers_list:
+                    self.add(ruler)
+            
     # + Operator Overloading in Python
     def __add__(self, other):
-        left_list = self.copy().list()
-        right_list = other.copy().list()
-        add_list = left_list + right_list
-        return Rulers(add_list)
+        added_rulers_list = self.list().copy()
+        other_rulers_list = other.list()
+
+        for right_ruler in other_rulers_list:
+            if (self.filter(types=[right_ruler['type']], groups=[right_ruler['group']], positions=[right_ruler['position']])).len() == 0:
+                added_rulers_list.append(right_ruler)
+
+        return Rulers(added_rulers_list, root_self = self.root_self, FROM_RULERS = True)
     
     # self is the list to work with!
 
@@ -27,6 +34,9 @@ class Rulers():
 
     def list(self):
         return self.rulers_list
+    
+    def len(self):
+        return len(self.rulers_list)
         
     def add(self, ruler): # Must be able to remove removed rulers from the main list
         
@@ -34,16 +44,19 @@ class Rulers():
             if ('type' in ruler and ruler['type'] in self.ruler_types):
                 if 'group' not in ruler or ruler['group'] == None:
                     ruler['group'] = "main"
-                if 'lines' not in ruler or ruler['lines'] == None or len(ruler['lines']) == 0:
-                    ruler['lines'] = [None]
                 if 'position' not in ruler or ruler['position'] == None or len(ruler['position']) != 2:
                     ruler['position'] = [0, 0]
+                if 'lines' not in ruler or ruler['lines'] == None or len(ruler['lines']) == 0:
+                    ruler['lines'] = [None]
                 if ('offset' not in ruler or ruler['offset'] == None):
                     ruler['offset'] = 0
                 if ('enabled' not in ruler or ruler['enabled'] == None):
                     ruler['enabled'] = True
 
-                self.rulers_list.append(ruler)
+                elready_existent_ruler = self.filter(types=[ruler['type']], groups=[ruler['group']], positions=[ruler['position']])
+
+                if elready_existent_ruler.len() == 0:
+                    self.rulers_list.append(ruler)
 
         return self
     
@@ -55,32 +68,34 @@ class Rulers():
     def filter(self, types = [], groups = [], positions = [], position_range = [], ENABLED_ONLY = False):
 
         filtered_rulers = self.rulers_list.copy()
+
         if (ENABLED_ONLY):
             filtered_rulers = [
-                staffRuler for staffRuler in filtered_rulers if staffRuler['enabled'] == True
+                ruler for ruler in filtered_rulers if ruler['enabled'] == True
             ]
         if (len(types) > 0 and types != [None]):
             filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['type'] in types
+                ruler for ruler in filtered_rulers if ruler['type'] in types
             ]
         if (len(groups) > 0 and groups != [None]):
             filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['group'] in groups
+                ruler for ruler in filtered_rulers if ruler['group'] in groups
             ]
         if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
-            filtered_rulers = [
-                staffRuler
-                    for staffRuler in filtered_rulers if staffRuler['position'] in positions
-            ]
+            in_position_rulers = []
+            for position in positions:
+                if len(position) == 2:
+                    in_position_rulers += [
+                        ruler for ruler in filtered_rulers if self.position_eq(ruler['position'], position)
+                    ]
+            filtered_rulers = in_position_rulers
         if (len(position_range) == 2 and len(position_range[0]) == 2 and len(position_range[1]) == 2):
             # Using list comprehension
             filtered_rulers = [
-                staffRuler for staffRuler in filtered_rulers
-                        if not (self.position_lt(staffRuler['position'], position_range[0]) or self.position_gt(staffRuler['position'], position_range[1]))
+                ruler for ruler in filtered_rulers
+                        if not (self.position_lt(ruler['position'], position_range[0]) and self.position_lt(ruler['position'], position_range[1]))
             ]
-        return Rulers(filtered_rulers, root_self = self.root_self)
+        return Rulers(filtered_rulers, root_self = self.root_self, FROM_RULERS = True)
     
     def print(self):
         if len(self.rulers_list) > 0:
@@ -91,22 +106,91 @@ class Rulers():
         print("\n")
 
     def copy(self):
-        newRulers = Rulers()
+        rulers_list_copy = []
         for ruler in self.rulers_list:
-            #newRulers.add(ruler.copy())
-            newRulers.rulers_list.append(ruler.copy())
-        return newRulers
+            rulers_list_copy.append(ruler)
+        return Rulers(rulers_list_copy, FROM_RULERS = True)
     
     def unique(self):
-        multiple_rulers_list = self.rulers_list.copy()
-        single_rulers_list = []
-        for ruler in multiple_rulers_list:
-            if ruler not in single_rulers_list:
-                single_rulers_list.append(ruler)
+        unique_rulers_list = []
+        for ruler in self.rulers_list:
+            if ruler not in unique_rulers_list:
+                unique_rulers_list.append(ruler)
 
-        return Rulers(single_rulers_list)
+        return Rulers(unique_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+    
+    def reverse(self):
+        ...
+    
+    def sort(self, reverse = False):
 
+        sorted_rulers = self.rulers_list.copy()
 
+        compare_function = self.position_gt
+        if reverse:
+            compare_function = self.position_lt
+        if (len(sorted_rulers) > 1):
+            sorted = False
+            while (not sorted):
+                sorted = True
+                for i in range(1, len(sorted_rulers)):
+                    if (compare_function(sorted_rulers[i - 1]['position'], sorted_rulers[i]['position'])):
+                        sorted = False
+                        temp_ruler = sorted_rulers[i - 1]
+                        sorted_rulers[i - 1] = sorted_rulers[i]
+                        sorted_rulers[i] = temp_ruler
+
+        return Rulers(sorted_rulers, root_self = self.root_self, FROM_RULERS = True)
+
+    def merge(self):
+
+        type_groups = [] # merge agregates rulers by type and gorup
+
+        for ruler in self.rulers_list:
+            ruler_type_group = {'type': ruler['type'], 'group': ruler['group']}
+            listed = False
+            for type_group in type_groups:
+                if type_group['type'] == ruler_type_group['type'] and type_group['group'] == ruler_type_group['group']:
+                    listed = True
+                    break
+
+            if not listed:
+                type_groups.append(ruler_type_group)
+
+        merged_rulers = []
+
+        for type_group in type_groups:
+
+            subject_rulers = self.filter(types=[type_group['type']], groups=[type_group['group']]).sort(reverse=True).list()
+                                
+            head_offset = 0
+            tail_offset = 0
+            top_position = subject_rulers[0]['position']
+            for ruler in subject_rulers:
+                if ruler['offset'] < head_offset:
+                    head_offset = ruler['offset']
+                if (len(ruler['lines']) + ruler['offset'] > tail_offset):
+                    tail_offset = len(ruler['lines']) - 1 + ruler['offset']
+
+            mergedRuler = {
+                'type': type_group['type'],
+                'group': type_group['group'],
+                'position': top_position,
+                'lines': [None] * (tail_offset - head_offset + 1), # list
+                'offset': head_offset,
+                'enabled': subject_rulers[0]['enabled']
+            }
+
+            for subject_ruler in subject_rulers:
+                for i in range(len(subject_ruler['lines'])):
+                    merged_line = i + subject_ruler['offset'] - mergedRuler['offset']
+                    if (mergedRuler['lines'][merged_line] == None):
+                        mergedRuler['lines'][merged_line] = subject_ruler['lines'][i]
+
+            merged_rulers.append(mergedRuler)
+
+        return Rulers(merged_rulers, root_self = self.root_self, FROM_RULERS = True)
+    
 
 
     def getPosition(self, ruler):
@@ -115,7 +199,7 @@ class Rulers():
     def getSequence(self, ruler, frames_step):
         return ruler['position'][0] * frames_step + ruler['position'][1]
 
-    def position_gt(left_position, right_position):
+    def position_gt(self, left_position, right_position):
         if (left_position[0] > right_position[0]):
             return True
         if (left_position[0] == right_position[0]):
@@ -123,13 +207,36 @@ class Rulers():
                 return True
         return False
 
-    def position_lt(left_position, right_position):
+    def position_lt(self, left_position, right_position):
         if (left_position[0] < right_position[0]):
             return True
         if (left_position[0] == right_position[0]):
             if (left_position[1] < right_position[1]):
                 return True
         return False
+
+    def position_eq(self, left_position, right_position):
+        if (left_position[0] == right_position[0] and left_position[1] == right_position[1]):
+            return True
+        return False
+    
+    def sortPositions(self, positions, reverse = False):
+        sorted_positions = positions[:]
+        compare_function = self.position_gt
+        if reverse:
+            compare_function = self.position_lt
+        if (len(sorted_positions) > 1):
+            sorted = False
+            while (not sorted):
+                sorted = True
+                for i in range(1, len(sorted_positions)):
+                    if (compare_function(sorted_positions[i - 1], sorted_positions[i])):
+                        sorted = False
+                        temp_position = sorted_positions[i - 1]
+                        sorted_positions[i - 1] = sorted_positions[i]
+                        sorted_positions[i] = temp_position
+
+        return sorted_positions
 
 # Python has magic methods to define overloaded behaviour of operators. The comparison operators (<, <=, >, >=, == and !=)
 # can be overloaded by providing definition to __lt__, __le__, __gt__, __ge__, __eq__ and __ne__ magic methods.

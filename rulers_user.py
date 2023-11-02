@@ -4,14 +4,16 @@ import rulers
 newRuler = {
     'type': "keys",
     'group': "main",
+    'position': [1, 3],
     'lines': [None],
-    'position': [0, 0],
     'offset': 0,
     'enabled': True
 }
 
 userRulers = rulers.Rulers([newRuler])
-userRulers.add({'type': "actions"}).print()
+userRulers.add({'type': "actions", 'position': [2, 3]}).print()
+userRulers.add({'type': "actions", 'position': [2, 3]}).print()
+userRulers.add({'type': "actions", 'position': [1, 3]}).print()
 
 copied_rulers = userRulers.copy()
 
@@ -22,7 +24,7 @@ userRulers.print()
 
 copied_rulers.print()
 
-print(copied_rulers.list())
+print(copied_rulers.list()) # FULL LIST
 
 print("\n\n")
 
@@ -31,3 +33,10 @@ add_rulers.print()
 
 print("\nUNIQUE\n")
 add_rulers.unique().print()
+
+print("\nSORTED\n")
+add_rulers.sort().print()
+print("\nREVERSE SORTED\n")
+add_rulers.sort(reverse=True).print()
+print("\nMERGED\n")
+add_rulers.merge().print()
