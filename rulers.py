@@ -18,14 +18,10 @@ class Rulers():
             
     # + Operator Overloading in Python
     def __add__(self, other):
-        added_rulers_list = self.list().copy()
+        self_rulers_list = self.list()
         other_rulers_list = other.list()
 
-        for right_ruler in other_rulers_list:
-            if (self.filter(types=[right_ruler['type']], groups=[right_ruler['group']], positions=[right_ruler['position']])).len() == 0:
-                added_rulers_list.append(right_ruler)
-
-        return Rulers(added_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+        return Rulers(self_rulers_list + other_rulers_list, root_self = self.root_self, FROM_RULERS = True)
     
     # self is the list to work with!
 
@@ -53,10 +49,7 @@ class Rulers():
                 if ('enabled' not in ruler or ruler['enabled'] == None):
                     ruler['enabled'] = True
 
-                elready_existent_ruler = self.filter(types=[ruler['type']], groups=[ruler['group']], positions=[ruler['position']])
-
-                if elready_existent_ruler.len() == 0:
-                    self.rulers_list.append(ruler)
+                self.rulers_list.append(ruler)
 
         return self
     
@@ -129,23 +122,25 @@ class Rulers():
     
     def sort(self, reverse = False):
 
-        sorted_rulers = self.rulers_list.copy()
+        sorted_rulers_list = self.rulers_list.copy()
 
-        compare_function = self.position_gt
+        if (len(sorted_rulers_list) > 1):
+            for i in range(0, len(sorted_rulers_list) - 1):
+                sorted_list = True
+                for j in range(1, len(sorted_rulers_list) - i):
+                    if (self.position_gt(sorted_rulers_list[j - 1]['position'], sorted_rulers_list[j]['position'])):
+                        sorted_list = False
+                        temp_ruler = sorted_rulers_list[j - 1]
+                        sorted_rulers_list[j - 1] = sorted_rulers_list[j]
+                        sorted_rulers_list[j] = temp_ruler
+                if sorted_list:
+                    break
+
+        sorted_rulers = Rulers(sorted_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+
         if reverse:
-            compare_function = self.position_lt
-        if (len(sorted_rulers) > 1):
-            sorted = False
-            while (not sorted):
-                sorted = True
-                for i in range(1, len(sorted_rulers)):
-                    if (compare_function(sorted_rulers[i - 1]['position'], sorted_rulers[i]['position'])):
-                        sorted = False
-                        temp_ruler = sorted_rulers[i - 1]
-                        sorted_rulers[i - 1] = sorted_rulers[i]
-                        sorted_rulers[i] = temp_ruler
-
-        return Rulers(sorted_rulers, root_self = self.root_self, FROM_RULERS = True)
+            return sorted_rulers.reverse()
+        return sorted_rulers
 
     def merge(self):
 
@@ -170,7 +165,6 @@ class Rulers():
                                 
             head_offset = 0
             tail_offset = 0
-            top_position = subject_rulers[0]['position']
             for ruler in subject_rulers:
                 if ruler['offset'] < head_offset:
                     head_offset = ruler['offset']
@@ -180,7 +174,7 @@ class Rulers():
             mergedRuler = {
                 'type': type_group['type'],
                 'group': type_group['group'],
-                'position': top_position,
+                'position': subject_rulers[0]['position'],
                 'lines': [None] * (tail_offset - head_offset + 1), # list
                 'offset': head_offset,
                 'enabled': subject_rulers[0]['enabled']
