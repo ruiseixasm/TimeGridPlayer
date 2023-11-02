@@ -70,10 +70,9 @@ class Rulers():
     
     def remove(self):
         self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
-        self.rulers_list = []
         if self.staff_grid != None:
-            self.staff_grid.clear()
-            self.staff_grid.add(self.root_self.rulers_list)
+            self.staff_grid.remove(self.rulers_list)
+        self.rulers_list = []
         return self
     
     def filter(self, types = [], groups = [], positions = [], position_range = [], ENABLED_ONLY = False):

@@ -3,76 +3,37 @@ import rulers
 
 class Action:
 
-    def __init__(self, steps, frames_step, play_range=[]):
+    def __init__(self, steps = 0, frames_step = 0, play_range=[]):
 
-
-        self.steps = max(1, steps)
-        self.frames_step = max(1, frames_step)
-        self.staff_grid = staff(steps, frames_step)
+        self.rulerTypes = ['keys', 'actions']
+        self.staff_grid = staff.Staff(steps, frames_step)
         self.staff_rulers = rulers.Rulers(staff_grid=self.staff_grid)
-
+        self.external_key_rulers = None
 
         self.play_mode = False
 
-
-        self.external_staff_keys = []
-
-
-        # OPTIMIZERS
-        self.rulerTypes = ['keys', 'actions']
-        self.rulerGroups = {'keys': [], 'actions': []}
-
-        self.timeGrid = []
-        self.staffRulers = []
-
-        for i in range(self.steps*self.frames_step):
-
-            frameData = {
-                'sequence': i,
-                'position': None,
-                'step': int(i/self.frames_step),
-                'frame': int(i % self.frames_step),
-                'enabled_rulers': {'keys': 0, 'actions': 0}
-            }
-            frameData['position'] = str(frameData['step']) + "." + str(frameData['frame'])
-
-            self.timeGrid.append(frameData)
-
-        # SET RANGES
-        self.play_range_sequences = [0, self.steps*self.frames_step - 1]
-
-        if (len(play_range) == 2):
-
-            if (play_range[0] != None):
-                step_frame = play_range[0].split('.')
-                self.play_range_sequences[0] = min(self.play_range_sequences[1], int(step_frame[0]) * frames_step + int(step_frame[1]))
-            if (play_range[1] != None):
-                step_frame = play_range[1].split('.')
-                self.play_range_sequences[1] = min(self.play_range_sequences[1], int(step_frame[0]) * frames_step + int(step_frame[1]) - 1) # Excludes last sequence
-
-        first_position = self.timeGrid[self.play_range_sequences[0]]['position']
-        last_position = self.timeGrid[self.play_range_sequences[1]]['position']
-        self.play_range_positions = [first_position, last_position]
-
-        self.sequence = self.play_range_sequences[0]
+        self.play_sequence = self.sequenceRange()[0]
 
         self.clock = None
         self.clocked_actions = []
         self.next_clocked_sequence = -1
             
-    def __str__(self):
-        finalString = ""
-        last_time = 0
-        for frame in self.timeGrid:
-            finalString += f"{frame['sequence']}\t{frame['position']}\n"
-        return finalString
+    # def __str__(self):
+    #     finalString = f"{frame['sequence']}\t{frame['position']}\n"
+    #     return finalString
 
+
+    def sequenceRange(self):
+        position_range = self.staff_grid.range()
+        start_sequence = self.staff_grid.sequence(position_range[0])
+        finish_sequence = self.staff_grid.sequence(position_range[1])
+        return [start_sequence, finish_sequence]
 
     def connectClock(self, clock):
         self.clock = clock
         self.clock.attach(self)
 
-    def addClockedAction(self, clocked_action = {'triggered_action': None, 'staff_keys': None, 'duration': None, 'action': None}):
+    def addClockedAction(self, clocked_action): # Clocked actions AREN'T rulers!
         if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
             step_frame_duration = clocked_action['duration'].split('.')
             clock_tempo = self.clock.getClockTempo()
@@ -90,49 +51,77 @@ class Action:
         #print(f"CALLED:\t{self.play_mode}")
         if (self.play_mode):
 
-            #print(f"\tPULSE: {self.sequence}")
+            #print(f"\tPULSE: {self.play_sequence}")
 
-            if (self.sequence <= self.play_range_sequences[1]): # plays staff range from start to finish
+            if (self.play_sequence < self.sequenceRange()[1]): # plays staff range from start to finish
 
-                this_position = self.position(self.nsequence)
-                next_position = self.position(self.nsequence + 1)
+                position = self.staff_grid.grid(self.play_sequence)['position']
+                position = self.staff_grid.str_position(position)
+                total_key_rulers = self.staff_grid.grid(self.play_sequence)['keys']
+                total_action_rulers = self.staff_grid.grid(self.play_sequence)['actions']
 
-                position = self.timeGrid[self.sequence]['position']
-                total_key_rulers = self.timeGrid[self.sequence]['enabled_rulers']['keys']
-                total_action_rulers = self.timeGrid[self.sequence]['enabled_rulers']['actions']
-
-
-                print(f"{self.sequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['sequence']}\t{self.next_clocked_sequence}")
+                print(f"{self.play_sequence}\t{position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['sequence']}\t{self.next_clocked_sequence}")
 
                 if (total_action_rulers > 0):
-                    key_rulers = self.staff_rulers.filter(types=['keys'], position_range=[[0 , 0], next_position],ENABLED_ONLY=True)
-                    action_rulers = self.staff_rulers.filter(types=['actions'], positions=[this_position],ENABLED_ONLY=True)
-                    frameStaffActions = self.filterRulers(types=["actions"], positions=[position], ENABLED_ONLY=True)
-                    stacked_staff_keys = self.stackStaffRulers(['keys'], [], position) # list of multiple rulers
+                    
+                    next_position = self.staff_grid.position(self.play_sequence + 1)
+                    key_rulers = self.staff_rulers.filter(types=['keys'], position_range=[[0 , 0], next_position], ENABLED_ONLY=True)
+                    if self.external_key_rulers != None:
+                        key_rulers += self.external_key_rulers
+                    merged_key_rulers = key_rulers.merge()
+
+                    this_position = self.staff_grid.position(self.play_sequence)
+                    sequence_action_rulers = self.staff_rulers.filter(types=['actions'], positions=[this_position], ENABLED_ONLY=True)
+                    
                     print("")
-                    for triggered_action in frameStaffActions: # single ruler actions
+                    for triggered_action in sequence_action_rulers.list(): # single ruler actions
                         for action_line in range(len(triggered_action['lines'])):
                             if (triggered_action['lines'][action_line] != None):
                                 triggered_action['line'] = action_line
                                 triggered_action['source'] = "staff" # to know the source of the trigger
-                                for frameStakedKeysRuler in stacked_staff_keys:
-                                    frameStakedKeysRuler['line'] = action_line + triggered_action['offset'] - frameStakedKeysRuler['offset']
-                                    if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
-                                        frameStakedKeysRuler['line'] = None # in case key line is out of range of the triggered action line
+                                for key_ruler in merged_key_rulers.list():
+                                    key_ruler['line'] = action_line + triggered_action['offset'] - key_ruler['offset']
+                                    if (key_ruler['line'] < 0 or not (key_ruler['line'] < len(key_ruler['lines']))):
+                                        key_ruler['line'] = None # in case key line is out of range of the triggered action line
 
                                 action_object = triggered_action['lines'][action_line]
+
                                 if (action_object == self):        
-                                    action_object.actionInternalTrigger(triggered_action, stacked_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionInternalTrigger(triggered_action, merged_key_rulers, tempo) # WHERE ACTION IS TRIGGERED
                                 else:        
-                                    action_object.actionExternalTrigger(triggered_action, stacked_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionExternalTrigger(triggered_action, merged_key_rulers, tempo) # WHERE ACTION IS TRIGGERED
                     print("")
 
-                self.sequence += 1
+
+                    # frameStaffActions = self.filterRulers(types=["actions"], positions=[position], ENABLED_ONLY=True)
+                    # merged_staff_keys = self.stackStaffRulers(['keys'], [], position) # list of multiple rulers
+                    # print("")
+                    # for triggered_action in frameStaffActions: # single ruler actions
+                    #     for action_line in range(len(triggered_action['lines'])):
+                    #         if (triggered_action['lines'][action_line] != None):
+                    #             triggered_action['line'] = action_line
+                    #             triggered_action['source'] = "staff" # to know the source of the trigger
+                    #             for frameStakedKeysRuler in merged_staff_keys:
+                    #                 frameStakedKeysRuler['line'] = action_line + triggered_action['offset'] - frameStakedKeysRuler['offset']
+                    #                 if (frameStakedKeysRuler['line'] < 0 or not (frameStakedKeysRuler['line'] < len(frameStakedKeysRuler['lines']))):
+                    #                     frameStakedKeysRuler['line'] = None # in case key line is out of range of the triggered action line
+
+
+                    #             action_object = triggered_action['lines'][action_line]
+
+
+                    #             if (action_object == self):        
+                    #                 action_object.actionInternalTrigger(triggered_action, merged_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                    #             else:        
+                    #                 action_object.actionExternalTrigger(triggered_action, merged_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                    # print("")
+
+                self.play_sequence += 1
 
             else:
                 self.clock.stop()
                 self.play_mode = False
-                self.sequence = self.play_range_sequences[0]
+                self.play_sequence = self.staff_grid.sequence(self.staff_grid.range()[0])
 
         # clock triggers staked to be called
         if (self.next_clocked_sequence == tempo['sequence']):
@@ -162,21 +151,13 @@ class Action:
         return self.staff_grid
 
 
-
-
-
-  
-
- 
-
-
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
         self.play_mode = True
-        self.external_staff_keys = stacked_staff_keys # becomes read only, no need to copy
+        self.external_staff_keys = merged_staff_keys # becomes read only, no need to copy
 
-    def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
         pass
 
 class Master(Action):
@@ -188,35 +169,34 @@ class Note(Action):
     
     def __init__(self, steps, frames, play_range=[]):
         super().__init__(steps, frames, play_range) # not self init
-        first_position = self.play_range_positions[0]
-
-        if (self.addRuler("actions", "notes", "note_on", [self])):
-            self.placeRuler('actions', "note_on", first_position)
+        first_position = self.staff_grid.range()[0]
+        self.staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
-        super().actionExternalTrigger(triggered_action, stacked_staff_keys, tempo)
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
+        super().actionExternalTrigger(triggered_action, merged_staff_keys, tempo)
         if (tempo['fast_forward']):
             self.play_mode = False
-        if (len(stacked_staff_keys) > 0):
-            given_lines = stacked_staff_keys[0]['lines']
-            key_line = stacked_staff_keys[0]['line']
+        if (merged_staff_keys != None and merged_staff_keys.len() > 0):
+            given_lines = merged_staff_keys.list()[0]['lines']
+            key_line = merged_staff_keys.list()[0]['line']
             key_value = given_lines[key_line]
             self.note = key_value # may need tranlation!
 
-    def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
-        super().actionInternalTrigger(triggered_action, stacked_staff_keys, tempo)
-        if (len(stacked_staff_keys) > 0):
-            given_lines = stacked_staff_keys[0]['lines']
-            key_line = stacked_staff_keys[0]['line']
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
+        super().actionInternalTrigger(triggered_action, merged_staff_keys, tempo)
+        if (merged_staff_keys != None and merged_staff_keys.len() > 0):
+            given_lines = merged_staff_keys.list()[0]['lines']
+            key_line = merged_staff_keys.list()[0]['line']
             key_value = given_lines[key_line]
         else:
             key_value = self.note # may need tranlation!
         if (triggered_action['source'] == "staff"):
             print(f"note ON:\t{key_value}")
-            self.addClockedAction(clocked_action = {'triggered_action': triggered_action.copy(), 'staff_keys': stacked_staff_keys.copy(),
-                                                    'duration': "1.0", 'action': self})
+            self.addClockedAction(clocked_action =
+                                  {'triggered_action': triggered_action, 'staff_keys': merged_staff_keys, 'duration': [1, 0], 'action': self}
+                                  )
         else:
             print(f"note OFF:\t{key_value}")
 
@@ -224,16 +204,16 @@ class Trigger(Action):
     
     def __init__(self):
         super().__init__(0, 0) # not self init
-        self.addRuler("actions", "triggers", [self])
+        self.staff_rulers.add({'type': "actions", 'group': "triggers", 'lines': [self]})
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
-        super().actionExternalTrigger(triggered_action, stacked_staff_keys, tempo)
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
+        super().actionExternalTrigger(triggered_action, merged_staff_keys, tempo)
         print("EXTERNALLY TRIGGERED")
 
-    def actionInternalTrigger(self, triggered_action = {}, stacked_staff_keys = [], tempo = {}):
-        super().actionInternalTrigger(triggered_action, stacked_staff_keys, tempo)
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
+        super().actionInternalTrigger(triggered_action, merged_staff_keys, tempo)
         print("LOCALLY TRIGGERED")
 
 

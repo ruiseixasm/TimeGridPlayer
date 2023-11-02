@@ -1,6 +1,6 @@
 class Staff:
 
-    def __init__(self, steps, frames_step, play_range=[]):
+    def __init__(self, steps = 0, frames_step = 0, play_range=[]):
 
         self.ruler_types = ['keys', 'actions']
         self.steps = max(1, steps)
@@ -18,6 +18,9 @@ class Staff:
         self.staff_grid = []
         self.generate()
 
+    def grid(self, sequence):
+        if (len(self.staff_grid) > 0):
+            return self.staff_grid[sequence]
 
     def position(self, sequence):
         steps = int(sequence / self.frames_step)
@@ -97,3 +100,5 @@ class Staff:
                 return True
         return False
     
+    def str_position(self, position):
+        return str(position[0]) + "." + str(position[1])

@@ -2,55 +2,26 @@ import rulers
 import clock
 import action
 
-
-
-
 master_clock = clock.Clock(80, 4)
 
 master = action.Master(10, 4)
 trigger = action.Trigger()
-note = action.Note(2, 4, [None, "1.0"])
+note = action.Note(2, 4, [[0, 0], [1, 0]])
 
-master.addRuler("actions", "triggers", [trigger])
-master.addRuler("actions", "notes", [note])
-master.addRuler("actions", "notes", [note])
+print("\n\n")
 
-master.placeRuler('actions', "1.1")
-master.placeRuler('actions', "2.1")
-master.placeRuler('actions', "4.1")
-print(master.filterRulers(["actions"]))
+master.rulers().add({'type': "actions", 'group': "triggers", 'position': [1, 1], 'lines': [trigger]})
+master.rulers().add({'type': "actions", 'group': "notes", 'position': [2, 1], 'lines': [note]})
+master.rulers().add({'type': "actions", 'group': "notes", 'position': [4, 1], 'lines': [note]})
+master.rulers().filter(types=["actions"]).print()
 
-
-
-master.addRuler("keys", "generic", [None, 'c#', None, None, 'e', None])
-master.addRuler("keys", "generic", ['c', 'c#', 'd', None, 'e', None])
-master.addRuler("keys", "generic", ['d', 'c#', 'd', 'd#', 'e', None])
-master.addRuler("keys", "specific", [None, 'c#', None, None, 'e', None])
-master.addRuler("keys", "specific", ['a', 'b', 'd', None, 'f', None])
-master.addRuler("keys", "specific", [None, 'c#', 'd', 'd#', 'e', None])
-#print(master)
-
-#master.listRulers()
-#print(master.filterRulers())
-#master.listStaffGroups()
-
-master.placeRuler("keys", "first", "2.1")
-master.placeRuler("keys", "second", "1.1")
-master.placeRuler("keys", "third", "3.1", -1)
-
-#master.listStaffGroups()
-
-master.placeRuler("keys", "fourth", "3.0")
-master.placeRuler("keys", "fifth", "1.0", -2)
-master.placeRuler("keys", "sixth", "2.0")
-
-#master.listStaffGroups()
-# print(master.stackStaffRulers(["keys"], ["generic"], "3.0"))
-# print(master.stackStaffRulers(["keys"], position="3.0"))
-
-#master.listRulers()
-#print(master.filterRulers(positions = ["1.1"]))
-
+master.rulers().add({'type': "keys", 'group': "generic", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
+master.rulers().add({'type': "keys", 'group': "generic", 'position': [1, 1], 'lines': ['c', 'c#', 'd', None, 'e', None]})
+master.rulers().add({'type': "keys", 'group': "generic", 'position': [3, 1], 'lines': ['d', 'c#', 'd', 'd#', 'e', None], 'offset': -1})
+master.rulers().add({'type': "keys", 'group': "specific", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
+master.rulers().add({'type': "keys", 'group': "specific", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
+master.rulers().add({'type': "keys", 'group': "specific", 'position': [3, 1], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
+master.rulers().filter(types=["keys"]).print()
 
 
 master.connectClock(master_clock)
@@ -58,4 +29,7 @@ note.connectClock(master_clock)
 trigger.connectClock(master_clock)
 master_clock.start()
 print("\n\n\nNEXT ITERATION\n\n")
-master_clock.start(["4.0", "6.0"])
+master_clock.start([[4, 0], [6, 0]])
+
+
+print("\n\n")

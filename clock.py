@@ -56,12 +56,10 @@ class Clock(): # Subject
         last_sequence = None
 
         if (len(clock_range) == 2):
-            if (clock_range[0] != None):
-                step_frame = clock_range[0].split('.')
-                first_sequence = int(step_frame[0]) * self.tempo['frames_step'] + int(step_frame[1])
-            if (clock_range[1] != None):
-                step_frame = clock_range[1].split('.')
-                last_sequence = int(step_frame[0]) * self.tempo['frames_step'] + int(step_frame[1]) - 1 # Excludes last sequence
+            if (clock_range[0] != None and len(clock_range[0]) == 2):
+                first_sequence = clock_range[0][0] * self.tempo['frames_step'] + clock_range[0][1]
+            if (clock_range[1] != None and len(clock_range[1]) == 2):
+                last_sequence = clock_range[1][0] * self.tempo['frames_step'] + clock_range[1][1] - 1 # Excludes last sequence
 
         startTime = None
         nextTime = 0
