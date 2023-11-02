@@ -120,7 +120,12 @@ class Rulers():
         return Rulers(unique_rulers_list, root_self = self.root_self, FROM_RULERS = True)
     
     def reverse(self):
-        ...
+        straight_rulers_list = self.rulers_list
+        reversed_rulers_list = [None] * self.len()
+        for i in range(self.len()):
+            reversed_rulers_list[i] = straight_rulers_list[self.len() - 1 - i]
+
+        return Rulers(reversed_rulers_list, root_self = self.root_self, FROM_RULERS = True)
     
     def sort(self, reverse = False):
 
