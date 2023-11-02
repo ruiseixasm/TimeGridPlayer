@@ -80,7 +80,7 @@ class Rulers():
                 staffRuler for staffRuler in filtered_rulers
                         if not (self.position_lt(staffRuler['position'], position_range[0]) or self.position_gt(staffRuler['position'], position_range[1]))
             ]
-        return Rulers(filtered_rulers, self.root_self)
+        return Rulers(filtered_rulers, root_self = self.root_self)
     
     def print(self):
         if len(self.rulers_list) > 0:
@@ -93,7 +93,8 @@ class Rulers():
     def copy(self):
         newRulers = Rulers()
         for ruler in self.rulers_list:
-            newRulers.add(ruler.copy())
+            #newRulers.add(ruler.copy())
+            newRulers.rulers_list.append(ruler.copy())
         return newRulers
 
     def getPosition(self, ruler):
