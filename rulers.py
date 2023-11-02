@@ -15,6 +15,9 @@ class Rulers():
             else:
                 for ruler in rulers_list:
                     self.add(ruler)
+
+    def root(self):
+        return self.root_self
             
     # + Operator Overloading in Python
     def __add__(self, other):
