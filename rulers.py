@@ -46,6 +46,10 @@ class Rulers():
     
     def len(self):
         return len(self.rulers_list)
+    
+    def empty(self):
+        empty_rulers_list = []
+        return Rulers(empty_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
         
     def add(self, ruler): # Must be able to remove removed rulers from the main list
         
@@ -78,7 +82,7 @@ class Rulers():
     
     def duplicate(self):
         for ruler in self.rulers_list[:]:
-            self.add(ruler)
+            self.add(ruler.copy())
         return self
     
     def enable(self):
@@ -139,7 +143,7 @@ class Rulers():
                 print(ruler)
         else:
             print("[EMPTY]")
-        print("\n")
+        return self
 
     def copy(self):
         rulers_list_copy = []

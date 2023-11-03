@@ -1,5 +1,6 @@
 import staff
 import rulers
+import rtmidi
 
 class Action:
 
@@ -8,8 +9,8 @@ class Action:
         self.rulerTypes = ['keys', 'actions']
         self.staff_grid = staff.Staff(steps, frames_step, play_range)
         self.staff_rulers = rulers.Rulers(staff_grid=self.staff_grid)
-        self.internal_key_rulers = rulers.Rulers(staff_grid=self.staff_grid)
-        self.external_key_rulers = rulers.Rulers(staff_grid=self.staff_grid)
+        self.internal_key_rulers = self.staff_rulers.empty()
+        self.external_key_rulers = self.staff_rulers.empty()
 
         self.play_mode = False
 
