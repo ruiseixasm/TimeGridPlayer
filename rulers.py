@@ -27,20 +27,20 @@ class Rulers():
         return self
     
     def updateStaff(self):
-        ...
+        if self.staff_grid != None:
+            self.staff_grid.clear()
+            enabled_rulers_list = self.filter(enabled=True).list()
+            self.staff_grid.add(enabled_rulers_list)
+
+        return self
             
     # + Operator Overloading in Python
     def __add__(self, other):
         self_rulers_list = self.list()
         other_rulers_list = other.list()
 
-        return Rulers(self_rulers_list + other_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+        return Rulers(self_rulers_list + other_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
-    # self is the list to work with!
-
-    # def cleanRulers(self):
-    #     self = [ ruler for ruler in self if ruler != None ]
-
     def list(self):
         return self.rulers_list
     
@@ -63,7 +63,7 @@ class Rulers():
                     ruler['enabled'] = True
 
                 self.rulers_list.append(ruler)
-                if self.staff_grid != None:
+                if self.staff_grid != None and ruler['enabled'] == True:
                     self.staff_grid.add([ruler])
 
         return self
@@ -71,17 +71,37 @@ class Rulers():
     def remove(self):
         self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
         if self.staff_grid != None:
-            self.staff_grid.remove(self.rulers_list)
+            enabled_rulers_list = self.filter(enabled=True).list()
+            self.staff_grid.remove(enabled_rulers_list)
         self.rulers_list = []
         return self
     
-    def filter(self, types = [], groups = [], positions = [], position_range = [], ENABLED_ONLY = False):
+    def duplicate(self):
+        for ruler in self.rulers_list[:]:
+            self.add(ruler)
+        return self
+    
+    def enable(self):
+        disabled_rulers_list = self.filter(enabled=False).list()
+        for disabled_ruler in disabled_rulers_list:
+            disabled_ruler['enabled'] = True
+        self.staff_grid.add(disabled_rulers_list)
+        return self
+    
+    def disable(self):
+        enabled_rulers_list = self.filter(enabled=True).list()
+        for enabled_ruler in enabled_rulers_list:
+            enabled_ruler['enabled'] = False
+        self.staff_grid.remove(enabled_rulers_list)
+        return self
+    
+    def filter(self, types = [], groups = [], positions = [], position_range = [], enabled = None):
 
         filtered_rulers = self.rulers_list.copy()
 
-        if (ENABLED_ONLY):
+        if (enabled != None):
             filtered_rulers = [
-                ruler for ruler in filtered_rulers if ruler['enabled'] == True
+                ruler for ruler in filtered_rulers if ruler['enabled'] == enabled
             ]
         if (len(types) > 0 and types != [None]):
             filtered_rulers = [
@@ -105,8 +125,14 @@ class Rulers():
                 ruler for ruler in filtered_rulers
                         if not (self.position_lt(ruler['position'], position_range[0]) and self.position_lt(ruler['position'], position_range[1]))
             ]
-        return Rulers(filtered_rulers, root_self = self.root_self, FROM_RULERS = True)
+        return Rulers(filtered_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
+    def ruler(self, index=0):
+        rulers_list = self.self.rulers_list
+        ruler_list = [ rulers_list[index] ]
+
+        return Rulers(ruler_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+
     def print(self):
         if len(self.rulers_list) > 0:
             for ruler in self.rulers_list:
@@ -127,7 +153,7 @@ class Rulers():
             if ruler not in unique_rulers_list:
                 unique_rulers_list.append(ruler)
 
-        return Rulers(unique_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+        return Rulers(unique_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def reverse(self):
         straight_rulers_list = self.rulers_list
@@ -135,7 +161,7 @@ class Rulers():
         for i in range(self.len()):
             reversed_rulers_list[i] = straight_rulers_list[self.len() - 1 - i]
 
-        return Rulers(reversed_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+        return Rulers(reversed_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def sort(self, reverse = False):
 
@@ -153,7 +179,7 @@ class Rulers():
                 if sorted_list:
                     break
 
-        sorted_rulers = Rulers(sorted_rulers_list, root_self = self.root_self, FROM_RULERS = True)
+        sorted_rulers = Rulers(sorted_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
 
         if reverse:
             return sorted_rulers.reverse()
@@ -178,7 +204,7 @@ class Rulers():
 
         for type_group in type_groups:
 
-            subject_rulers = self.filter(types=[type_group['type']], groups=[type_group['group']]).sort(reverse=True).list()
+            subject_rulers = self.filter(types=[type_group['type']], groups=[type_group['group']]).list()
                                 
             head_offset = 0
             tail_offset = 0
@@ -205,15 +231,9 @@ class Rulers():
 
             merged_rulers.append(mergedRuler)
 
-        return Rulers(merged_rulers, root_self = self.root_self, FROM_RULERS = True)
+        return Rulers(merged_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
 
-
-    def getPosition(self, ruler):
-        return ruler['position'] 
-
-    def getSequence(self, ruler, frames_step):
-        return ruler['position'][0] * frames_step + ruler['position'][1]
 
     def position_gt(self, left_position, right_position):
         if (left_position[0] > right_position[0]):
@@ -235,24 +255,11 @@ class Rulers():
         if (left_position[0] == right_position[0] and left_position[1] == right_position[1]):
             return True
         return False
-    
-    def sortPositions(self, positions, reverse = False):
-        sorted_positions = positions[:]
-        compare_function = self.position_gt
-        if reverse:
-            compare_function = self.position_lt
-        if (len(sorted_positions) > 1):
-            sorted = False
-            while (not sorted):
-                sorted = True
-                for i in range(1, len(sorted_positions)):
-                    if (compare_function(sorted_positions[i - 1], sorted_positions[i])):
-                        sorted = False
-                        temp_position = sorted_positions[i - 1]
-                        sorted_positions[i - 1] = sorted_positions[i]
-                        sorted_positions[i] = temp_position
 
-        return sorted_positions
+    # self is the list to work with!
+
+    # def cleanRulers(self):
+    #     self = [ ruler for ruler in self if ruler != None ]
 
 # Python has magic methods to define overloaded behaviour of operators. The comparison operators (<, <=, >, >=, == and !=)
 # can be overloaded by providing definition to __lt__, __le__, __gt__, __ge__, __eq__ and __ne__ magic methods.
@@ -272,9 +279,9 @@ class Rulers():
     #         rulers[1]['sequence'] = sequence
     #     return self
 
-    # def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+    # def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
 
-    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
     #     lower_slack = self.steps*self.frames_step - 1
     #     upper_slack = lower_slack
@@ -305,9 +312,9 @@ class Rulers():
             
     #     return self
 
-    # def operationRotateRulers(self, increments = [0, 0], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+    # def operationRotateRulers(self, increments = [0, 0], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
 
-    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
     #     staff_sequences = []
     #     if (increments[0] != 0):
@@ -330,9 +337,9 @@ class Rulers():
 
     #     return self
 
-    # def operationFlipRulers(self, mirrors = [False, False], type = None, group = None, sequeces_range = [], ENABLED_ONLY = False, INSIDE_RANGE = False):
+    # def operationFlipRulers(self, mirrors = [False, False], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
 
-    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, ENABLED_ONLY = ENABLED_ONLY, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
+    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
     #     staff_sequences = []
     #     if (mirrors[0]):

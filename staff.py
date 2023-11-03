@@ -36,7 +36,6 @@ class Staff:
     def range(self):
         return self.play_range
 
-
     def generate(self):
         self.staff_grid = []
         for sequence in range(self.sequences):
@@ -54,7 +53,6 @@ class Staff:
             staff_position['keys'] = 0
             staff_position['actions'] = 0
         return self
-
 
     def add(self, rulers):
         for ruler in rulers:
@@ -77,7 +75,6 @@ class Staff:
         else:
             print("[EMPTY]")
         print("\n")
-
         
     def position_gt(self, left_position, right_position):
         if len(left_position) == 2 and len(right_position) == 2:
