@@ -36,10 +36,37 @@ class Rulers():
             
     # + Operator Overloading in Python
     def __add__(self, other):
+        '''Works as Union'''
         self_rulers_list = self.list()
         other_rulers_list = other.list()
 
         return Rulers(self_rulers_list + other_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+    
+    def __sub__(self, other):
+        '''Works as exclusion'''
+        self_rulers_list = self.list()
+        other_rulers_list = other.list()
+
+        exclusion_list = [ ruler for ruler in self_rulers_list if ruler not in other_rulers_list ]
+
+        return Rulers(exclusion_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+    
+    def __mul__(self, other):
+        '''Works as intersection'''
+        self_rulers_list = self.list()
+        other_rulers_list = other.list()
+        
+        intersection_list = [ ruler for ruler in self_rulers_list if ruler in other_rulers_list ]
+
+        return Rulers(intersection_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+    
+    def __div__(self, other):
+        '''Works as divergence'''
+        union_rulers = self.__add__(other)
+        intersection_rulers = self.__mul__(other)
+
+        return union_rulers - intersection_rulers
+    
     
     def list(self):
         return self.rulers_list
@@ -131,12 +158,6 @@ class Rulers():
             ]
         return Rulers(filtered_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
-    def ruler(self, index=0):
-        rulers_list = self.self.rulers_list
-        ruler_list = [ rulers_list[index] ]
-
-        return Rulers(ruler_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
-
     def print(self):
         if len(self.rulers_list) > 0:
             for ruler in self.rulers_list:
@@ -236,6 +257,33 @@ class Rulers():
             merged_rulers.append(mergedRuler)
 
         return Rulers(merged_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+    
+    def single(self, index=0):
+        if (self.len() > index):
+            ruler_list = [ self.self.rulers_list[index] ]
+            return Rulers(ruler_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+        return self
+
+    def exclude(self, index=0):
+        if (self.len() > index):
+            excluding_rulers = self.single(self, index)
+            return self - excluding_rulers
+        return self
+
+    def expand(self):
+        return self
+    
+    def distribute(self):
+        return self
+    
+    def slide(self):
+        return self
+    
+    def flip(self):
+        return self
+    
+    def rotate(self):
+        return self
     
 
 
