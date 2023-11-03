@@ -18,6 +18,9 @@ class Staff:
         self.staff_grid = []
         self.generate()
 
+    def signature(self):
+        return {'steps': self.steps, 'frames_step': self.frames_step}
+
     def grid(self, sequence):
         if (len(self.staff_grid) > 0):
             return self.staff_grid[sequence]

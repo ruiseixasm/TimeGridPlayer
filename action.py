@@ -8,7 +8,8 @@ class Action:
         self.rulerTypes = ['keys', 'actions']
         self.staff_grid = staff.Staff(steps, frames_step)
         self.staff_rulers = rulers.Rulers(staff_grid=self.staff_grid)
-        self.external_key_rulers = None
+        self.internal_key_rulers = rulers.Rulers()
+        self.external_key_rulers = rulers.Rulers()
 
         self.play_mode = False
 
@@ -35,13 +36,13 @@ class Action:
 
     def addClockedAction(self, clocked_action): # Clocked actions AREN'T rulers!
         if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
-            step_frame_duration = clocked_action['duration'].split('.')
             clock_tempo = self.clock.getClockTempo()
-            sequence_duration = int(step_frame_duration[0]) * self.frames_step + int(step_frame_duration[1]) # Action frames per step considered
+            sequence_duration = int(clocked_action['duration'][0]) * self.staff_grid.signature()['frames_step'] + int(clocked_action['duration'][1]) # Action frames per step considered
             clocked_action['sequence'] = clock_tempo['sequence'] + sequence_duration
             clocked_action['source'] = "clock" # to know the source of the trigger
             clocked_action['stack_id'] = len(self.clocked_actions)
             self.clocked_actions.append(clocked_action)
+
             if (not self.next_clocked_sequence < clock_tempo['sequence']):
                 self.next_clocked_sequence = min(self.next_clocked_sequence, clocked_action['sequence'])
             else:
