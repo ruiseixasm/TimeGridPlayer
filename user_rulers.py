@@ -51,7 +51,8 @@ add_rulers = (userRulers + copied_rulers).unique().print()
 
 print("\nEVEN\n")
 add_rulers.unique().even().print().slide([-2, 0]).print().slide([1, 2])\
-    .print().distribute().print().move([1, 0]).print().distribute([1, 0]).print().distribute(scope=[[2, 0], [3, 0]]).print()
+    .print().distribute().print().move([1, 0]).print().distribute([1, 0]).print().distribute(scope=[[2, 0], [3, 0]]).print()\
+    .flip().print()
 
 print("\nODD\n")
 add_rulers.unique().odd().print().disable().print()

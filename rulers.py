@@ -397,6 +397,18 @@ class Rulers():
         return self
     
     def flip(self):
+        self = self.unique()
+        
+        original_positions = []
+        for ruler in self.rulers_list:
+            original_positions.append(ruler['position'])
+
+        rulers_list_size = self.len()
+        self.float()
+        for index in range(rulers_list_size):
+            self.rulers_list[index]['position'] = original_positions[rulers_list_size - 1 - index]
+        self.drop()
+
         return self
     
     def odd(self):
