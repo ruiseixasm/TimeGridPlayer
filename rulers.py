@@ -146,13 +146,17 @@ class Rulers():
             self.staff_grid.remove(enabled_rulers_list)
         return self
     
-    def filter(self, types = [], groups = [], positions = [], position_range = [], enabled = None):
+    def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None):
 
         filtered_rulers = self.rulers_list.copy()
 
         if (enabled != None):
             filtered_rulers = [
                 ruler for ruler in filtered_rulers if ruler['enabled'] == enabled
+            ]
+        if (len(ids) > 0 and ids != [None]):
+            filtered_rulers = [
+                ruler for ruler in filtered_rulers if ruler['id'] in ids
             ]
         if (len(types) > 0 and types != [None]):
             filtered_rulers = [
@@ -163,13 +167,9 @@ class Rulers():
                 ruler for ruler in filtered_rulers if ruler['group'] in groups
             ]
         if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
-            in_position_rulers = []
-            for position in positions:
-                if len(position) == 2:
-                    in_position_rulers += [
-                        ruler for ruler in filtered_rulers if ruler['position'] == position
-                    ]
-            filtered_rulers = in_position_rulers
+            filtered_rulers = [
+                ruler for ruler in filtered_rulers if ruler['position'] in positions
+            ]
         if (len(position_range) == 2 and len(position_range[0]) == 2 and len(position_range[1]) == 2):
             # Using list comprehension
             filtered_rulers = [

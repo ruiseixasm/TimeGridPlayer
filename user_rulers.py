@@ -49,7 +49,7 @@ add_rulers.even().print().slide([-2, 0]).print().slide([1, 2]).print()
 staff_grid.print()
 print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 
-userRulers.unique().sort().print()
+userRulers.unique().sort().print().filter(positions=[[1, 2], [1, 3]]).print()
 
 # print("\nUNIQUE\n")
 # add_rulers.unique().print()

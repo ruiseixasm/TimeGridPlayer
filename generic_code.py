@@ -48,3 +48,9 @@ big_list.append(list_1)
 print (big_list)
 print (list_1 == list_2)
 print (list_2 in big_list)
+
+
+list_a = ["A"]
+list_b = list_a
+list_b[0] = "B"
+print (list_a)
