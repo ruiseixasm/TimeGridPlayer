@@ -340,7 +340,7 @@ class Rulers():
 
             distance_sequences = self.staff_grid.sequence(distance)
             if distance_sequences > 0:
-                last_sequence = self.staff_grid.sequences() - 1
+                last_sequence = self.staff_grid.len() - 1
                 for ruler in self.rulers_list:
                     ruler_position_sequence = self.staff_grid.sequence(ruler['position'])
                     distance_sequences = min(distance_sequences, last_sequence - ruler_position_sequence)
@@ -361,15 +361,37 @@ class Rulers():
 
         return self
     
-    def expand(self, distance=[None, None]):
-        if self.staff_grid != None and distance[0] != None and distance[1] != None:
-            ...
+    def expand(self, increment=[None, None]):
+
         return self
     
-    def distribute(self, range=[[None, None], [None, None]]):
-        if self.staff_grid != None and range[0][0] != None and range[0][1] != None and range[1][0] != None and range[1][1] != None:
-            ...
-        return self
+    def distribute(self, distance=[None, None], scope=[[None, None], [None, None]]):
+        sorted_rulers = self.unique().sort()
+        number_intervals = sorted_rulers.len()
+        if self.staff_grid != None and number_intervals > 1:
+            if scope[0][0] != None and scope[0][1] != None and scope[1][0] != None and scope[1][1] != None:
+                distance_sequences = self.staff_grid.sequence(scope[1]) - self.staff_grid.sequence(scope[0]) # total distance
+                start_sequence = self.staff_grid.sequence(scope[0])
+                finish_sequence = start_sequence + round(distance_sequences * (number_intervals - 1) / number_intervals)
+            elif distance[0] != None and distance[1] != None:
+                distance_sequences = self.staff_grid.sequence(distance) # total distance
+                start_sequence = self.staff_grid.sequence(sorted_rulers.list()[0]['position'])
+                finish_sequence = start_sequence + round(distance_sequences * (number_intervals - 1) / number_intervals)
+            else:
+                finish_sequence = \
+                    self.staff_grid.sequence(sorted_rulers.list()[number_intervals - 1]['position'])\
+                    - self.staff_grid.sequence(sorted_rulers.list()[0]['position']) # total distance
+                distance_sequences = finish_sequence * number_intervals / (number_intervals - 1)
+                start_sequence = self.staff_grid.sequence(sorted_rulers.list()[0]['position'])
+
+            if not finish_sequence < 0 and finish_sequence < self.staff_grid.len():
+                sorted_rulers.float()
+                for index in range(number_intervals):
+                    new_position = self.staff_grid.position(start_sequence + round(index * distance_sequences / number_intervals))
+                    sorted_rulers.list()[index]['position'] = new_position
+                sorted_rulers.drop()
+
+        return sorted_rulers
     
     def rotate(self, increment=1):
         return self

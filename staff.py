@@ -5,7 +5,7 @@ class Staff:
         self.ruler_types = ['keys', 'actions']
         self.steps = max(1, steps)
         self.frames_step = max(1, frames_step)
-        self.total_sequences = self.steps*self.frames_step # total amount
+        self.total_sequences = self.steps*self.frames_step # total amount like the len()
         self.play_range = [
             self.position(0), self.position(self.total_sequences)
         ]
@@ -33,9 +33,6 @@ class Staff:
     def signature(self):
         return {'steps': self.steps, 'frames_step': self.frames_step}
 
-    def sequence(self, position):
-        return position[0] * self.frames_step + position[1]
-    
     def grid(self, sequence):
         if (len(self.staff_grid) > 0):
             return self.staff_grid[sequence]
@@ -80,7 +77,10 @@ class Staff:
             frames = -(-sequence % self.frames_step)
         return [steps, frames]
     
-    def sequences(self):
+    def sequence(self, position):
+        return position[0] * self.frames_step + position[1]
+    
+    def len(self):
         return self.total_sequences
     
     def range(self):

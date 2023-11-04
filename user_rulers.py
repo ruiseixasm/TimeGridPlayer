@@ -37,9 +37,10 @@ print("\n+\n")
 add_rulers = (userRulers + copied_rulers).unique().print()
 # add_rulers.print()
 
-print("\nSTAFF\n")
-staff_grid.print()
-print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
+# print("\nSTAFF\n")
+# staff_grid.print()
+# print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
+
 # print("\n-\n")
 # sub_rulers = userRulers - copied_rulers
 # lines = sub_rulers.print().lines()
@@ -49,7 +50,8 @@ print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 # print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 
 print("\nEVEN\n")
-add_rulers.unique().even().print().slide([-2, 0]).print().slide([1, 2]).print()
+add_rulers.unique().even().print().slide([-2, 0]).print().slide([1, 2])\
+    .print().distribute().print().move([1, 0]).print().distribute([1, 0]).print().distribute(scope=[[2, 0], [3, 0]]).print()
 
 print("\nODD\n")
 add_rulers.unique().odd().print().disable().print()
