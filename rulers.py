@@ -232,13 +232,7 @@ class Rulers():
 
         for ruler in self.rulers_list:
             ruler_type_group = {'type': ruler['type'], 'group': ruler['group']}
-            listed = False
-            for type_group in type_groups:
-                if type_group['type'] == ruler_type_group['type'] and type_group['group'] == ruler_type_group['group']:
-                    listed = True
-                    break
-
-            if not listed:
+            if ruler_type_group not in type_groups:
                 type_groups.append(ruler_type_group)
 
         merged_rulers = []
@@ -255,7 +249,8 @@ class Rulers():
                 if (len(ruler['lines']) + ruler['offset'] > tail_offset):
                     tail_offset = len(ruler['lines']) - 1 + ruler['offset']
 
-            mergedRuler = {
+            merged_ruler = {
+                'id': subject_rulers[0]['id'],
                 'type': type_group['type'],
                 'group': type_group['group'],
                 'position': subject_rulers[0]['position'],
@@ -266,11 +261,11 @@ class Rulers():
 
             for subject_ruler in subject_rulers:
                 for i in range(len(subject_ruler['lines'])):
-                    merged_line = i + subject_ruler['offset'] - mergedRuler['offset']
-                    if (mergedRuler['lines'][merged_line] == None):
-                        mergedRuler['lines'][merged_line] = subject_ruler['lines'][i]
+                    merged_line = i + subject_ruler['offset'] - merged_ruler['offset']
+                    if (merged_ruler['lines'][merged_line] == None):
+                        merged_ruler['lines'][merged_line] = subject_ruler['lines'][i]
 
-            merged_rulers.append(mergedRuler)
+            merged_rulers.append(merged_ruler)
 
         return Rulers(merged_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     

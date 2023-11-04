@@ -51,6 +51,9 @@ print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 
 userRulers.unique().sort().print().filter(positions=[[1, 2], [1, 3]]).print()
 
+print("\nMERGED\n")
+userRulers.merge().print()
+
 # print("\nUNIQUE\n")
 # add_rulers.unique().print()
 
