@@ -135,10 +135,10 @@ class Rulers():
     
     def enable(self):
         enabled_rulers_list = self.filter(enabled=False).unique().list()
-        if self.staff_grid != None:
-            self.staff_grid.enable(enabled_rulers_list)
         for disabled_ruler in enabled_rulers_list:
             disabled_ruler['enabled'] = True
+        if self.staff_grid != None:
+            self.staff_grid.enable(enabled_rulers_list)
         return self
     
     def disable(self):

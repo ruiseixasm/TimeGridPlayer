@@ -40,39 +40,24 @@ class Staff:
         if (len(self.staff_grid) > 0):
             return self.staff_grid[sequence]
         
-    def add(self, rulers):
+    def add(self, rulers, enabled_one=1, total_one=1):
         for ruler in rulers:
             sequence = self.sequence(ruler['position'])
             if sequence < self.total_sequences:
                 if ruler['on_staff']:
-                    self.staff_grid[sequence][ruler['type']]['total'] += 1
-                    self.staff_grid[sequence][ruler['type']]['enabled'] += 1
+                    if ruler['enabled']:
+                        self.staff_grid[sequence][ruler['type']]['enabled'] += enabled_one
+                    self.staff_grid[sequence][ruler['type']]['total'] += total_one
         return self
 
-    def remove(self, rulers):
-        for ruler in rulers:
-            sequence = self.sequence(ruler['position'])
-            if sequence < self.total_sequences:
-                if ruler['on_staff']:
-                    self.staff_grid[sequence][ruler['type']]['total'] -= 1
-                    self.staff_grid[sequence][ruler['type']]['enabled'] -= 1
-        return self
+    def remove(self, rulers, enabled_one=-1, total_one=-1):
+        return self.add(rulers, enabled_one, total_one)
     
     def enable(self, rulers):
-        for ruler in rulers:
-            sequence = self.sequence(ruler['position'])
-            if sequence < self.total_sequences:
-                if ruler['on_staff']:
-                    self.staff_grid[sequence][ruler['type']]['enabled'] += 1
-        return self
+        return self.add(rulers, total_one=0)
 
     def disable(self, rulers):
-        for ruler in rulers:
-            sequence = self.sequence(ruler['position'])
-            if sequence < self.total_sequences:
-                if ruler['on_staff']:
-                    self.staff_grid[sequence][ruler['type']]['enabled'] -= 1
-        return self
+        return self.remove(rulers, total_one=0)
     
     def keys(self):
         total_keys = {'enabled': 0, 'total': 0}
