@@ -54,3 +54,8 @@ list_a = ["A"]
 list_b = list_a
 list_b[0] = "B"
 print (list_a)
+
+# keys_1 = {'enabled': 1, 'total': 2}
+# keys_2 = {'enabled': 2, 'total': 3}
+# keys_3 = keys_1 + keys_2
+# print (keys_3)

@@ -15,7 +15,9 @@ newRuler = {
 userRulers = rulers.Rulers([newRuler], staff_grid)
 userRulers.add({'type': "actions", 'position': [2, 3]})
 userRulers.add({'type': "actions", 'position': [2, 3]})
-userRulers.add({'type': "actions", 'position': [1, 3]})
+
+print("\nROOT\n")
+userRulers.add({'type': "actions", 'position': [1, 3]}).print()
 
 copied_rulers = userRulers.copy()
 
@@ -28,25 +30,36 @@ userRulers.add({'type': "actions", 'position': [0, 3]})
 
 
 
-userRulers.unique().sort().print()
+userRulers.unique().sort(key='key').print()
 # copied_rulers.print()
 
 print("\n+\n")
-add_rulers = userRulers + copied_rulers
+add_rulers = (userRulers + copied_rulers).unique().print()
 # add_rulers.print()
 
+print("\nSTAFF\n")
+staff_grid.print()
+print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 # print("\n-\n")
 # sub_rulers = userRulers - copied_rulers
 # lines = sub_rulers.print().lines()
 # print (lines)
 
-staff_grid.print()
-print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
+# staff_grid.print()
+# print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 
 print("\nEVEN\n")
-add_rulers.even().print().slide([-2, 0]).print().slide([1, 2]).print()
+add_rulers.unique().even().print().slide([-2, 0]).print().slide([1, 2]).print()
 
+print("\nODD\n")
+add_rulers.unique().odd().print().disable().print()
+
+print("\nROOT\n")
+userRulers.print()
+
+print("\nSTAFF\n")
 staff_grid.print()
+print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 # print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
 
 # userRulers.unique().sort().print().filter(positions=[[1, 2], [1, 3]]).print()

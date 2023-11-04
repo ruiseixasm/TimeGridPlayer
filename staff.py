@@ -24,8 +24,8 @@ class Staff:
             staff_position = {
                 'sequence': sequence,
                 'position': self.position(sequence),
-                'keys': 0,
-                'actions': 0
+                'keys': {'enabled': 0, 'total': 0},
+                'actions': {'enabled': 0, 'total': 0}
             }
             self.staff_grid.append(staff_position)
         return self
@@ -40,16 +40,52 @@ class Staff:
         if (len(self.staff_grid) > 0):
             return self.staff_grid[sequence]
         
+    def add(self, rulers):
+        for ruler in rulers:
+            sequence = self.sequence(ruler['position'])
+            if sequence < self.total_sequences:
+                if ruler['on_staff']:
+                    self.staff_grid[sequence][ruler['type']]['total'] += 1
+                    self.staff_grid[sequence][ruler['type']]['enabled'] += 1
+        return self
+
+    def remove(self, rulers):
+        for ruler in rulers:
+            sequence = self.sequence(ruler['position'])
+            if sequence < self.total_sequences:
+                if ruler['on_staff']:
+                    self.staff_grid[sequence][ruler['type']]['total'] -= 1
+                    self.staff_grid[sequence][ruler['type']]['enabled'] -= 1
+        return self
+    
+    def enable(self, rulers):
+        for ruler in rulers:
+            sequence = self.sequence(ruler['position'])
+            if sequence < self.total_sequences:
+                if ruler['on_staff']:
+                    self.staff_grid[sequence][ruler['type']]['enabled'] += 1
+        return self
+
+    def disable(self, rulers):
+        for ruler in rulers:
+            sequence = self.sequence(ruler['position'])
+            if sequence < self.total_sequences:
+                if ruler['on_staff']:
+                    self.staff_grid[sequence][ruler['type']]['enabled'] -= 1
+        return self
+    
     def keys(self):
-        total_keys = 0
+        total_keys = {'enabled': 0, 'total': 0}
         for staff_sequence in self.staff_grid:
-            total_keys += staff_sequence['keys']
+            total_keys['enabled'] += staff_sequence['keys']['enabled']
+            total_keys['total'] += staff_sequence['keys']['total']
         return total_keys
 
     def actions(self):
-        total_actions = 0
+        total_actions = {'enabled': 0, 'total': 0}
         for staff_sequence in self.staff_grid:
-            total_actions += staff_sequence['actions']
+            total_actions['enabled'] += staff_sequence['actions']['enabled']
+            total_actions['total'] += staff_sequence['actions']['total']
         return total_actions
 
     def position(self, sequence):
@@ -71,20 +107,6 @@ class Staff:
             staff_position['actions'] = 0
         return self
 
-    def add(self, rulers):
-        for ruler in rulers:
-            sequence = self.sequence(ruler['position'])
-            if not self.total_sequences < sequence:
-                self.staff_grid[sequence][ruler['type']] += 1
-        return self
-
-    def remove(self, rulers):
-        for ruler in rulers:
-            sequence = self.sequence(ruler['position'])
-            if not self.total_sequences < sequence:
-                self.staff_grid[sequence][ruler['type']] -= 1
-        return self
-    
     def print(self):
         if len(self.staff_grid) > 0:
             for staff_position in self.staff_grid:

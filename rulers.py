@@ -24,7 +24,7 @@ class Rulers():
             
     def reroot(self):
         if self.staff_grid != None:
-            remove_staff_rulers = (self.root_self - self).filter(enabled=True).unique()
+            remove_staff_rulers = (self.root_self - self).unique()
             self.staff_grid.remove(remove_staff_rulers.list())
         
         self.root_self = self
@@ -35,8 +35,8 @@ class Rulers():
             self.staff_grid.clear()
             for staff_ruler in self.root_self.list():
                 staff_ruler['on_staff'] = True
-            enabled_rulers_list = self.root_self.filter(enabled=True).unique().list()
-            self.staff_grid.add(enabled_rulers_list)
+            unique_rulers_list = self.root_self.unique().list()
+            self.staff_grid.add(unique_rulers_list)
 
         return self
             
@@ -120,7 +120,7 @@ class Rulers():
             self.rulers_list.append(structured_ruler)
             if (self != self.root_self):
                 self.root_self.rulers_list.append(structured_ruler)
-            if structured_ruler['on_staff'] and structured_ruler['enabled'] == True:
+            if structured_ruler['on_staff']:
                 self.staff_grid.add([structured_ruler])
 
         return self
@@ -128,29 +128,37 @@ class Rulers():
     def remove(self):
         self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
         if self.staff_grid != None:
-            enabled_rulers_list = self.filter(enabled=True).unique().list()
-            self.staff_grid.remove(enabled_rulers_list)
+            unique_rulers_list = self.unique().list()
+            self.staff_grid.remove(unique_rulers_list)
         self.rulers_list = []
         return self
     
     def enable(self):
-        disabled_rulers = self.filter(enabled=False).unique()
-        for disabled_ruler in disabled_rulers.list():
-            disabled_ruler['enabled'] = True
+        enabled_rulers_list = self.filter(enabled=False).unique().list()
         if self.staff_grid != None:
-            disabled_staff_rulers = disabled_rulers.filter(on_staff=True)
-            self.staff_grid.add(disabled_staff_rulers.list())
+            self.staff_grid.enable(enabled_rulers_list)
+        for disabled_ruler in enabled_rulers_list:
+            disabled_ruler['enabled'] = True
         return self
     
     def disable(self):
-        enabled_rulers = self.filter(enabled=True).unique()
-        for enabled_ruler in enabled_rulers.list():
-            enabled_ruler['enabled'] = False
+        disabled_rulers_list = self.filter(enabled=True).unique().list()
         if self.staff_grid != None:
-            enabled_staff_rulers = enabled_rulers.filter(on_staff=True)
-            self.staff_grid.remove(enabled_staff_rulers.list())
+            self.staff_grid.disable(disabled_rulers_list)
+        for enabled_ruler in disabled_rulers_list:
+            enabled_ruler['enabled'] = False
         return self
     
+    def float(self):
+        if self.staff_grid != None:
+            self.staff_grid.remove(self.unique().list())
+        return self
+    
+    def drop(self):
+        if self.staff_grid != None:
+            self.staff_grid.add(self.unique().list())
+        return self
+
     def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
 
         filtered_rulers = self.rulers_list.copy()
@@ -188,11 +196,18 @@ class Rulers():
         return Rulers(filtered_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def print(self):
-        if len(self.rulers_list) > 0:
-            for ruler in self.rulers_list:
-                print(ruler)
+        print("-" * 140)
+        total_rulers = self.len()
+        if total_rulers > 0:
+            for index in range(total_rulers):
+                # ruler_str = ""
+                # for key, value in self.rulers_list[index].items():
+                #     ...
+
+                print(f"{index}: {self.rulers_list[index]}")
         else:
-            print("[EMPTY]")
+            print("-: [EMPTY]")
+        print("-" * 140)
         return self
 
     def unique(self):
@@ -315,11 +330,10 @@ class Rulers():
     
     def move(self, position=[None, None]):
         if position[0] != None and position[1] != None:
-            enabled_rulers = self.filter(enabled=True)
-            enabled_rulers.disable()
+            self.float()
             for ruler in self.rulers_list:
                 ruler['position'] = position
-            enabled_rulers.enable()
+            self.drop()
         return self
     
     def slide(self, distance=[None, None]):
@@ -339,14 +353,13 @@ class Rulers():
             else:
                 return self
             
-            enabled_rulers = self.filter(enabled=True)
-            enabled_rulers.disable()
+            self.float()
 
             for ruler in self.rulers_list:
                 new_position_sequence = self.staff_grid.sequence(ruler['position']) + distance_sequences # always positive
                 ruler['position'] = self.staff_grid.position(new_position_sequence)
 
-            enabled_rulers.enable()
+            self.drop()
 
         return self
     

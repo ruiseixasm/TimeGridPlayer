@@ -54,8 +54,8 @@ class Action:
             if (self.play_sequence < self.sequenceRange()['finish']): # plays staff range from start to finish
 
                 position = self.staff_grid.grid(self.play_sequence)['position']
-                total_key_rulers = self.staff_grid.grid(self.play_sequence)['keys']
-                total_action_rulers = self.staff_grid.grid(self.play_sequence)['actions']
+                total_key_rulers = self.staff_grid.grid(self.play_sequence)['keys']['enabled']
+                total_action_rulers = self.staff_grid.grid(self.play_sequence)['actions']['enabled']
 
                 str_position = self.staff_grid.str_position(position)
                 print(f"{self.play_sequence}\t{str_position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['sequence']}\t{self.next_clocked_sequence}")
