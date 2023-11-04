@@ -321,12 +321,10 @@ class Rulers():
     
     def copy(self):
         """Shows just the copied rulers"""
-        rulers_list_copy = []
-        for ruler in self.rulers_list[:]:
-            new_ruler = ruler.copy()
-            rulers_list_copy.append(new_ruler)
-            self.add(new_ruler)
-        return Rulers(rulers_list_copy, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+        source_rulers = self + self.empty()
+        duplicated_rulers = self.duplicate()
+        copied_rulers = duplicated_rulers - source_rulers
+        return copied_rulers
     
     def move(self, position=[None, None]):
         if position[0] != None and position[1] != None:

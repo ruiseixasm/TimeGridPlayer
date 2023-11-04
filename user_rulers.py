@@ -19,7 +19,7 @@ userRulers.add({'type': "actions", 'position': [2, 3]})
 print("\nROOT\n")
 userRulers.add({'type': "actions", 'position': [1, 3]}).print()
 
-copied_rulers = userRulers.copy()
+copied_rulers = userRulers.copy().print()
 
 userRulers.add({'type': "actions", 'position': [0, 3]})
 
