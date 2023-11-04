@@ -30,10 +30,12 @@ class Rulers():
         self.root_self = self
         return self
     
-    def updateStaff(self):
+    def resetStaff(self):
         if self.staff_grid != None:
             self.staff_grid.clear()
-            enabled_rulers_list = self.filter(enabled=True).unique().list()
+            for staff_ruler in self.root_self.list():
+                staff_ruler['on_staff'] = True
+            enabled_rulers_list = self.root_self.filter(enabled=True).unique().list()
             self.staff_grid.add(enabled_rulers_list)
 
         return self
@@ -92,7 +94,8 @@ class Rulers():
                 'position': [0, 0],
                 'lines': [None],
                 'offset': 0,
-                'enabled': True
+                'enabled': True,
+                'on_staff': self.staff_grid != None
             }
 
             for ruler_id in range(self.root_self.len() + 1): # get available ruler id
@@ -117,7 +120,7 @@ class Rulers():
             self.rulers_list.append(structured_ruler)
             if (self != self.root_self):
                 self.root_self.rulers_list.append(structured_ruler)
-            if self.staff_grid != None and structured_ruler['enabled'] == True:
+            if structured_ruler['on_staff'] and structured_ruler['enabled'] == True:
                 self.staff_grid.add([structured_ruler])
 
         return self
@@ -131,28 +134,34 @@ class Rulers():
         return self
     
     def enable(self):
-        disabled_rulers_list = self.filter(enabled=False).unique().list()
-        for disabled_ruler in disabled_rulers_list:
+        disabled_rulers = self.filter(enabled=False).unique()
+        for disabled_ruler in disabled_rulers.list():
             disabled_ruler['enabled'] = True
         if self.staff_grid != None:
-            self.staff_grid.add(disabled_rulers_list)
+            disabled_staff_rulers = disabled_rulers.filter(on_staff=True)
+            self.staff_grid.add(disabled_staff_rulers.list())
         return self
     
     def disable(self):
-        enabled_rulers_list = self.filter(enabled=True).unique().list()
-        for enabled_ruler in enabled_rulers_list:
+        enabled_rulers = self.filter(enabled=True).unique()
+        for enabled_ruler in enabled_rulers.list():
             enabled_ruler['enabled'] = False
         if self.staff_grid != None:
-            self.staff_grid.remove(enabled_rulers_list)
+            enabled_staff_rulers = enabled_rulers.filter(on_staff=True)
+            self.staff_grid.remove(enabled_staff_rulers.list())
         return self
     
-    def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None):
+    def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
 
         filtered_rulers = self.rulers_list.copy()
 
         if (enabled != None):
             filtered_rulers = [
                 ruler for ruler in filtered_rulers if ruler['enabled'] == enabled
+            ]
+        if (on_staff != None):
+            filtered_rulers = [
+                ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
             ]
         if (len(ids) > 0 and ids != [None]):
             filtered_rulers = [
@@ -256,7 +265,8 @@ class Rulers():
                 'position': subject_rulers[0]['position'],
                 'lines': [None] * (tail_offset - head_offset + 1), # list
                 'offset': head_offset,
-                'enabled': subject_rulers[0]['enabled']
+                'enabled': subject_rulers[0]['enabled'],
+                'on_staff': False
             }
 
             for subject_ruler in subject_rulers:
@@ -289,11 +299,13 @@ class Rulers():
             return []
 
     def duplicate(self):
+        """Duplicates the listed rulers"""
         for ruler in self.rulers_list[:]:
             self.add(ruler.copy())
         return self
     
     def copy(self):
+        """Shows just the copied rulers"""
         rulers_list_copy = []
         for ruler in self.rulers_list[:]:
             new_ruler = ruler.copy()
