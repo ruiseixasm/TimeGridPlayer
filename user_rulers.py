@@ -55,7 +55,7 @@ add_rulers.unique().even().print().slide([-2, 0]).print().slide([1, 2])\
     .flip().print()
 
 print("\nODD\n")
-add_rulers.unique().odd().print().disable().print()
+add_rulers.unique().odd().print().disable().print().flip().print()
 
 print("\nROOT\n")
 userRulers.print()

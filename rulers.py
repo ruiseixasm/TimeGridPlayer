@@ -398,15 +398,12 @@ class Rulers():
     
     def flip(self):
         self = self.unique()
-        
-        original_positions = []
-        for ruler in self.rulers_list:
-            original_positions.append(ruler['position'])
-
         rulers_list_size = self.len()
         self.float()
-        for index in range(rulers_list_size):
-            self.rulers_list[index]['position'] = original_positions[rulers_list_size - 1 - index]
+        for index in range(int(rulers_list_size/2)):
+            temp_position = self.rulers_list[index]['position']
+            self.rulers_list[index]['position'] = self.rulers_list[rulers_list_size - 1 - index]['position']
+            self.rulers_list[rulers_list_size - 1 - index]['position'] = temp_position
         self.drop()
 
         return self
