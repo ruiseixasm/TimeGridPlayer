@@ -1,7 +1,5 @@
 import rulers
-import staff
 
-staff_grid = staff.Staff(10, 4)
 
 newRuler = {
     'type': "keys",
@@ -12,7 +10,7 @@ newRuler = {
     'enabled': True
 }
 
-userRulers = rulers.Rulers([newRuler], staff_grid)
+userRulers = rulers.Rulers([newRuler])
 userRulers.add({'type': "actions", 'position': [2, 3]})
 userRulers.add({'type': "actions", 'position': [2, 3]})
 userRulers.add({'type': "actions", 'position': [1, 3]})
@@ -26,30 +24,26 @@ userRulers.add({'type': "actions", 'position': [0, 3]})
 
 # userRulers.print()
 
-
-
-userRulers.unique().sort().print()
 # copied_rulers.print()
+
+# print(copied_rulers.list()) # FULL LIST
+
+# print("\n\n")
+
+userRulers.print()
+copied_rulers.print()
 
 print("\n+\n")
 add_rulers = userRulers + copied_rulers
-# add_rulers.print()
+add_rulers.print()
 
 # print("\n-\n")
 # sub_rulers = userRulers - copied_rulers
 # lines = sub_rulers.print().lines()
 # print (lines)
 
-staff_grid.print()
-print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
-
 print("\nEVEN\n")
-add_rulers.even().print().slide([-2, 0]).print().slide([1, 2]).print()
-
-staff_grid.print()
-print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
-
-userRulers.unique().sort().print()
+add_rulers.even().print()
 
 # print("\nUNIQUE\n")
 # add_rulers.unique().print()
