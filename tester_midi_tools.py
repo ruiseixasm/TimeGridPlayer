@@ -6,6 +6,8 @@ notes_octave = [
     ["C", "Db", "d", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "b"]
 ]
 
+# small comment just to test the git merge ability
+
 expected_midi_keys = [ i for i in range(11*12) ]
 for index in range(128, 132):
     expected_midi_keys[index] = 127

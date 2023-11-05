@@ -2,7 +2,9 @@ class Staff:
 
     def __init__(self, steps = 0, frames_step = 0, play_range=[]):
 
-        self.ruler_types = ['keys', 'actions']
+        self.staff = []
+        self.set(size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24)
+
         self.steps = max(1, steps)
         self.frames_step = max(1, frames_step)
         self.total_sequences = self.steps*self.frames_step # total amount like the len()
@@ -18,6 +20,52 @@ class Staff:
         self.staff_grid = []
         self.generate()
 
+    def set(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24):
+
+        self.size_total_measures = size_measures            # staff total size
+        self.beats_per_measure = beats_per_measure          # beats in each measure
+        self.steps_per_beat = steps_per_beat                # how many steps take each beat
+        self.pulses_per_beat = pulses_per_beat              # sets de resolution of clock pulses
+        
+        self.total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
+
+        old_staff = self.staff[:]
+        self.staff = []
+        for pulse in range(self.total_pulses):
+            staff_pulse = {
+                'measure': int(pulse / (self.pulses_per_beat * self.beats_per_measure)),
+                'beat': int(pulse / self.pulses_per_beat) % self.beats_per_measure,
+                'step': int(pulse * self.steps_per_beat / self.pulses_per_beat) % (self.steps_per_beat * self.beats_per_measure),
+                'pulse': pulse,
+                'keys': {'enabled': 0, 'total': 0},
+                'actions': {'enabled': 0, 'total': 0}
+            }
+            self.staff.append(staff_pulse)
+
+        if self.total_pulses > 0:
+            for staff_pulse in old_staff:
+                for ruler_type in ['keys', 'actions']:
+                    if staff_pulse[ruler_type]['total'] > 0:
+                        position_pulses = self.pulses([staff_pulse['measure'], staff_pulse['step']])
+                        size_total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
+                        if not position_pulses < 0 and position_pulses < size_total_pulses:
+                            self.staff[position_pulses][ruler_type]['enabled'] = staff_pulse[ruler_type]['enabled']
+                            self.staff[position_pulses][ruler_type]['total'] = staff_pulse[ruler_type]['total']
+        return self
+    
+    def pulses(self, position=[None, None]): # position: [measure, step]
+        return position[0] * self.beats_per_measure * self.pulses_per_beat + position[1] * self.pulses_per_beat / self.steps_per_beat
+
+
+
+    def print_new(self):
+        if len(self.staff) > 0:
+            for staff_pulse in self.staff:
+                print(staff_pulse)
+        else:
+            print("[EMPTY]")
+        print("\n")
+        
     def generate(self):
         self.staff_grid = []
         for sequence in range(self.total_sequences):
