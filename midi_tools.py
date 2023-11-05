@@ -83,16 +83,16 @@ class Instrument():
                 
         return self
     
-    def pressKey(self, octave=4, note_str="C", velocity=100, channel=1):
+    def pressKey(self, key={'note': "C", 'octave': 4}, velocity=100, channel=1):
         command = 0x90 | max(0, channel - 1)
-        parameter_1 = self.getMidiNote(octave, note_str)
+        parameter_1 = self.getMidiKey(key)
         parameter_2 = velocity
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
 
-    def releaseKey(self, octave=4, note_str="C", channel=1):
+    def releaseKey(self, key={'note': "C", 'octave': 4}, channel=1):
         command = 0x80 | max(0, channel - 1)
-        parameter_1 = self.getMidiNote(octave, note_str)
+        parameter_1 = self.getMidiKey(key)
         parameter_2 = 64
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
@@ -107,9 +107,9 @@ class Instrument():
             time.sleep(sleep_time)
         return self
         
-    def aftertouchKey(self, octave=4, note_str="C", pressure=100, channel=1):
+    def aftertouchKey(self, key={'note': "C", 'octave': 4}, pressure=100, channel=1):
         command = 0xA0 | max(0, channel - 1)
-        parameter_1 = self.getMidiNote(octave, note_str)
+        parameter_1 = self.getMidiKey(key)
         parameter_2 = pressure
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
@@ -142,9 +142,9 @@ class Instrument():
         return self.sendMessage(message)
     
 
-    def getMidiNote(self, octave=4, note_str="C"): # middle C by default
+    def getMidiKey(self, key={'note': "C", 'octave': 4}): # middle C by default
         """Octaves range from -1 to 9"""
-        note_str = note_str.lower()
+        note_str = key['note'].lower()
         midi_note = 0
         # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         str_notes = ['c', '#', 'd', '#', 'e', 'f', '#', 'g', '#', 'a', '#', 'b']
@@ -154,7 +154,7 @@ class Instrument():
                 midi_note = index
                 break
 
-        midi_note += (octave + 1) * 12
+        midi_note += (key['octave'] + 1) * 12
 
         if (len(note_str) > 1):
             if note_str[1] == '#':
@@ -163,3 +163,9 @@ class Instrument():
                 midi_note -= 1
 
         return min(127, max(0, midi_note))
+    
+    def getKey(self, midi_key=60):
+        note = {'note': "C", 'octave': 4}
+    
+    def transposeKey(self, octave=4, note_str="C", transpose=0):
+        note = {'note': "C", 'octave': 4}
