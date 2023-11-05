@@ -1,6 +1,42 @@
 import rtmidi
 import time
 
+def getMidiKey(key={'note': "C", 'octave': 4}): # middle C by default
+    """Octaves range from -1 to 9"""
+    note_str = key['note'].upper()
+    midi_note = 0
+    # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    str_notes = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
+
+    for index in range(12):
+        if note_str[0] == str_notes[index]:
+            midi_note = index
+            break
+
+    midi_note += (key['octave'] + 1) * 12 # first octave is -1
+
+    if (len(note_str) > 1):
+        if note_str[1] == '#':
+            midi_note += 1
+        elif note_str[1] == 'B': # upper b meaning flat
+            midi_note -= 1
+
+    return min(127, max(0, midi_note))
+
+def getKey(midi_key=60):
+    str_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+    key_octave = int(midi_key / 12) - 1
+    key_note = str_notes[midi_key % 12]
+
+    return {'note': key_note, 'octave': key_octave}
+
+def transposeKey(key={'note': "C", 'octave': 4}, octaves=0, keys=0):
+    midi_key = getMidiKey(key)
+    midi_key += octaves * 12 + keys
+    midi_key = min(127, max(0, midi_key))
+    return getKey(midi_key)
+
 class Instrument():
     
     def __init__(self):
@@ -85,14 +121,14 @@ class Instrument():
     
     def pressKey(self, key={'note': "C", 'octave': 4}, velocity=100, channel=1):
         command = 0x90 | max(0, channel - 1)
-        parameter_1 = self.getMidiKey(key)
+        parameter_1 = getMidiKey(key)
         parameter_2 = velocity
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
 
     def releaseKey(self, key={'note': "C", 'octave': 4}, channel=1):
         command = 0x80 | max(0, channel - 1)
-        parameter_1 = self.getMidiKey(key)
+        parameter_1 = getMidiKey(key)
         parameter_2 = 64
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
@@ -109,7 +145,7 @@ class Instrument():
         
     def aftertouchKey(self, key={'note': "C", 'octave': 4}, pressure=100, channel=1):
         command = 0xA0 | max(0, channel - 1)
-        parameter_1 = self.getMidiKey(key)
+        parameter_1 = getMidiKey(key)
         parameter_2 = pressure
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
@@ -141,31 +177,3 @@ class Instrument():
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
     
-
-    def getMidiKey(self, key={'note': "C", 'octave': 4}): # middle C by default
-        """Octaves range from -1 to 9"""
-        note_str = key['note'].lower()
-        midi_note = 0
-        # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-        str_notes = ['c', '#', 'd', '#', 'e', 'f', '#', 'g', '#', 'a', '#', 'b']
-
-        for index in range(12):
-            if note_str[0] == str_notes[index]:
-                midi_note = index
-                break
-
-        midi_note += (key['octave'] + 1) * 12
-
-        if (len(note_str) > 1):
-            if note_str[1] == '#':
-                midi_note += 1
-            elif note_str[1] == 'b':
-                midi_note -= 1
-
-        return min(127, max(0, midi_note))
-    
-    def getKey(self, midi_key=60):
-        note = {'note': "C", 'octave': 4}
-    
-    def transposeKey(self, octave=4, note_str="C", transpose=0):
-        note = {'note': "C", 'octave': 4}
