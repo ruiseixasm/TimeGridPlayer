@@ -119,10 +119,10 @@ class Instrument():
                 
         return self
     
-    def pressNote(self, note={'key': "C", 'octave': 4}, velocity=100, channel=1):
+    def pressNote(self, note={'key': "C", 'octave': 4, 'velocity': 100}, channel=1):
         command = 0x90 | max(0, channel - 1)
         parameter_1 = getMidiNote(note)
-        parameter_2 = velocity
+        parameter_2 = note['velocity']
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
 

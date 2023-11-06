@@ -6,7 +6,7 @@ master_clock = clock.Clock(80, 24)
 
 master = action.Master()
 trigger = action.Trigger()
-note = action.Note(1, 4, play_range=[[0, 0], [1, 0]])
+note = action.Note(1, 4, 1, play_range=[[0, 0], [1, 0]])
 
 print("\n\n")
 

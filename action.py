@@ -131,6 +131,12 @@ class Action:
 
     def staff(self):
         return self.staff_grid
+    
+    def play(self):
+        ...
+
+    def stop(self):
+        ...
 
 
     ### ACTIONS ###
@@ -151,6 +157,8 @@ class Note(Action):
     
     def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
         super().__init__(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
+        self.windows_synth = midi_tools.Instrument()
+        self.windows_synth.connect(name="loop")
         first_position = self.staff_grid.playRange()[0]
         self.staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
         self.note = None
@@ -177,11 +185,15 @@ class Note(Action):
             key_value = self.note # may need tranlation!
         if (triggered_action['source'] == "staff"):
             print(f"note ON:\t{key_value}")
+            note = {'key': key_value, 'octave': 4, 'velocity': 100}
+            self.windows_synth.pressNote(note)
             self.addClockedAction(clocked_action =
                                   {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4, 'action': self}
                                   )
         else:
             print(f"note OFF:\t{key_value}")
+            note = {'key': key_value, 'octave': 4, 'velocity': 100}
+            self.windows_synth.releaseNote(note)
 
 class Trigger(Action):
     
