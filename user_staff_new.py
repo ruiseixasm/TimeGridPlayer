@@ -1,13 +1,13 @@
 import staff
 
 
-one_staff = staff.Staff(10, 4)
+one_staff = staff.Staff()
 
 
 #one_staff.print()
 
 print("\nNEW\n")
-one_staff.print_new()
+one_staff.print()
 
 
 #print(one_staff.range())

@@ -2,11 +2,11 @@ import rulers
 import clock
 import action
 
-master_clock = clock.Clock(80, 4)
+master_clock = clock.Clock(80, 24)
 
-master = action.Master(10, 4)
+master = action.Master()
 trigger = action.Trigger()
-note = action.Note(2, 4, [[0, 0], [1, 0]])
+note = action.Note(1, 4, play_range=[[0, 0], [1, 0]])
 
 print("\n\n")
 
@@ -34,7 +34,8 @@ note.connectClock(master_clock)
 trigger.connectClock(master_clock)
 master_clock.start()
 print("\n\n\nNEXT ITERATION\n\n")
-#master_clock.start([[4, 0], [6, 0]])
+range_pulses = master.staff().playRange_pulses([[4, 0], [6, 0]])
+#master_clock.start(range_pulses)
 
 
 print("\n")

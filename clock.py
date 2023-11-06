@@ -12,20 +12,16 @@ Lesser General Public License for more details.'''
 import time
 
 class Clock(): # Subject
-    def __init__(self, steps_minute, frames_step):
+    def __init__(self, beats_per_minute, pulses_per_beat):
         """create an empty observer list"""
 
-        self.setClock_new(steps_minute, frames_step)
+        self.setClock(beats_per_minute, pulses_per_beat)
 
         self._observers = []
         self.clock_running = False
         self.observer_id = 0
 
-        # TO BE DELETED
-
-        self.setClock(steps_minute, frames_step)
-
-    def setClock_new(self, beats_per_minute, pulses_per_beat):
+    def setClock(self, beats_per_minute, pulses_per_beat):
         self.tempo = {'beats_per_minute': beats_per_minute, 'pulses_per_beat': pulses_per_beat, 'fast_forward': False, 'pulse': 0}
         self.pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
 
@@ -38,8 +34,8 @@ class Clock(): # Subject
     def notify(self):
         """Pulses the observers"""
         self.observer_id = 0
-        # triggers top action observer as the master one on the first sequence
-        if (self.tempo['sequence'] == 0):
+        # triggers top action observer as the master one on the first pulse
+        if (self.tempo['pulse'] == 0):
             self._observers[0].actionExternalTrigger()
         for observer in self._observers:
             observer.pulse(self.tempo) # calls the Observers update method
@@ -66,7 +62,7 @@ class Clock(): # Subject
         if (self.observer_id == 0 or FORCE_STOP):
             self.clock_running = False
 
-    def start_new(self, non_fast_forward_range_pulses = []): # Where a non fast forward range is set
+    def start(self, non_fast_forward_range_pulses = []): # Where a non fast forward range is set
 
         self.clock_running = True
         first_pulse = 0
@@ -95,53 +91,9 @@ class Clock(): # Subject
                 pulse += 1
                 self.notify()
                 if (startTime != None):
-                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + pulse * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
-                    nextTime = startTime + (pulse - first_pulse) * self.frame_duration
-
-# TO BE DELETED
-
-
-    def getFrameDuration(self, steps_minute, frames_step): # in seconds
-        return 60.0 / steps_minute / frames_step
-    
-
-    def setClock(self, steps_minute, frames_step):
-        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False, 'sequence': 0}
-        self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
-
-    def start(self, clock_range = []): # Where a range is set
-
-        self.clock_running = True
-        first_sequence = 0
-        last_sequence = None
-
-        if (len(clock_range) == 2):
-            if (clock_range[0] != None and len(clock_range[0]) == 2):
-                first_sequence = clock_range[0][0] * self.tempo['frames_step'] + clock_range[0][1]
-            if (clock_range[1] != None and len(clock_range[1]) == 2):
-                last_sequence = clock_range[1][0] * self.tempo['frames_step'] + clock_range[1][1] - 1 # Excludes last sequence
-
-        startTime = None
-        nextTime = 0
-        sequence = 0
-        while (self.clock_running and len(self._observers) > 0):
-            if (sequence < first_sequence or (last_sequence != None and sequence > last_sequence)):
-                self.tempo['fast_forward'] = True
-            else:
-                self.tempo['fast_forward'] = False
-                if (startTime == None):
-                    startTime = time.time() # in seconds
-                    nextTime = startTime
-
-            if nextTime < time.time() or self.tempo['fast_forward'] == True:
-                self.tempo['sequence'] = sequence
-                sequence += 1
-                self.notify()
-                if (startTime != None):
-                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + sequence * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
-                    nextTime = startTime + (sequence - first_sequence) * self.frame_duration
-
-
+                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + pulse * self.pulse_duration:.6f}\t{time.time() - startTime:.6f}")
+                    #nextTime = startTime + (pulse - first_pulse) * self.pulse_duration
+                    nextTime = startTime + (pulse - first_pulse) * 60.0 / (self.tempo['pulses_per_beat'] * self.tempo['beats_per_minute'])
 
 # class Subject:
 
