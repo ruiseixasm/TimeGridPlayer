@@ -272,7 +272,7 @@ class Rulers():
                     break
 
         if reverse:
-            self.reverse()
+            return self.reverse()
         return self
 
     def merge(self):

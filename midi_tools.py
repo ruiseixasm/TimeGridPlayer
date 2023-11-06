@@ -177,3 +177,10 @@ class Instrument():
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
     
+
+# MIDI beat clock defines the following real-time messages:
+
+# clock (decimal 248, hex 0xF8)
+# start (decimal 250, hex 0xFA)
+# continue (decimal 251, hex 0xFB)
+# stop (decimal 252, hex 0xFC)

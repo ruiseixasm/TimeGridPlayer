@@ -35,7 +35,6 @@ class Staff:
         self.total_pulses = 0
         self.play_range_new = [[], []]
         self.setStaff(size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24)
-        self.setPlayRange()
 
         # TO BE DELETED
 
@@ -91,20 +90,21 @@ class Staff:
     
     def setPlayRange(self, start=[], finish=[]):
         if self.total_pulses > 0:
-            if start == None and self.play_range_new[0] != []:
+            if start == [] or self.play_range_new[0] == []:
+                self.play_range_new[0] = [0, 0]
+            elif start == None and self.play_range_new[0] != []:
                 start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range_new[0]))
                 self.play_range_new[0] = self.position_new(start_pulses)
-            elif start == []:
-                self.play_range_new[0] = [0, 0]
             elif start != None:
                 start_pulses = min(self.total_pulses - 1, self.pulses(start))
                 self.play_range_new[0] = self.position_new(start_pulses)
-            if finish == None and self.play_range_new[1] != []:
-                start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range_new[1]))
-                self.play_range_new[1] = self.position_new(start_pulses)
-            elif finish == []:
+
+            if finish == [] or self.play_range_new[1] == []:
                 finish_pulses = self.total_pulses - 1
                 self.play_range_new[1] = self.position_new(finish_pulses)
+            elif finish == None and self.play_range_new[1] != []:
+                start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range_new[1]))
+                self.play_range_new[1] = self.position_new(start_pulses)
             elif finish != None:
                 start_pulses = self.pulses(self.play_range_new[0])
                 finish_pulses = max(start_pulses, min(self.total_pulses - 1, self.pulses(start)))
@@ -153,6 +153,26 @@ class Staff:
                         self.staff[pulses][ruler['type']]['enabled'] += enabled_one
                     self.staff[pulses][ruler['type']]['total'] += total_one
         return self
+    
+    def filter_list(self, measure=None, beat=None, step=None, pulse=None):
+        filtered_list = self.staff[:]
+        if measure != None:
+            filtered_list = [
+                pulses for pulses in filtered_list if pulses['measure'] == measure
+            ]
+        if measure != None:
+            filtered_list = [
+                pulses for pulses in filtered_list if pulses['beat'] == beat
+            ]
+        if measure != None:
+            filtered_list = [
+                pulses for pulses in filtered_list if pulses['step'] == step
+            ]
+        if measure != None:
+            filtered_list = [
+                pulses for pulses in filtered_list if pulses['pulse'] == pulse
+            ]
+        return filtered_list
 
     def remove_new(self, rulers, enabled_one=-1, total_one=-1):
         return self.add_new(rulers, enabled_one, total_one)
@@ -186,7 +206,10 @@ class Staff:
             staff_pulse['actions'] = {'enabled': 0, 'total': 0}
         return self
 
-
+    
+    def str_position(self, position):
+        return str(position[0]) + " " + str(round(position[1], 6))
+   
 
 
 
@@ -218,10 +241,7 @@ class Staff:
                 if (left_position[1] < right_position[1]):
                     return True
         return False
-    
-    def str_position(self, position):
-        return str(position[0]) + "." + str(position[1])
-    
+ 
     
     def generate(self):
         self.staff_grid = []

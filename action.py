@@ -26,10 +26,14 @@ class Action:
         self.play_mode = False
         self.play_pulse = self.rangePulses()['start']
 
-        self.play_sequence = self.sequenceRange()['start']
-
         self.clock = None
         self.clocked_actions = []
+        self.next_clocked_pulse = -1
+
+        # TO BE DELETED
+
+        self.play_sequence = self.sequenceRange()['start']
+
         self.next_clocked_sequence = -1
             
     def rangePulses(self):
@@ -69,20 +73,19 @@ class Action:
 
             if (self.play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
 
-                position = self.staff_grid.grid(self.play_pulse)['position']
-                total_key_rulers = self.staff_grid.grid(self.play_pulse)['keys']['enabled']
-                total_action_rulers = self.staff_grid.grid(self.play_pulse)['actions']['enabled']
+                position = self.staff_grid.position_new(self.play_pulse)
+                enabled_key_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['keys']['enabled']
+                enabled_action_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['actions']['enabled']
 
                 str_position = self.staff_grid.str_position(position)
-                print(f"{self.play_pulse}\t{str_position}\t{total_key_rulers}\t{total_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
+                print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
 
-                if (total_key_rulers > 0):
+                if (enabled_key_rulers > 0):
                     
                     pulse_key_rulers = self.staff_rulers.filter(types=['keys'], positions=[position], enabled=True)
-
                     self.internal_key_rulers = (pulse_key_rulers + self.internal_key_rulers).merge()
 
-                if (total_action_rulers > 0):
+                if (enabled_action_rulers > 0):
                     
                     pulse_action_rulers = self.staff_rulers.filter(types=['actions'], positions=[position], enabled=True)
                     merged_staff_keys = (self.external_key_rulers + self.internal_key_rulers).merge()
