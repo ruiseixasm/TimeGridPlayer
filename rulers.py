@@ -246,12 +246,13 @@ class Rulers():
         return Rulers(unique_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def reverse(self):
-        straight_rulers_list = self.rulers_list
-        reversed_rulers_list = [None] * self.len()
-        for i in range(self.len()):
-            reversed_rulers_list[i] = straight_rulers_list[self.len() - 1 - i]
+        rulers_list_size = self.len()
+        for i in range(int(rulers_list_size/2)):
+            temp_ruler = self.rulers_list[i]
+            self.rulers_list[i] = self.rulers_list[rulers_list_size - 1 - i]
+            self.rulers_list[rulers_list_size - 1 - i] = temp_ruler
 
-        return Rulers(reversed_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
+        return self
     
     def sort(self, key='position', reverse = False):
 
@@ -423,7 +424,7 @@ class Rulers():
         return self
     
     def flip(self):
-        self = self.unique()
+        self = self.unique().reverse()
         rulers_list_size = self.len()
         self.float()
         for index in range(int(rulers_list_size/2)):

@@ -35,6 +35,7 @@ class Staff:
         self.total_pulses = 0
         self.play_range_new = [[], []]
         self.setStaff(size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24)
+        self.setPlayRange()
 
         # TO BE DELETED
 
@@ -123,7 +124,8 @@ class Staff:
         return {
             'beats_per_measure': self.beats_per_measure,
             'steps_per_beat': self.steps_per_beat,
-            'pulses_per_beat': self.pulses_per_beat
+            'pulses_per_beat': self.pulses_per_beat,
+            'pulses_per_step': self.pulses_per_beat / self.steps_per_beat
         }
 
     def list(self):
@@ -132,7 +134,7 @@ class Staff:
     def len_new(self):
         return self.total_pulses
 
-    def pulses(self, position=[None, None]): # position: [measure, step]
+    def pulses(self, position=[0, 0]): # position: [measure, step]
         return position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat)
 
     def position_new(self, pulses):
