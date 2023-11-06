@@ -1,6 +1,17 @@
+'''TimeGridPlayer - Time Grid Player triggers Actions on a Staff
+Original Copyright (c) 2023 Rui Seixas Monteiro. All right reserved.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.'''
+
 import staff
 import rulers
-import rtmidi
+import midi_tools
 
 class Action:
 
@@ -20,16 +31,25 @@ class Action:
         self.clocked_actions = []
         self.next_clocked_sequence = -1
             
-
-    def sequenceRange(self):
-        position_range = self.staff_grid.range()
-        start_sequence = self.staff_grid.sequence(position_range[0])
-        finish_sequence = self.staff_grid.sequence(position_range[1])
-        return {'start': start_sequence, 'finish': finish_sequence}
+    def rangePulses(self):
+        range_pulses = self.staff_grid.playRange()
+        start_pulses = self.staff_grid.pulses(range_pulses[0])
+        finish_pulses = self.staff_grid.pulses(range_pulses[1])
+        return {'start': start_pulses, 'finish': finish_pulses}
 
     def connectClock(self, clock):
         self.clock = clock
         self.clock.attach(self)
+
+
+
+
+
+
+
+
+
+
 
     def addClockedAction(self, clocked_action): # Clocked actions AREN'T rulers!
         if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
@@ -133,6 +153,31 @@ class Action:
 
     def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
         ...
+
+
+
+    # TO BE DELETED
+
+
+    def sequenceRange(self):
+        position_range = self.staff_grid.range()
+        start_sequence = self.staff_grid.sequence(position_range[0])
+        finish_sequence = self.staff_grid.sequence(position_range[1])
+        return {'start': start_sequence, 'finish': finish_sequence}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Master(Action):
     

@@ -1,4 +1,31 @@
+'''TimeGridPlayer - Time Grid Player triggers Actions on a Staff
+Original Copyright (c) 2023 Rui Seixas Monteiro. All right reserved.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.'''
+
 import staff
+
+def position_gt(left_position, right_position):
+    if (left_position[0] > right_position[0]):
+        return True
+    if (left_position[0] == right_position[0]):
+        if (left_position[1] > right_position[1]):
+            return True
+    return False
+
+def position_lt(left_position, right_position):
+    if (left_position[0] < right_position[0]):
+        return True
+    if (left_position[0] == right_position[0]):
+        if (left_position[1] < right_position[1]):
+            return True
+    return False
 
 class Rulers():
 
@@ -24,15 +51,15 @@ class Rulers():
             
     def reroot(self):
         if self.staff_grid != None:
-            remove_staff_rulers = (self.root_self - self).unique()
-            self.staff_grid.remove(remove_staff_rulers.list())
+            extra_root_rulers = (self.root_self - self).unique()
+            self.staff_grid.remove(extra_root_rulers.list())
         
         self.root_self = self
         return self
     
-    def resetStaff(self):
+    def resetStaff_new(self):
         if self.staff_grid != None:
-            self.staff_grid.clear()
+            self.staff_grid.clear_new()
             for staff_ruler in self.root_self.list():
                 staff_ruler['on_staff'] = True
             unique_rulers_list = self.root_self.unique().list()
@@ -83,7 +110,7 @@ class Rulers():
         empty_rulers_list = []
         return Rulers(empty_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
         
-    def add(self, ruler): # Must be able to remove removed rulers from the main list
+    def add_new(self, ruler): # Must be able to remove removed rulers from the main list
         
         if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in self.ruler_types:
 
@@ -121,42 +148,42 @@ class Rulers():
             if (self != self.root_self):
                 self.root_self.rulers_list.append(structured_ruler)
             if structured_ruler['on_staff']:
-                self.staff_grid.add([structured_ruler])
+                self.staff_grid.add_new([structured_ruler])
 
         return self
-    
-    def remove(self):
+                
+    def remove_new(self):
         self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
         if self.staff_grid != None:
             unique_rulers_list = self.unique().list()
-            self.staff_grid.remove(unique_rulers_list)
+            self.staff_grid.remove_new(unique_rulers_list)
         self.rulers_list = []
         return self
     
-    def enable(self):
+    def enable_new(self):
         enabled_rulers_list = self.filter(enabled=False).unique().list()
         for disabled_ruler in enabled_rulers_list:
             disabled_ruler['enabled'] = True
         if self.staff_grid != None:
-            self.staff_grid.enable(enabled_rulers_list)
+            self.staff_grid.enable_new(enabled_rulers_list)
         return self
     
-    def disable(self):
+    def disable_new(self):
         disabled_rulers_list = self.filter(enabled=True).unique().list()
         if self.staff_grid != None:
-            self.staff_grid.disable(disabled_rulers_list)
+            self.staff_grid.disable_new(disabled_rulers_list)
         for enabled_ruler in disabled_rulers_list:
             enabled_ruler['enabled'] = False
         return self
     
-    def float(self):
+    def float_new(self):
         if self.staff_grid != None:
-            self.staff_grid.remove(self.unique().list())
+            self.staff_grid.remove_new(self.unique().list())
         return self
     
-    def drop(self):
+    def drop_new(self):
         if self.staff_grid != None:
-            self.staff_grid.add(self.unique().list())
+            self.staff_grid.add_new(self.unique().list())
         return self
 
     def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
@@ -191,7 +218,7 @@ class Rulers():
             # Using list comprehension
             filtered_rulers = [
                 ruler for ruler in filtered_rulers
-                        if not (self.position_lt(ruler['position'], position_range[0]) and self.position_lt(ruler['position'], position_range[1]))
+                        if not (position_lt(ruler['position'], position_range[0]) and position_lt(ruler['position'], position_range[1]))
             ]
         return Rulers(filtered_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
@@ -234,7 +261,7 @@ class Rulers():
             for i in range(0, len(sorted_rulers_list) - 1):
                 sorted_list = True
                 for j in range(1, len(sorted_rulers_list) - i):
-                    if (key == 'position' and self.position_gt(sorted_rulers_list[j - 1]['position'], sorted_rulers_list[j]['position']) \
+                    if (key == 'position' and position_gt(sorted_rulers_list[j - 1]['position'], sorted_rulers_list[j]['position']) \
                         or key == 'id' and sorted_rulers_list[j - 1]['id'] > sorted_rulers_list[j]['id']):
 
                         sorted_list = False
@@ -334,66 +361,65 @@ class Rulers():
             self.drop()
         return self
     
-    def slide(self, distance=[None, None]):
-        if self.staff_grid != None and distance[0] != None and distance[1] != None \
-            and (distance[0] >= 0 and distance[1] >= 0 or distance[0] <= 0 and distance[1] <= 0):
+    def slide_new(self, distance_steps=0):
+        if self.staff_grid != None and distance_steps != 0:
 
-            distance_sequences = self.staff_grid.sequence(distance)
-            if distance_sequences > 0:
-                last_sequence = self.staff_grid.len() - 1
+            distance_pulses = self.staff_grid.pulses([0, distance_steps])
+            if distance_pulses > 0:
+                last_position_pulses = self.staff_grid.len_new() - 1
                 for ruler in self.rulers_list:
-                    ruler_position_sequence = self.staff_grid.sequence(ruler['position'])
-                    distance_sequences = min(distance_sequences, last_sequence - ruler_position_sequence)
-            elif distance_sequences < 0:
+                    ruler_position_pulses = self.staff_grid.pulses(ruler['position'])
+                    distance_pulses = min(distance_pulses, last_position_pulses - ruler_position_pulses)
+            elif distance_pulses < 0:
                 for ruler in self.rulers_list:
-                    ruler_position_sequence = -self.staff_grid.sequence(ruler['position'])
-                    distance_sequences = max(distance_sequences, ruler_position_sequence)
+                    ruler_position_pulses = -self.staff_grid.pulses(ruler['position'])
+                    distance_pulses = max(distance_pulses, ruler_position_pulses)
             else:
                 return self
             
             self.float()
 
             for ruler in self.rulers_list:
-                new_position_sequence = self.staff_grid.sequence(ruler['position']) + distance_sequences # always positive
-                ruler['position'] = self.staff_grid.position(new_position_sequence)
+                new_position_pulses = self.staff_grid.pulses(ruler['position']) + distance_pulses # always positive
+                ruler['position'] = self.staff_grid.position_new(new_position_pulses)
 
             self.drop()
 
         return self
-    
+
     def expand(self, increment=[None, None]):
 
         return self
     
-    def distribute(self, distance=[None, None], scope=[[None, None], [None, None]]):
+    def distribute_new(self, range_steps=None, range_positions=[[None, None], [None, None]]):
         sorted_rulers = self.unique().sort()
         number_intervals = sorted_rulers.len()
         if self.staff_grid != None and number_intervals > 1:
-            if scope[0][0] != None and scope[0][1] != None and scope[1][0] != None and scope[1][1] != None:
-                distance_sequences = self.staff_grid.sequence(scope[1]) - self.staff_grid.sequence(scope[0]) # total distance
-                start_sequence = self.staff_grid.sequence(scope[0])
-                finish_sequence = start_sequence + round(distance_sequences * (number_intervals - 1) / number_intervals)
-            elif distance[0] != None and distance[1] != None:
-                distance_sequences = self.staff_grid.sequence(distance) # total distance
-                start_sequence = self.staff_grid.sequence(sorted_rulers.list()[0]['position'])
-                finish_sequence = start_sequence + round(distance_sequences * (number_intervals - 1) / number_intervals)
+            if range_positions[0][0] != None and range_positions[0][1] != None and range_positions[1][0] != None and range_positions[1][1] != None:
+                distance_pulses = self.staff_grid.pulses(range_positions[1]) - self.staff_grid.pulses(range_positions[0]) # total distance
+                start_pulses = self.staff_grid.pulses(range_positions[0])
+                finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
+            elif range_steps != None:
+                distance_pulses = self.staff_grid.pulses([0, range_steps]) # total distance
+                start_pulses = self.staff_grid.pulses(sorted_rulers.list()[0]['position'])
+                finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
             else:
-                finish_sequence = \
-                    self.staff_grid.sequence(sorted_rulers.list()[number_intervals - 1]['position'])\
-                    - self.staff_grid.sequence(sorted_rulers.list()[0]['position']) # total distance
-                distance_sequences = finish_sequence * number_intervals / (number_intervals - 1)
-                start_sequence = self.staff_grid.sequence(sorted_rulers.list()[0]['position'])
+                finish_pulses = \
+                    self.staff_grid.pulses(sorted_rulers.list()[number_intervals - 1]['position'])\
+                    - self.staff_grid.pulses(sorted_rulers.list()[0]['position']) # total distance
+                distance_pulses = finish_pulses * number_intervals / (number_intervals - 1)
+                start_pulses = self.staff_grid.pulses(sorted_rulers.list()[0]['position'])
 
-            if not finish_sequence < 0 and finish_sequence < self.staff_grid.len():
+            if not finish_pulses < 0 and finish_pulses < self.staff_grid.len_new():
                 sorted_rulers.float()
                 for index in range(number_intervals):
-                    new_position = self.staff_grid.position(start_sequence + round(index * distance_sequences / number_intervals))
+                    new_position = self.staff_grid.position_new(start_pulses + round(index * distance_pulses / number_intervals))
                     sorted_rulers.list()[index]['position'] = new_position
                 sorted_rulers.drop()
 
         return sorted_rulers
     
-    def rotate(self, increment=1):
+    def rotate(self, increments=1):
         return self
     
     def flip(self):
@@ -423,22 +449,6 @@ class Rulers():
     def tail(self, elements=1):
         tail_rulers_list = self.rulers_list[-elements:]
         return Rulers(tail_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
-
-    def position_gt(self, left_position, right_position):
-        if (left_position[0] > right_position[0]):
-            return True
-        if (left_position[0] == right_position[0]):
-            if (left_position[1] > right_position[1]):
-                return True
-        return False
-
-    def position_lt(self, left_position, right_position):
-        if (left_position[0] < right_position[0]):
-            return True
-        if (left_position[0] == right_position[0]):
-            if (left_position[1] < right_position[1]):
-                return True
-        return False
 
     # self is the list to work with!
 
@@ -547,3 +557,152 @@ class Rulers():
     #                 upper_line -= 1
 
     #     return self
+
+
+
+    # TO BE DELETED
+
+
+
+    def resetStaff(self):
+        if self.staff_grid != None:
+            self.staff_grid.clear()
+            for staff_ruler in self.root_self.list():
+                staff_ruler['on_staff'] = True
+            unique_rulers_list = self.root_self.unique().list()
+            self.staff_grid.add(unique_rulers_list)
+
+        return self
+            
+            
+    def add(self, ruler): # Must be able to remove removed rulers from the main list
+        
+        if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in self.ruler_types:
+
+            structured_ruler = {
+                'id': None,
+                'type': ruler['type'],
+                'group': "main",
+                'position': [0, 0],
+                'lines': [None],
+                'offset': 0,
+                'enabled': True,
+                'on_staff': self.staff_grid != None
+            }
+
+            for ruler_id in range(self.root_self.len() + 1): # get available ruler id
+                existent_rulers = [
+                    ruler for ruler in self.root_self.rulers_list if ruler['id'] == ruler_id
+                ]
+                if len(existent_rulers) == 0: # id not found thus available
+                    structured_ruler['id'] = ruler_id
+                    break
+
+            if 'group' in ruler and ruler['group'] != None:
+                structured_ruler['group'] = ruler['group']
+            if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
+                structured_ruler['position'] = ruler['position']
+            if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
+                structured_ruler['lines'] = ruler['lines']
+            if ('offset' in ruler and ruler['offset'] != None):
+                structured_ruler['offset'] = ruler['offset']
+            if ('enabled' in ruler and ruler['enabled'] != None):
+                structured_ruler['enabled'] = ruler['enabled']
+
+            self.rulers_list.append(structured_ruler)
+            if (self != self.root_self):
+                self.root_self.rulers_list.append(structured_ruler)
+            if structured_ruler['on_staff']:
+                self.staff_grid.add([structured_ruler])
+
+        return self
+    
+    def remove(self):
+        self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
+        if self.staff_grid != None:
+            unique_rulers_list = self.unique().list()
+            self.staff_grid.remove(unique_rulers_list)
+        self.rulers_list = []
+        return self
+    
+    def enable(self):
+        enabled_rulers_list = self.filter(enabled=False).unique().list()
+        for disabled_ruler in enabled_rulers_list:
+            disabled_ruler['enabled'] = True
+        if self.staff_grid != None:
+            self.staff_grid.enable(enabled_rulers_list)
+        return self
+    
+    def disable(self):
+        disabled_rulers_list = self.filter(enabled=True).unique().list()
+        if self.staff_grid != None:
+            self.staff_grid.disable(disabled_rulers_list)
+        for enabled_ruler in disabled_rulers_list:
+            enabled_ruler['enabled'] = False
+        return self
+    
+    def float(self):
+        if self.staff_grid != None:
+            self.staff_grid.remove(self.unique().list())
+        return self
+    
+    def drop(self):
+        if self.staff_grid != None:
+            self.staff_grid.add(self.unique().list())
+        return self
+
+    def slide(self, distance=[None, None]):
+        if self.staff_grid != None and distance[0] != None and distance[1] != None \
+            and (distance[0] >= 0 and distance[1] >= 0 or distance[0] <= 0 and distance[1] <= 0):
+
+            distance_sequences = self.staff_grid.sequence(distance)
+            if distance_sequences > 0:
+                last_sequence = self.staff_grid.len() - 1
+                for ruler in self.rulers_list:
+                    ruler_position_sequence = self.staff_grid.sequence(ruler['position'])
+                    distance_sequences = min(distance_sequences, last_sequence - ruler_position_sequence)
+            elif distance_sequences < 0:
+                for ruler in self.rulers_list:
+                    ruler_position_sequence = -self.staff_grid.sequence(ruler['position'])
+                    distance_sequences = max(distance_sequences, ruler_position_sequence)
+            else:
+                return self
+            
+            self.float()
+
+            for ruler in self.rulers_list:
+                new_position_sequence = self.staff_grid.sequence(ruler['position']) + distance_sequences # always positive
+                ruler['position'] = self.staff_grid.position(new_position_sequence)
+
+            self.drop()
+
+        return self
+        
+    def distribute(self, distance=[None, None], scope=[[None, None], [None, None]]):
+        sorted_rulers = self.unique().sort()
+        number_intervals = sorted_rulers.len()
+        if self.staff_grid != None and number_intervals > 1:
+            if scope[0][0] != None and scope[0][1] != None and scope[1][0] != None and scope[1][1] != None:
+                distance_sequences = self.staff_grid.sequence(scope[1]) - self.staff_grid.sequence(scope[0]) # total distance
+                start_sequence = self.staff_grid.sequence(scope[0])
+                finish_sequence = start_sequence + round(distance_sequences * (number_intervals - 1) / number_intervals)
+            elif distance[0] != None and distance[1] != None:
+                distance_sequences = self.staff_grid.sequence(distance) # total distance
+                start_sequence = self.staff_grid.sequence(sorted_rulers.list()[0]['position'])
+                finish_sequence = start_sequence + round(distance_sequences * (number_intervals - 1) / number_intervals)
+            else:
+                finish_sequence = \
+                    self.staff_grid.sequence(sorted_rulers.list()[number_intervals - 1]['position'])\
+                    - self.staff_grid.sequence(sorted_rulers.list()[0]['position']) # total distance
+                distance_sequences = finish_sequence * number_intervals / (number_intervals - 1)
+                start_sequence = self.staff_grid.sequence(sorted_rulers.list()[0]['position'])
+
+            if not finish_sequence < 0 and finish_sequence < self.staff_grid.len():
+                sorted_rulers.float()
+                for index in range(number_intervals):
+                    new_position = self.staff_grid.position(start_sequence + round(index * distance_sequences / number_intervals))
+                    sorted_rulers.list()[index]['position'] = new_position
+                sorted_rulers.drop()
+
+        return sorted_rulers
+    
