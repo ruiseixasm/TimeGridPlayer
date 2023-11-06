@@ -16,17 +16,17 @@ master.rulers().add({'type': "actions", 'group': "notes", 'position': [2, 1], 'l
 master.rulers().add({'type': "actions", 'group': "notes", 'position': [4, 1], 'lines': [note]})
 master.rulers().filter(types=["actions"]).print()
 
-master.rulers().add({'type': "keys", 'group': "generic", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
-master.rulers().add({'type': "keys", 'group': "generic", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
-master.rulers().add({'type': "keys", 'group': "generic", 'position': [3, 0], 'lines': ['d', 'c#', 'd', 'd#', 'e', None], 'offset': -1})
-master.rulers().add({'type': "keys", 'group': "specific", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
-master.rulers().add({'type': "keys", 'group': "specific", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
-master.rulers().add({'type': "keys", 'group': "specific", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-master.rulers().filter(types=["keys"]).print()
+master.rulers().add({'type': "arguments", 'group': "generic", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
+master.rulers().add({'type': "arguments", 'group': "generic", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
+master.rulers().add({'type': "arguments", 'group': "generic", 'position': [3, 0], 'lines': ['d', 'c#', 'd', 'd#', 'e', None], 'offset': -1})
+master.rulers().add({'type': "arguments", 'group': "specific", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
+master.rulers().add({'type': "arguments", 'group': "specific", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
+master.rulers().add({'type': "arguments", 'group': "specific", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
+master.rulers().filter(types=["arguments"]).print()
 
-master.staff().print()
-trigger.staff().print()
-note.staff().print()
+# master.staff().print()
+# trigger.staff().print()
+# note.staff().print()
 
 
 master.connectClock(master_clock)

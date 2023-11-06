@@ -31,7 +31,7 @@ class Rulers():
 
     def __init__(self, rulers_list = None, staff_grid = None, root_self = None, FROM_RULERS = False):
 
-        self.ruler_types = ['keys', 'actions']
+        self.ruler_types = ['arguments', 'actions']
         self.staff_grid = staff_grid
 
         self.root_self = self
@@ -223,7 +223,7 @@ class Rulers():
         return Rulers(filtered_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def print(self):
-        print("-" * 140)
+        print("-" * 170)
         total_rulers = self.len()
         if total_rulers > 0:
             for index in range(total_rulers):
@@ -235,7 +235,7 @@ class Rulers():
                 print(f"{index}: {copy_ruler}")
         else:
             print("-: [EMPTY]")
-        print("-" * 140)
+        print("-" * 170)
         return self
 
     def unique(self):
@@ -465,11 +465,11 @@ class Rulers():
     #     rulers = first_ruler + second_ruler
     #     if (len(rulers) == 2):
     #         position = rulers[0]['position']
-    #         sequence = rulers[0]['sequence']
+    #         pulse = rulers[0]['pulse']
     #         rulers[0]['position'] = rulers[1]['position']
-    #         rulers[0]['sequence'] = rulers[1]['sequence']
+    #         rulers[0]['pulse'] = rulers[1]['pulse']
     #         rulers[1]['position'] = position
-    #         rulers[1]['sequence'] = sequence
+    #         rulers[1]['pulse'] = pulse
     #     return self
 
     # def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
@@ -482,8 +482,8 @@ class Rulers():
     #     modulus_position = modulus_reference[0]
     #     for rule in rulers:
     #         if (modulus_position % modulus_selector[0] == 0):
-    #             lower_slack = min(lower_slack, rule['sequence'])
-    #             upper_slack = min(upper_slack, self.steps*self.pulses_step - 1 - rule['sequence'])
+    #             lower_slack = min(lower_slack, rule['pulse'])
+    #             upper_slack = min(upper_slack, self.steps*self.pulses_step - 1 - rule['pulse'])
     #         modulus_position += 1
 
     #     increments[0] = max(-lower_slack, increments[0]) # Horizontal sliding can't slide out of the grid
@@ -492,9 +492,9 @@ class Rulers():
     #     modulus_position = modulus_reference[0]
     #     for rule in rulers:
     #         if (modulus_position % modulus_selector[0] == 0):
-    #             rule['sequence'] += increments[0]
+    #             rule['pulse'] += increments[0]
     #             if (rule['position'] != None):
-    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #                 rule['position'] = self.timeGrid[rule['pulse']]['position']
     #         modulus_position += 1
 
     #     modulus_position = modulus_reference[1]
@@ -509,17 +509,17 @@ class Rulers():
 
     #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
-    #     staff_sequences = []
+    #     staff_pulses = []
     #     if (increments[0] != 0):
     #         for rule in rulers:
-    #             staff_sequences.append(rule['sequence'])
+    #             staff_pulses.append(rule['pulse'])
         
-    #     total_sequences = len(staff_sequences)
+    #     total_pulses = len(staff_pulses)
     #     for rule in rulers:
     #         if (increments[0] != 0):
-    #             rule['sequence'] = staff_sequences[increments[0] % total_sequences]
+    #             rule['pulse'] = staff_pulses[increments[0] % total_pulses]
     #             if (rule['position'] != None):
-    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
+    #                 rule['position'] = self.timeGrid[rule['pulse']]['position']
     #         if (increments[1] != 0):
     #             rule_lines = []
     #             for line in rule['lines']:
@@ -534,18 +534,18 @@ class Rulers():
 
     #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
 
-    #     staff_sequences = []
+    #     staff_pulses = []
     #     if (mirrors[0]):
     #         for rule in rulers:
-    #             staff_sequences.append(rule['sequence'])
+    #             staff_pulses.append(rule['pulse'])
         
-    #     upper_sequence = len(staff_sequences) - 1
+    #     upper_pulse = len(staff_pulses) - 1
     #     for rule in rulers:
     #         if (mirrors[0]):
-    #             rule['sequence'] = staff_sequences[upper_sequence]
+    #             rule['pulse'] = staff_pulses[upper_pulse]
     #             if (rule['position'] != None):
-    #                 rule['position'] = self.timeGrid[rule['sequence']]['position']
-    #         upper_sequence -= 1
+    #                 rule['position'] = self.timeGrid[rule['pulse']]['position']
+    #         upper_pulse -= 1
     #         if (mirrors[1]):
     #             rule_lines = []
     #             for line in rule['lines']:

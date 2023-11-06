@@ -17,7 +17,7 @@ class Action:
 
     def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
 
-        self.rulerTypes = ['keys', 'actions']
+        self.rulerTypes = ['arguments', 'actions']
         self.staff_grid = staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range)
         self.staff_rulers = rulers.Rulers(staff_grid=self.staff_grid)
         self.internal_key_rulers = self.staff_rulers.empty()
@@ -63,29 +63,30 @@ class Action:
             if (self.play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
 
                 position = self.staff_grid.position(self.play_pulse)
-                enabled_key_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['keys']['enabled']
+                enabled_key_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['arguments']['enabled']
                 enabled_action_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['actions']['enabled']
 
-                str_position = self.staff_grid.str_position(position)
-                print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
+                if self.staff_grid.pulseRemainders(self.play_pulse)['beat'] == 0:
+                    # str_position = self.staff_grid.str_position(position)
+                    # print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
+                    self.staff_grid.print_level_sums(self.play_pulse, 1)
 
                 if (enabled_key_rulers > 0):
                     
-                    pulse_key_rulers = self.staff_rulers.filter(types=['keys'], positions=[position], enabled=True)
+                    pulse_key_rulers = self.staff_rulers.filter(types=['arguments'], positions=[position], enabled=True)
                     self.internal_key_rulers = (pulse_key_rulers + self.internal_key_rulers).merge()
 
                 if (enabled_action_rulers > 0):
                     
                     pulse_action_rulers = self.staff_rulers.filter(types=['actions'], positions=[position], enabled=True)
-                    merged_staff_keys = (self.external_key_rulers + self.internal_key_rulers).merge()
+                    merged_staff_arguments = (self.external_key_rulers + self.internal_key_rulers).merge()
 
-                    print("")
                     for triggered_action in pulse_action_rulers.list(): # single ruler actions
                         for action_line in range(len(triggered_action['lines'])):
                             if (triggered_action['lines'][action_line] != None):
                                 triggered_action['line'] = action_line
                                 triggered_action['source'] = "staff" # to know the source of the trigger
-                                for key_ruler in merged_staff_keys.list():
+                                for key_ruler in merged_staff_arguments.list():
                                     key_ruler['line'] = action_line + triggered_action['offset'] - key_ruler['offset']
                                     if (key_ruler['line'] < 0 or not (key_ruler['line'] < len(key_ruler['lines']))):
                                         key_ruler['line'] = None # in case key line is out of range of the triggered action line
@@ -93,10 +94,9 @@ class Action:
                                 action_object = triggered_action['lines'][action_line]
 
                                 if (action_object == self):        
-                                    action_object.actionInternalTrigger(triggered_action, merged_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionInternalTrigger(triggered_action, merged_staff_arguments, tempo) # WHERE ACTION IS TRIGGERED
                                 else:        
-                                    action_object.actionExternalTrigger(triggered_action, merged_staff_keys, tempo) # WHERE ACTION IS TRIGGERED
-                    print("")
+                                    action_object.actionExternalTrigger(triggered_action, merged_staff_arguments, tempo) # WHERE ACTION IS TRIGGERED
 
                 self.play_pulse += 1
 
@@ -114,9 +114,9 @@ class Action:
             for clockedAction in clockedActions:
                 action_object = clockedAction['action']
                 if (action_object == self):        
-                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_keys'], tempo) # WHERE ACTION IS TRIGGERED
+                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_arguments'], tempo) # WHERE ACTION IS TRIGGERED
                 else:        
-                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_keys'], tempo) # WHERE ACTION IS TRIGGERED
+                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_arguments'], tempo) # WHERE ACTION IS TRIGGERED
                     
             for clockedAction in clockedActions:
                 del(self.clocked_actions[clockedAction['stack_id']])
@@ -135,11 +135,11 @@ class Action:
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
         self.play_mode = True
-        self.external_staff_keys = merged_staff_keys # becomes read only, no need to copy
+        self.external_staff_arguments = merged_staff_arguments # becomes read only, no need to copy
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
         ...
 
 class Master(Action):
@@ -153,31 +153,32 @@ class Note(Action):
         super().__init__(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
         first_position = self.staff_grid.playRange()[0]
         self.staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
+        self.note = None
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
-        super().actionExternalTrigger(triggered_action, merged_staff_keys, tempo)
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
+        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tempo)
         if (tempo['fast_forward']):
             self.play_mode = False
-        if (merged_staff_keys != None and merged_staff_keys.len() > 0):
-            given_lines = merged_staff_keys.list()[0]['lines']
-            key_line = merged_staff_keys.list()[0]['line']
+        if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
+            given_lines = merged_staff_arguments.list()[0]['lines']
+            key_line = merged_staff_arguments.list()[0]['line']
             key_value = given_lines[key_line]
             self.note = key_value # may need tranlation!
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
-        super().actionInternalTrigger(triggered_action, merged_staff_keys, tempo)
-        if (merged_staff_keys != None and merged_staff_keys.len() > 0):
-            given_lines = merged_staff_keys.list()[0]['lines']
-            key_line = merged_staff_keys.list()[0]['line']
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
+        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tempo)
+        if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
+            given_lines = merged_staff_arguments.list()[0]['lines']
+            key_line = merged_staff_arguments.list()[0]['line']
             key_value = given_lines[key_line]
         else:
             key_value = self.note # may need tranlation!
         if (triggered_action['source'] == "staff"):
             print(f"note ON:\t{key_value}")
             self.addClockedAction(clocked_action =
-                                  {'triggered_action': triggered_action, 'staff_keys': merged_staff_keys, 'duration': [1, 0], 'action': self}
+                                  {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4, 'action': self}
                                   )
         else:
             print(f"note OFF:\t{key_value}")
@@ -190,14 +191,14 @@ class Trigger(Action):
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
-        super().actionExternalTrigger(triggered_action, merged_staff_keys, tempo)
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
+        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tempo)
         print("EXTERNALLY TRIGGERED")
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_keys = None, tempo = {}):
-        super().actionInternalTrigger(triggered_action, merged_staff_keys, tempo)
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
+        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tempo)
         print("LOCALLY TRIGGERED")
 
     # def __str__(self):
-    #     finalString = f"{pulse['sequence']}\t{pulse['position']}\n"
+    #     finalString = f"{pulse['pulse']}\t{pulse['position']}\n"
     #     return finalString

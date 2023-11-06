@@ -1,41 +1,41 @@
 import rtmidi
 import time
 
-def getMidiKey(key={'note': "C", 'octave': 4}): # middle C by default
+def getMidiNote(note={'key': "C", 'octave': 4}): # middle C by default
     """Octaves range from -1 to 9"""
-    note_str = key['note'].upper()
-    midi_note = 0
+    key_str = note['key'].upper()
+    midi_key = 0
     # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-    str_notes = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
+    str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
 
     for index in range(12):
-        if note_str[0] == str_notes[index]:
-            midi_note = index
+        if key_str[0] == str_keys[index]:
+            midi_key = index
             break
 
-    midi_note += (key['octave'] + 1) * 12 # first octave is -1
+    midi_key += (note['octave'] + 1) * 12 # first octave is -1
 
-    if (len(note_str) > 1):
-        if note_str[1] == '#':
-            midi_note += 1
-        elif note_str[1] == 'B': # upper b meaning flat
-            midi_note -= 1
+    if (len(key_str) > 1):
+        if key_str[1] == '#':
+            midi_key += 1
+        elif key_str[1] == 'B': # upper b meaning flat
+            midi_key -= 1
 
-    return min(127, max(0, midi_note))
+    return min(127, max(0, midi_key))
 
-def getKey(midi_key=60):
-    str_notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+def getNote(midi_note=60):
+    str_keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-    key_octave = int(midi_key / 12) - 1
-    key_note = str_notes[midi_key % 12]
+    note_octave = int(midi_note / 12) - 1
+    note_key = str_keys[midi_note % 12]
 
-    return {'note': key_note, 'octave': key_octave}
+    return {'key': note_key, 'octave': note_octave}
 
-def transposeKey(key={'note': "C", 'octave': 4}, octaves=0, keys=0):
-    midi_key = getMidiKey(key)
-    midi_key += octaves * 12 + keys
-    midi_key = min(127, max(0, midi_key))
-    return getKey(midi_key)
+def transposeNote(note={'key': "C", 'octave': 4}, octaves=0, notes=0):
+    midi_note = getMidiNote(note)
+    midi_note += octaves * 12 + notes
+    midi_note = min(127, max(0, midi_note))
+    return getNote(midi_note)
 
 class Instrument():
     
@@ -85,9 +85,9 @@ class Instrument():
         return self
 
     def test(self):
-        self.pressKey()
+        self.pressNote()
         time.sleep(1)
-        self.releaseKey()
+        self.releaseNote()
         time.sleep(1)
         return self
     
@@ -110,7 +110,7 @@ class Instrument():
             self.controlChange(121, 0, channel)     #5
             time.sleep(sleep_time)
 
-            self.releaseAllKeys(channel)            #6
+            self.releaseAllNotes(channel)            #6
 
             self.controlChange(7, 100, channel)     #7
             time.sleep(sleep_time)
@@ -119,21 +119,21 @@ class Instrument():
                 
         return self
     
-    def pressKey(self, key={'note': "C", 'octave': 4}, velocity=100, channel=1):
+    def pressNote(self, note={'key': "C", 'octave': 4}, velocity=100, channel=1):
         command = 0x90 | max(0, channel - 1)
-        parameter_1 = getMidiKey(key)
+        parameter_1 = getMidiNote(note)
         parameter_2 = velocity
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
 
-    def releaseKey(self, key={'note': "C", 'octave': 4}, channel=1):
+    def releaseNote(self, note={'key': "C", 'octave': 4}, channel=1):
         command = 0x80 | max(0, channel - 1)
-        parameter_1 = getMidiKey(key)
+        parameter_1 = getMidiNote(note)
         parameter_2 = 64
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
         
-    def releaseAllKeys(self, channel=1):
+    def releaseAllNotes(self, channel=1):
         sleep_time = 0.002 # 2ms
         command = 0x80 | max(0, channel - 1)
         parameter_2 = 0
@@ -143,9 +143,9 @@ class Instrument():
             time.sleep(sleep_time)
         return self
         
-    def aftertouchKey(self, key={'note': "C", 'octave': 4}, pressure=100, channel=1):
+    def aftertouchNote(self, note={'key': "C", 'octave': 4}, pressure=100, channel=1):
         command = 0xA0 | max(0, channel - 1)
-        parameter_1 = getMidiKey(key)
+        parameter_1 = getMidiNote(note)
         parameter_2 = pressure
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)

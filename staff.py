@@ -55,14 +55,14 @@ class Staff:
                 'beat': int(pulse / self.pulses_per_beat) % self.beats_per_measure,
                 'step': int(pulse * self.steps_per_beat / self.pulses_per_beat) % (self.steps_per_beat * self.beats_per_measure),
                 'pulse': pulse,
-                'keys': {'enabled': 0, 'total': 0},
+                'arguments': {'enabled': 0, 'total': 0},
                 'actions': {'enabled': 0, 'total': 0}
             }
             self.staff.append(staff_pulse)
 
         if self.total_pulses > 0:
             for staff_pulse in old_staff:
-                for ruler_type in ['keys', 'actions']:
+                for ruler_type in ['arguments', 'actions']:
                     if staff_pulse[ruler_type]['total'] > 0:
                         position_pulses = self.pulses([staff_pulse['measure'], staff_pulse['step']])
                         size_total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
@@ -104,6 +104,51 @@ class Staff:
         else:
             print("[EMPTY]")
         return self
+    
+    def print_staff_sums(self, staff_list): # outputs single staff pulse
+        staff_list_pulses = len(staff_list)
+        copy_staff_pulse = staff_list[0].copy() # pulse content copy
+        copy_staff_pulse['arguments'] = copy_staff_pulse['arguments'].copy() # arguments content copy
+        copy_staff_pulse['actions'] = copy_staff_pulse['actions'].copy() # actions content copy
+        if staff_list_pulses > 0:
+            for pulse in range(1, staff_list_pulses):
+                copy_staff_pulse['arguments']['enabled'] += staff_list[pulse]['arguments']['enabled']
+                copy_staff_pulse['arguments']['total'] += staff_list[pulse]['arguments']['total']
+                copy_staff_pulse['actions']['enabled'] += staff_list[pulse]['actions']['enabled']
+                copy_staff_pulse['actions']['total'] += staff_list[pulse]['actions']['total']
+            print(copy_staff_pulse)
+        else:
+            print("[EMPTY]")
+        return self
+    
+    def print_level_sums(self, pulse=0, level=0):
+        if self.len() > 0:
+            staff_pulse = self.staff[pulse]
+            match level:
+                case 0:
+                    filtered_list = self.filter_list(measure=staff_pulse['measure'])
+                    self.print_staff_sums(filtered_list)
+                case 1:
+                    filtered_list = self.filter_list(measure=staff_pulse['measure'], beat=staff_pulse['beat'])
+                    self.print_staff_sums(filtered_list)
+                case 2:
+                    filtered_list = self.filter_list(measure=staff_pulse['measure'], beat=staff_pulse['beat'], step=staff_pulse['step'])
+                    self.print_staff_sums(filtered_list)
+                case 3:
+                    self.print_staff_sums(staff_pulse)
+                case _: # default
+                    print("[EMPTY]")
+        else:
+            print("[EMPTY]")
+        return self
+    
+    def pulseRemainders(self, pulse=0):
+        return {
+            'measure': pulse % (self.pulses_per_beat * self.beats_per_measure),
+            'beat': pulse % self.pulses_per_beat,
+            'step': pulse % (self.pulses_per_beat / self.steps_per_beat),
+            'pulse': 0 # by definition is pulse % pulse = 0
+        }
     
     def signature(self):
         return {
@@ -153,15 +198,15 @@ class Staff:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['measure'] == measure
             ]
-        if measure != None:
+        if beat != None:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['beat'] == beat
             ]
-        if measure != None:
+        if step != None:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['step'] == step
             ]
-        if measure != None:
+        if pulse != None:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['pulse'] == pulse
             ]
@@ -176,12 +221,12 @@ class Staff:
     def disable(self, rulers):
         return self.remove(rulers, total_one=0)
     
-    def keys(self):
-        total_keys = {'enabled': 0, 'total': 0}
+    def arguments(self):
+        total_arguments = {'enabled': 0, 'total': 0}
         for staff_pulse in self.staff:
-            total_keys['enabled'] += staff_pulse['keys']['enabled']
-            total_keys['total'] += staff_pulse['keys']['total']
-        return total_keys
+            total_arguments['enabled'] += staff_pulse['arguments']['enabled']
+            total_arguments['total'] += staff_pulse['arguments']['total']
+        return total_arguments
 
     def actions(self):
         total_actions = {'enabled': 0, 'total': 0}
@@ -192,7 +237,7 @@ class Staff:
 
     def clear(self):
         for staff_pulse in self.staff:
-            staff_pulse['keys'] = {'enabled': 0, 'total': 0}
+            staff_pulse['arguments'] = {'enabled': 0, 'total': 0}
             staff_pulse['actions'] = {'enabled': 0, 'total': 0}
         return self
 
