@@ -255,28 +255,25 @@ class Rulers():
         return self
     
     def sort(self, key='position', reverse = False):
-
-        sorted_rulers_list = self.rulers_list.copy()
-
-        if (len(sorted_rulers_list) > 1):
-            for i in range(0, len(sorted_rulers_list) - 1):
+        rulers_list = self.list()
+        rulers_list_size = self.len()
+        if (rulers_list_size > 1):
+            for i in range(0, rulers_list_size - 1):
                 sorted_list = True
-                for j in range(1, len(sorted_rulers_list) - i):
-                    if (key == 'position' and position_gt(sorted_rulers_list[j - 1]['position'], sorted_rulers_list[j]['position']) \
-                        or key == 'id' and sorted_rulers_list[j - 1]['id'] > sorted_rulers_list[j]['id']):
+                for j in range(1, rulers_list_size - i):
+                    if (key == 'position' and position_gt(rulers_list[j - 1]['position'], rulers_list[j]['position']) \
+                        or key == 'id' and rulers_list[j - 1]['id'] > rulers_list[j]['id']):
 
                         sorted_list = False
-                        temp_ruler = sorted_rulers_list[j - 1]
-                        sorted_rulers_list[j - 1] = sorted_rulers_list[j]
-                        sorted_rulers_list[j] = temp_ruler
+                        temp_ruler = rulers_list[j - 1]
+                        rulers_list[j - 1] = rulers_list[j]
+                        rulers_list[j] = temp_ruler
                 if sorted_list:
                     break
 
-        sorted_rulers = Rulers(sorted_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
-
         if reverse:
-            return sorted_rulers.reverse()
-        return sorted_rulers
+            self.reverse()
+        return self
 
     def merge(self):
 
