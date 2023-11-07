@@ -31,7 +31,6 @@ class Rulers():
 
     def __init__(self, rulers_list = None, staff_grid = None, root_self = None, FROM_RULERS = False):
 
-        self.ruler_types = ['arguments', 'actions']
         self.staff_grid = staff_grid
 
         self.root_self = self
@@ -103,23 +102,40 @@ class Rulers():
     def list(self):
         return self.rulers_list
     
+    def list_lines(self):
+        all_lines = []
+        for ruler in self.rulers_list:
+            all_lines.append(ruler['lines'])
+        return all_lines
+    
     def len(self):
         return len(self.rulers_list)
+    
+    def len_lines(self):
+        total_lines = 0
+        for ruler in self.rulers_list:
+            total_lines += len(ruler['lines'])
+        return total_lines
     
     def empty(self):
         empty_rulers_list = []
         return Rulers(empty_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
-        
+    
+    def empty_lines(self):
+        for ruler in self.rulers_list:
+            ruler['lines'] = []
+        return self
+
     def add(self, ruler): # Must be able to remove removed rulers from the main list
         
-        if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in self.ruler_types:
+        if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
 
             structured_ruler = {
                 'id': None,
                 'type': ruler['type'],
                 'group': "main",
                 'position': [0, 0],
-                'lines': [None],
+                'lines': [],
                 'offset': 0,
                 'enabled': True,
                 'on_staff': self.staff_grid != None
@@ -151,6 +167,12 @@ class Rulers():
                 self.staff_grid.add([structured_ruler])
 
         return self
+    
+    def add_lines(self, lines):
+        for ruler in self.rulers_list:
+            ruler['lines'] = lines
+
+        return self
                 
     def remove(self):
         self.root_self.rulers_list = [ ruler for ruler in self.root_self.rulers_list if ruler not in self.rulers_list ]
@@ -158,6 +180,11 @@ class Rulers():
             unique_rulers_list = self.unique().list()
             self.staff_grid.remove(unique_rulers_list)
         self.rulers_list = []
+        return self
+    
+    def remove_lines(self):
+        for ruler in self.rulers_list:
+            ruler['lines'] = []
         return self
     
     def enable(self):
@@ -223,7 +250,7 @@ class Rulers():
         return Rulers(filtered_rulers, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def print(self):
-        print("-" * 170)
+        print("'" * 170)
         total_rulers = self.len()
         if total_rulers > 0:
             for index in range(total_rulers):
@@ -231,10 +258,26 @@ class Rulers():
                 # for key, value in self.rulers_list[index].items():
                 #     ...
                 copy_ruler = self.rulers_list[index].copy()
+                copy_ruler['lines'] = len(copy_ruler['lines'])
                 copy_ruler['position'][1] = round(copy_ruler['position'][1], 6)
                 print(f"{index}: {copy_ruler}")
         else:
-            print("-: [EMPTY]")
+            print("[EMPTY]")
+        print("'" * 170)
+        return self
+
+    def print_lines(self):
+        print("-" * 170)
+        total_rulers = self.len()
+        if total_rulers > 0:
+            for index in range(total_rulers):
+                # ruler_str = ""
+                # for key, value in self.rulers_list[index].items():
+                #     ...
+                lines = {'id': self.rulers_list[index]['id'], 'lines': self.rulers_list[index]['lines']}
+                print(f"{index}: {lines}")
+        else:
+            print("[EMPTY]")
         print("-" * 170)
         return self
 
@@ -252,6 +295,16 @@ class Rulers():
             temp_ruler = self.rulers_list[i]
             self.rulers_list[i] = self.rulers_list[rulers_list_size - 1 - i]
             self.rulers_list[rulers_list_size - 1 - i] = temp_ruler
+
+        return self
+    
+    def reverse_lines(self):
+        for rulers in self.rulers_list:
+            lines_size = len(rulers['lines'])
+            for i in range(int(lines_size/2)):
+                temp_line = rulers['lines'][i]
+                rulers['lines'][i] = rulers['lines'][lines_size - 1 - i]
+                rulers['lines'][lines_size - 1 - i] = temp_line
 
         return self
     
@@ -274,6 +327,25 @@ class Rulers():
 
         if reverse:
             return self.reverse()
+        return self
+
+    def sort_lines(self, function, reverse = False):
+        for rulers in self.rulers_list:
+            lines_size = len(rulers['lines'])
+            for i in range(0, lines_size - 1):
+                sorted_list = True
+                for j in range(1, lines_size - i):
+                    if function(rulers['lines'][j - 1], rulers['lines'][j]):
+
+                        sorted_list = False
+                        temp_line = rulers['lines'][j - 1]
+                        rulers['lines'][j - 1] = rulers['lines'][j]
+                        rulers['lines'][j] = temp_line
+                if sorted_list:
+                    break
+
+        if reverse:
+            return self.reverse_lines()
         return self
 
     def merge(self):
@@ -360,7 +432,13 @@ class Rulers():
             self.drop()
         return self
     
-    def slide_position(self, distance_steps=0):
+    def move_lines(self, increments=1):
+        for ruler in self.rulers_list:
+            ruler['offset'] += increments
+
+        return self
+    
+    def slide_position(self, distance_steps=4):
         if self.staff_grid != None and distance_steps != 0:
 
             distance_pulses = self.staff_grid.pulses([0, distance_steps])
@@ -386,12 +464,29 @@ class Rulers():
 
         return self
 
-    def expand_position(self, increment_steps):
+    def expand_position(self, spread_steps=4):
         first_position = self.rulers_list[0]['position']
         self.float()
         for ruler_index in range(1, self.len()):
-            self.ruler_types[ruler_index]['position'] = self.staff_grid.addPositions(first_position, [0, ruler_index * increment_steps])
+            self.rulers_list[ruler_index]['position'] = self.staff_grid.addPositions(first_position, [0, ruler_index * spread_steps])
         self.drop()
+        return self
+    
+    def expand_lines(self, spread=1):
+        for ruler in self.rulers_list:
+            old_total_lines = len(ruler['lines'])
+            if spread > 0:
+                new_total_lines = (old_total_lines * (spread + 1))
+                new_lines = [None] * new_total_lines
+                for line in range(old_total_lines):
+                    new_lines[line * (spread + 1)] = ruler['lines'][line]
+                ruler['lines'] = new_lines
+            else:
+                new_total_lines = int(old_total_lines / (-spread + 1))
+                new_lines = [None] * new_total_lines
+                for line in range(new_total_lines):
+                    new_lines[line] = ruler['lines'][line * (-spread + 1)]
+
         return self
     
     def distribute_position(self, range_steps=None, range_positions=[[None, None], [None, None]]):
@@ -457,12 +552,22 @@ class Rulers():
 
         return self
     
+    def reverse_lines(self):
+        for rulers in self.rulers_list:
+            lines_size = len(rulers['lines'])
+            for index in range(int(lines_size/2)):
+                temp_line = rulers['lines'][index]
+                rulers['lines'][index] = rulers['lines'][lines_size - 1 - index]
+                rulers['lines'][lines_size - 1 - index] = temp_line
+
+        return self
+    
     def odd(self):
-        odd_rulers_list = self.rulers_list[::2]
+        odd_rulers_list = self.rulers_list[1::2]
         return Rulers(odd_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def even(self):
-        even_rulers_list = self.rulers_list[1::2]
+        even_rulers_list = self.rulers_list[::2]
         return Rulers(even_rulers_list, staff_grid = self.staff_grid, root_self = self.root_self, FROM_RULERS = True)
     
     def head(self, elements=1):
