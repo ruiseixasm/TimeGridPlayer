@@ -1,4 +1,4 @@
-'''TimeGridPlayer - Time Grid Player Actions on a Staff
+'''TimeGridPlayer - Time Grid Player triggers Actions on a Staff
 Original Copyright (c) 2023 Rui Seixas Monteiro. All right reserved.
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
