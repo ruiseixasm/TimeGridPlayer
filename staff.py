@@ -9,34 +9,25 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-def position_gt(left_position, right_position):
-    if len(left_position) == 2 and len(right_position) == 2:
-        if (left_position[0] > right_position[0]):
-            return True
-        if (left_position[0] == right_position[0]):
-            if (left_position[1] > right_position[1]):
-                return True
-    return False
+import rulers
 
-def position_lt(left_position, right_position):
-    if len(left_position) == 2 and len(right_position) == 2:
-        if (left_position[0] < right_position[0]):
-            return True
-        if (left_position[0] == right_position[0]):
-            if (left_position[1] < right_position[1]):
-                return True
-    return False
-    
 class Staff:
 
     def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
 
-        self.staff = []
+        self._rulers = rulers.Rulers(staff=self)
+        self._staff = []
         self.total_pulses = 0
         self.play_range = [[], []]
         if play_range != [[], []]:
             self.setPlayRange(start=play_range[0], finish=play_range[1])
         self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat)
+
+    def getRulers(self):
+        return self._rulers
+
+    def rulers(self):
+        return self._rulers
 
     def setStaff(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24):
 
@@ -47,8 +38,8 @@ class Staff:
         
         self.total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
 
-        old_staff = self.staff[:]
-        self.staff = []
+        old_staff = self._staff[:]
+        self._staff = []
         for pulse in range(self.total_pulses):
             staff_pulse = {
                 'measure': int(pulse / (self.pulses_per_beat * self.beats_per_measure)),
@@ -58,7 +49,7 @@ class Staff:
                 'arguments': {'enabled': 0, 'total': 0},
                 'actions': {'enabled': 0, 'total': 0}
             }
-            self.staff.append(staff_pulse)
+            self._staff.append(staff_pulse)
 
         if self.total_pulses > 0:
             for staff_pulse in old_staff:
@@ -67,8 +58,8 @@ class Staff:
                         position_pulses = self.pulses([staff_pulse['measure'], staff_pulse['step']])
                         size_total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
                         if not position_pulses < 0 and position_pulses < size_total_pulses:
-                            self.staff[position_pulses][ruler_type]['enabled'] = staff_pulse[ruler_type]['enabled']
-                            self.staff[position_pulses][ruler_type]['total'] = staff_pulse[ruler_type]['total']
+                            self._staff[position_pulses][ruler_type]['enabled'] = staff_pulse[ruler_type]['enabled']
+                            self._staff[position_pulses][ruler_type]['total'] = staff_pulse[ruler_type]['total']
 
         self.setPlayRange(start=None, finish=None)
         return self
@@ -98,9 +89,28 @@ class Staff:
         return self
     
     def print(self):
-        if len(self.staff) > 0:
-            for staff_pulse in self.staff:
-                print(staff_pulse)
+        if len(self._staff) > 0:
+            string_top_length = {'measure': 0, 'beat': 0, 'step': 0, 'pulse': 0, 'arguments': 0, 'actions': 0}
+            full_string_top_length = 0
+            for staff_pulse in self._staff: # get maximum sizes
+                full_string_length = 0
+                for key, value in staff_pulse.items():
+                    key_value_length = len(f"{key}: {value},   ")
+                    full_string_length += key_value_length
+                    string_top_length[key] = max(string_top_length[key], key_value_length)
+                full_string_top_length = max(full_string_top_length, full_string_length)
+            if len(self._staff) > 1:
+                print("$" * (full_string_top_length + 5))
+            for staff_pulse in self._staff:
+                pulse_str = "{   "
+                for key, value in staff_pulse.items():
+                    key_value_str = f"{key}: {value},   "
+                    key_value_length = len(key_value_str)
+                    pulse_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
+                pulse_str += "}"
+                print(pulse_str)
+            if len(self._staff) > 1:
+                print("$" * (full_string_top_length + 5))
         else:
             print("[EMPTY]")
         return self
@@ -123,7 +133,7 @@ class Staff:
     
     def print_level_sums(self, pulse=0, level=0):
         if self.len() > 0:
-            staff_pulse = self.staff[pulse]
+            staff_pulse = self._staff[pulse]
             match level:
                 case 0:
                     filtered_list = self.filter_list(measure=staff_pulse['measure'])
@@ -144,7 +154,7 @@ class Staff:
     
     def print_group_by(self, level=0):
         if self.len() > 0:
-            for staff_pulse in self.staff:
+            for staff_pulse in self._staff:
                 pulse_remainders = self.pulseRemainders(staff_pulse['pulse'])
                 match level:
                     case 0:
@@ -181,10 +191,13 @@ class Staff:
         }
 
     def list(self):
-        return self.staff
+        return self._staff
     
     def len(self):
         return self.total_pulses
+    
+    def len_steps(self):
+        return self.total_pulses * self.steps_per_beat / self.pulses_per_beat
     
     def addPositions(self, position_1=[0, 0], position_2=[0, 0]):
 
@@ -227,12 +240,12 @@ class Staff:
             if pulses < self.len():
                 if ruler['on_staff']:
                     if ruler['enabled']:
-                        self.staff[pulses][ruler['type']]['enabled'] += enabled_one
-                    self.staff[pulses][ruler['type']]['total'] += total_one
+                        self._staff[pulses][ruler['type']]['enabled'] += enabled_one
+                    self._staff[pulses][ruler['type']]['total'] += total_one
         return self
     
     def filter_list(self, measure=None, beat=None, step=None, pulse=None):
-        filtered_list = self.staff[:]
+        filtered_list = self._staff[:]
         if measure != None:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['measure'] == measure
@@ -262,20 +275,20 @@ class Staff:
     
     def arguments(self):
         total_arguments = {'enabled': 0, 'total': 0}
-        for staff_pulse in self.staff:
+        for staff_pulse in self._staff:
             total_arguments['enabled'] += staff_pulse['arguments']['enabled']
             total_arguments['total'] += staff_pulse['arguments']['total']
         return total_arguments
 
     def actions(self):
         total_actions = {'enabled': 0, 'total': 0}
-        for staff_pulse in self.staff:
+        for staff_pulse in self._staff:
             total_actions['enabled'] += staff_pulse['actions']['enabled']
             total_actions['total'] += staff_pulse['actions']['total']
         return total_actions
 
     def clear(self):
-        for staff_pulse in self.staff:
+        for staff_pulse in self._staff:
             staff_pulse['arguments'] = {'enabled': 0, 'total': 0}
             staff_pulse['actions'] = {'enabled': 0, 'total': 0}
         return self
@@ -283,4 +296,24 @@ class Staff:
     
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))
-   
+
+# GLOBAL CLASS METHODS
+
+def position_gt(left_position, right_position):
+    if len(left_position) == 2 and len(right_position) == 2:
+        if (left_position[0] > right_position[0]):
+            return True
+        if (left_position[0] == right_position[0]):
+            if (left_position[1] > right_position[1]):
+                return True
+    return False
+
+def position_lt(left_position, right_position):
+    if len(left_position) == 2 and len(right_position) == 2:
+        if (left_position[0] < right_position[0]):
+            return True
+        if (left_position[0] == right_position[0]):
+            if (left_position[1] < right_position[1]):
+                return True
+    return False
+    

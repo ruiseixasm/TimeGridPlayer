@@ -10,7 +10,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import staff
-import rulers
 import midi_tools
 
 class Action:
@@ -18,10 +17,10 @@ class Action:
     def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
 
         self.rulerTypes = ['arguments', 'actions']
-        self.staff_grid = staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range)
-        self.staff_rulers = rulers.Rulers(staff_grid=self.staff_grid)
-        self.internal_key_rulers = self.staff_rulers.empty()
-        self.external_key_rulers = self.staff_rulers.empty()
+        self._staff = staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range)
+        self._staff_rulers = self._staff.getRulers()
+        self.internal_key_rulers = self._staff_rulers.empty()
+        self.external_key_rulers = self._staff_rulers.empty()
 
         self.play_mode = False
         self.play_pulse = self.rangePulses()['start']
@@ -30,10 +29,22 @@ class Action:
         self.clocked_actions = []
         self.next_clocked_pulse = -1
 
+    def getStaff(self):
+        return self._staff
+
+    def getRulers(self):
+        return self._staff_rulers
+
+    def rulers(self):
+        return self._staff_rulers
+
+    def staff(self):
+        return self._staff
+    
     def rangePulses(self):
-        range_pulses = self.staff_grid.playRange()
-        start_pulses = self.staff_grid.pulses(range_pulses[0])
-        finish_pulses = self.staff_grid.pulses(range_pulses[1])
+        range_pulses = self._staff.playRange()
+        start_pulses = self._staff.pulses(range_pulses[0])
+        finish_pulses = self._staff.pulses(range_pulses[1])
         return {'start': start_pulses, 'finish': finish_pulses}
 
     def connectClock(self, clock):
@@ -43,7 +54,7 @@ class Action:
     def addClockedAction(self, clocked_action): # Clocked actions AREN'T rulers!
         if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
             clock_tempo = self.clock.getClockTempo()
-            pulses_duration = clocked_action['duration'] * self.staff_grid.signature()['pulses_per_step'] # Action pulses per step considered
+            pulses_duration = clocked_action['duration'] * self._staff.signature()['pulses_per_step'] # Action pulses per step considered
             clocked_action['pulse'] = round(clock_tempo['pulse'] + pulses_duration)
             clocked_action['source'] = "clock" # to know the source of the trigger
             clocked_action['stack_id'] = len(self.clocked_actions)
@@ -55,30 +66,28 @@ class Action:
                 self.next_clocked_pulse = clocked_action['pulse']
 
     def pulse(self, tempo):
-        #print(f"CALLED:\t{self.play_mode}")
+        
         if (self.play_mode):
-
-            #print(f"\tPULSE: {self.play_pulse}")
 
             if (self.play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
 
-                position = self.staff_grid.position(pulses=self.play_pulse)
-                enabled_key_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['arguments']['enabled']
-                enabled_action_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['actions']['enabled']
+                position = self._staff.position(pulses=self.play_pulse)
+                enabled_key_rulers = self._staff.filter_list(pulse=self.play_pulse)[0]['arguments']['enabled']
+                enabled_action_rulers = self._staff.filter_list(pulse=self.play_pulse)[0]['actions']['enabled']
 
-                if self.staff_grid.pulseRemainders(self.play_pulse)['beat'] == 0:
-                    # str_position = self.staff_grid.str_position(pulses=position)
+                if self._staff.pulseRemainders(self.play_pulse)['beat'] == 0:
+                    # str_position = self._staff.str_position(pulses=position)
                     # print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
-                    self.staff_grid.print_level_sums(self.play_pulse, 1)
+                    self._staff.print_level_sums(self.play_pulse, 1)
 
                 if (enabled_key_rulers > 0):
                     
-                    pulse_key_rulers = self.staff_rulers.filter(types=['arguments'], positions=[position], enabled=True)
+                    pulse_key_rulers = self._staff_rulers.filter(types=['arguments'], positions=[position], enabled=True)
                     self.internal_key_rulers = (pulse_key_rulers + self.internal_key_rulers).merge()
 
                 if (enabled_action_rulers > 0):
                     
-                    pulse_action_rulers = self.staff_rulers.filter(types=['actions'], positions=[position], enabled=True)
+                    pulse_action_rulers = self._staff_rulers.filter(types=['actions'], positions=[position], enabled=True)
                     merged_staff_arguments = (self.external_key_rulers + self.internal_key_rulers).merge()
 
                     for triggered_action in pulse_action_rulers.list(): # single ruler actions
@@ -126,12 +135,6 @@ class Action:
                     self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
 
 
-    def rulers(self):
-        return self.staff_rulers
-
-    def staff(self):
-        return self.staff_grid
-    
     def play(self):
         ...
 
@@ -159,8 +162,8 @@ class Note(Action):
         super().__init__(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
         self.windows_synth = midi_tools.Instrument()
         self.windows_synth.connect(name="loop")
-        first_position = self.staff_grid.playRange()[0]
-        self.staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
+        first_position = self._staff.playRange()[0]
+        self._staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
         self.note = None
 
     ### ACTIONS ###
@@ -199,7 +202,7 @@ class Trigger(Action):
     
     def __init__(self):
         super().__init__(size_measures = 1, beats_per_measure = 1, steps_per_beat = 1) # not self init
-        self.staff_rulers.add({'type': "actions", 'group': "triggers", 'lines': [self]})
+        self._staff_rulers.add({'type': "actions", 'group': "triggers", 'lines': [self]})
 
     ### ACTIONS ###
 

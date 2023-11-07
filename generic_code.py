@@ -70,3 +70,8 @@ print (list_a)
 
 print (2.5 % 2)
 print (round(2.777777 % 2, 6))
+
+test = "TEST"
+o = "{"
+c = "}"
+print(f"{o}{test}{c}")
