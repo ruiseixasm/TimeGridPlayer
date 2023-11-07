@@ -60,10 +60,13 @@ print (list_a)
 # keys_3 = keys_1 + keys_2
 # print (keys_3)
 
-int_1 = 10
-int_2 = 3
-print (int_1 / int_2)
+# int_1 = 10
+# int_2 = 3
+# print (int_1 / int_2)
 
-print(round(-1.2))
-print(round(-1.5))
-print(round(-1.6))
+# print(round(-1.2))
+# print(round(-1.5))
+# print(round(-1.6))
+
+print (2.5 % 2)
+print (round(2.777777 % 2, 6))

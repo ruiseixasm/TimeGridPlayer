@@ -1,28 +1,41 @@
+'''TimeGridPlayer - Time Grid Player triggers Actions on a Staff
+Original Copyright (c) 2023 Rui Seixas Monteiro. All right reserved.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.'''
+
 import time
 
 class Clock(): # Subject
-    def __init__(self, steps_minute, frames_step):
+    def __init__(self, beats_per_minute, pulses_per_beat):
         """create an empty observer list"""
+
+        self.setClock(beats_per_minute, pulses_per_beat)
+
         self._observers = []
-        self.setClock(steps_minute, frames_step)
         self.clock_running = False
         self.observer_id = 0
 
-    def getFrameDuration(self, steps_minute, frames_step): # in seconds
-        return 60.0 / steps_minute / frames_step
-    
-    def setClock(self, steps_minute, frames_step):
-        self.tempo = {'steps_minute': steps_minute, 'frames_step': frames_step, 'fast_forward': False, 'sequence': 0}
-        self.frame_duration = self.getFrameDuration(steps_minute, frames_step) # in seconds
+    def setClock(self, beats_per_minute, pulses_per_beat):
+        self.tempo = {'beats_per_minute': beats_per_minute, 'pulses_per_beat': pulses_per_beat, 'fast_forward': False, 'pulse': 0}
+        self.pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
 
+    def getPulseDuration(self, beats_per_minute, pulses_per_beat): # in seconds
+        return 60.0 / (pulses_per_beat * beats_per_minute)
+    
     def getClockTempo(self):
         return self.tempo
 
     def notify(self):
         """Pulses the observers"""
         self.observer_id = 0
-        # triggers top action observer as the master one on the first sequence
-        if (self.tempo['sequence'] == 0):
+        # triggers top action observer as the master one on the first pulse
+        if (self.tempo['pulse'] == 0):
             self._observers[0].actionExternalTrigger()
         for observer in self._observers:
             observer.pulse(self.tempo) # calls the Observers update method
@@ -49,23 +62,23 @@ class Clock(): # Subject
         if (self.observer_id == 0 or FORCE_STOP):
             self.clock_running = False
 
-    def start(self, clock_range = []): # Where a range is set
+    def start(self, non_fast_forward_range_pulses = []): # Where a non fast forward range is set
 
         self.clock_running = True
-        first_sequence = 0
-        last_sequence = None
+        first_pulse = 0
+        last_pulse = None
 
-        if (len(clock_range) == 2):
-            if (clock_range[0] != None and len(clock_range[0]) == 2):
-                first_sequence = clock_range[0][0] * self.tempo['frames_step'] + clock_range[0][1]
-            if (clock_range[1] != None and len(clock_range[1]) == 2):
-                last_sequence = clock_range[1][0] * self.tempo['frames_step'] + clock_range[1][1] - 1 # Excludes last sequence
+        if (len(non_fast_forward_range_pulses) == 2):
+            if (non_fast_forward_range_pulses[0] != None):
+                first_pulse = non_fast_forward_range_pulses[0]
+            if (non_fast_forward_range_pulses[1] != None):
+                last_pulse = max(first_pulse, non_fast_forward_range_pulses[1] - 1) # Excludes last pulse
 
         startTime = None
         nextTime = 0
-        sequence = 0
+        pulse = 0
         while (self.clock_running and len(self._observers) > 0):
-            if (sequence < first_sequence or (last_sequence != None and sequence > last_sequence)):
+            if (pulse < first_pulse or (last_pulse != None and pulse > last_pulse)):
                 self.tempo['fast_forward'] = True
             else:
                 self.tempo['fast_forward'] = False
@@ -74,22 +87,13 @@ class Clock(): # Subject
                     nextTime = startTime
 
             if nextTime < time.time() or self.tempo['fast_forward'] == True:
-                self.tempo['sequence'] = sequence
-                sequence += 1
+                self.tempo['pulse'] = pulse
+                pulse += 1
                 self.notify()
                 if (startTime != None):
-                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + sequence * self.frame_duration:.6f}\t{time.time() - startTime:.6f}")
-                    nextTime = startTime + (sequence - first_sequence) * self.frame_duration
-
-
-# MIDI beat clock defines the following real-time messages:
-
-# clock (decimal 248, hex 0xF8)
-# start (decimal 250, hex 0xFA)
-# continue (decimal 251, hex 0xFB)
-# stop (decimal 252, hex 0xFC)
-
-
+                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + pulse * self.pulse_duration:.6f}\t{time.time() - startTime:.6f}")
+                    #nextTime = startTime + (pulse - first_pulse) * self.pulse_duration
+                    nextTime = startTime + (pulse - first_pulse) * 60.0 / (self.tempo['pulses_per_beat'] * self.tempo['beats_per_minute'])
 
 # class Subject:
 

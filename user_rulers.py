@@ -1,10 +1,10 @@
 import rulers
 import staff
 
-staff_grid = staff.Staff(10, 4)
+staff_grid = staff.Staff()
 
 newRuler = {
-    'type': "keys",
+    'type': "arguments",
     'group': "main",
     'position': [1, 3],
     'lines': [None],
@@ -39,7 +39,7 @@ add_rulers = (userRulers + copied_rulers).unique().print()
 
 # print("\nSTAFF\n")
 # staff_grid.print()
-# print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
+# print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 
 # print("\n-\n")
 # sub_rulers = userRulers - copied_rulers
@@ -47,11 +47,11 @@ add_rulers = (userRulers + copied_rulers).unique().print()
 # print (lines)
 
 # staff_grid.print()
-# print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
+# print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 
 print("\nEVEN\n")
-add_rulers.unique().even().print().slide([-2, 0]).print().slide([1, 2])\
-    .print().distribute().print().move([1, 0]).print().distribute([1, 0]).print().distribute(scope=[[2, 0], [3, 0]]).print()\
+add_rulers.unique().even().print().slide(-24).print().slide(18)\
+    .print().distribute().print().move([1, 0]).print().distribute(16).print().distribute(range_positions=[[2, 0], [3, 0]]).print()\
     .flip().print()
 
 print("\nODD\n")
@@ -62,8 +62,8 @@ userRulers.print()
 
 print("\nSTAFF\n")
 staff_grid.print()
-print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
-# print(f"keys: {staff_grid.keys()} actions: {staff_grid.actions()}")
+print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
+# print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 
 # userRulers.unique().sort().print().filter(positions=[[1, 2], [1, 3]]).print()
 
