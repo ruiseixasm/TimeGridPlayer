@@ -187,6 +187,13 @@ class Rulers():
             ruler['lines'] = []
         return self
     
+    def erase_lines(self):
+        for rulers in self.rulers_list:
+            for index in len(rulers['lines']):
+                rulers['lines'][index] = None
+
+        return self
+    
     def enable(self):
         enabled_rulers_list = self.filter(enabled=False).unique().list()
         for disabled_ruler in enabled_rulers_list:
@@ -539,6 +546,16 @@ class Rulers():
         self.drop()
 
         return self.rotate(increments)
+    
+    def rotate_lines(self, increments=1):
+        for rulers in self.rulers_list:
+            lines_size = len(rulers['lines'])
+            original_lines = rulers['lines'][:]
+            for index in range(lines_size):
+                rotated_index = (index - increments) % lines_size
+                rulers['lines'][index] = original_lines[rotated_index]
+
+        return self
     
     def reverse_position(self):
         self = self.unique().reverse()

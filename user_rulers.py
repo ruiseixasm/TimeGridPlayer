@@ -62,7 +62,7 @@ userRulers.print()
 
 print("\nSTAFF\n")
 staff_grid.print_group_by(level=1)
-print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
+print(f"arguments: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 # print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 
 # userRulers.unique().sort().print().filter(positions=[[1, 2], [1, 3]]).print()
