@@ -62,12 +62,12 @@ class Action:
 
             if (self.play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
 
-                position = self.staff_grid.position(self.play_pulse)
+                position = self.staff_grid.position(pulses=self.play_pulse)
                 enabled_key_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['arguments']['enabled']
                 enabled_action_rulers = self.staff_grid.filter_list(pulse=self.play_pulse)[0]['actions']['enabled']
 
                 if self.staff_grid.pulseRemainders(self.play_pulse)['beat'] == 0:
-                    # str_position = self.staff_grid.str_position(position)
+                    # str_position = self.staff_grid.str_position(pulses=position)
                     # print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
                     self.staff_grid.print_level_sums(self.play_pulse, 1)
 

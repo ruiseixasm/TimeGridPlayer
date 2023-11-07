@@ -352,7 +352,7 @@ class Rulers():
         copied_rulers = duplicated_rulers - source_rulers
         return copied_rulers
     
-    def move(self, position=[None, None]):
+    def move_position(self, position=[None, None]):
         if position[0] != None and position[1] != None:
             self.float()
             for ruler in self.rulers_list:
@@ -360,7 +360,7 @@ class Rulers():
             self.drop()
         return self
     
-    def slide(self, distance_steps=0):
+    def slide_position(self, distance_steps=0):
         if self.staff_grid != None and distance_steps != 0:
 
             distance_pulses = self.staff_grid.pulses([0, distance_steps])
@@ -380,17 +380,21 @@ class Rulers():
 
             for ruler in self.rulers_list:
                 new_position_pulses = self.staff_grid.pulses(ruler['position']) + distance_pulses # always positive
-                ruler['position'] = self.staff_grid.position(new_position_pulses)
+                ruler['position'] = self.staff_grid.position(pulses=new_position_pulses)
 
             self.drop()
 
         return self
 
-    def expand(self, increment=[None, None]):
-
+    def expand_position(self, increment_steps):
+        first_position = self.rulers_list[0]['position']
+        self.float()
+        for ruler_index in range(1, self.len()):
+            self.ruler_types[ruler_index]['position'] = self.staff_grid.addPositions(first_position, [0, ruler_index * increment_steps])
+        self.drop()
         return self
     
-    def distribute(self, range_steps=None, range_positions=[[None, None], [None, None]]):
+    def distribute_position(self, range_steps=None, range_positions=[[None, None], [None, None]]):
         sorted_rulers = self.unique().sort()
         number_intervals = sorted_rulers.len()
         if self.staff_grid != None and number_intervals > 1:
@@ -412,16 +416,36 @@ class Rulers():
             if not finish_pulses < 0 and finish_pulses < self.staff_grid.len():
                 sorted_rulers.float()
                 for index in range(number_intervals):
-                    new_position = self.staff_grid.position(start_pulses + round(index * distance_pulses / number_intervals))
+                    new_position = self.staff_grid.position(pulses=start_pulses + round(index * distance_pulses / number_intervals))
                     sorted_rulers.list()[index]['position'] = new_position
                 sorted_rulers.drop()
 
         return sorted_rulers
     
     def rotate(self, increments=1):
+        rulers_size = self.len()
+        original_rulers_list = self.rulers_list[:]
+        for ruler_index in range(rulers_size):
+            rotated_index = (ruler_index - increments) % rulers_size
+            self.rulers_list[ruler_index] = original_rulers_list[rotated_index]
+
         return self
     
-    def flip(self):
+    def rotate_position(self, increments=1):
+        original_positions = []
+        rulers_size = self.len()
+        for original_ruler in self.rulers_list:
+            original_positions.append(original_ruler['position'].copy())
+
+        self.float()
+        for ruler_index in range(rulers_size):
+            rotated_index = (ruler_index + increments) % rulers_size
+            self.rulers_list[ruler_index]['position'] = original_positions[rotated_index]
+        self.drop()
+
+        return self.rotate()
+    
+    def reverse_position(self):
         self = self.unique().reverse()
         rulers_list_size = self.len()
         self.float()
@@ -457,102 +481,3 @@ class Rulers():
 # Python has magic methods to define overloaded behaviour of operators. The comparison operators (<, <=, >, >=, == and !=)
 # can be overloaded by providing definition to __lt__, __le__, __gt__, __ge__, __eq__ and __ne__ magic methods.
 # Following program overloads < and > operators to compare objects of distance class.
-
-
-   ### OPERATIONS ###
-
-    # def operationSwapRulers(self, type, first_ruler, second_ruler):
-    #     rulers = first_ruler + second_ruler
-    #     if (len(rulers) == 2):
-    #         position = rulers[0]['position']
-    #         pulse = rulers[0]['pulse']
-    #         rulers[0]['position'] = rulers[1]['position']
-    #         rulers[0]['pulse'] = rulers[1]['pulse']
-    #         rulers[1]['position'] = position
-    #         rulers[1]['pulse'] = pulse
-    #     return self
-
-    # def operationSlideRulers(self, increments = [0, 0], modulus_selector = [1, 1], modulus_reference = [0, 0], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
-
-    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
-
-    #     lower_slack = self.steps*self.pulses_step - 1
-    #     upper_slack = lower_slack
-
-    #     modulus_position = modulus_reference[0]
-    #     for rule in rulers:
-    #         if (modulus_position % modulus_selector[0] == 0):
-    #             lower_slack = min(lower_slack, rule['pulse'])
-    #             upper_slack = min(upper_slack, self.steps*self.pulses_step - 1 - rule['pulse'])
-    #         modulus_position += 1
-
-    #     increments[0] = max(-lower_slack, increments[0]) # Horizontal sliding can't slide out of the grid
-    #     increments[0] = min(upper_slack, increments[0]) # Horizontal sliding can't slide out of the grid
-
-    #     modulus_position = modulus_reference[0]
-    #     for rule in rulers:
-    #         if (modulus_position % modulus_selector[0] == 0):
-    #             rule['pulse'] += increments[0]
-    #             if (rule['position'] != None):
-    #                 rule['position'] = self.timeGrid[rule['pulse']]['position']
-    #         modulus_position += 1
-
-    #     modulus_position = modulus_reference[1]
-    #     for rule in rulers:
-    #         if (modulus_position % modulus_selector[1] == 0):
-    #             rule['offset'] += increments[1]
-    #         modulus_position += 1
-            
-    #     return self
-
-    # def operationRotateRulers(self, increments = [0, 0], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
-
-    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
-
-    #     staff_pulses = []
-    #     if (increments[0] != 0):
-    #         for rule in rulers:
-    #             staff_pulses.append(rule['pulse'])
-        
-    #     total_pulses = len(staff_pulses)
-    #     for rule in rulers:
-    #         if (increments[0] != 0):
-    #             rule['pulse'] = staff_pulses[increments[0] % total_pulses]
-    #             if (rule['position'] != None):
-    #                 rule['position'] = self.timeGrid[rule['pulse']]['position']
-    #         if (increments[1] != 0):
-    #             rule_lines = []
-    #             for line in rule['lines']:
-    #                 rule_lines.append(line)
-    #             total_lines = len(rule_lines)
-    #             for line in rule['lines']:
-    #                 line = rule_lines[increments[1] % total_lines]
-
-    #     return self
-
-    # def operationFlipRulers(self, mirrors = [False, False], type = None, group = None, sequeces_range = [], enabled = False, INSIDE_RANGE = False):
-
-    #     rulers = self.filterRulers(types = [type], groups = [group], sequeces_range = sequeces_range, enabled = enabled, ON_STAFF = True, INSIDE_RANGE = INSIDE_RANGE)
-
-    #     staff_pulses = []
-    #     if (mirrors[0]):
-    #         for rule in rulers:
-    #             staff_pulses.append(rule['pulse'])
-        
-    #     upper_pulse = len(staff_pulses) - 1
-    #     for rule in rulers:
-    #         if (mirrors[0]):
-    #             rule['pulse'] = staff_pulses[upper_pulse]
-    #             if (rule['position'] != None):
-    #                 rule['position'] = self.timeGrid[rule['pulse']]['position']
-    #         upper_pulse -= 1
-    #         if (mirrors[1]):
-    #             rule_lines = []
-    #             for line in rule['lines']:
-    #                 rule_lines.append(line)
-    #             upper_line = len(rule_lines) - 1
-    #             for line in rule['lines']:
-    #                 line = rule_lines[upper_line]
-    #                 upper_line -= 1
-
-    #     return self

@@ -50,18 +50,18 @@ add_rulers = (userRulers + copied_rulers).unique().print()
 # print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 
 print("\nEVEN\n")
-add_rulers.unique().even().print().slide(-24).print().slide(18)\
-    .print().distribute().print().move([1, 0]).print().distribute(16).print().distribute(range_positions=[[2, 0], [3, 0]]).print()\
-    .flip().print()
+add_rulers.unique().even().print().slide_position(-24).print().slide_position(18)\
+    .print().distribute_position().print().move_position([1, 0]).print().distribute_position(16).print().distribute_position(range_positions=[[2, 0], [3, 0]]).print()\
+    .reverse_position().print().rotate().print().rotate_position().print()
 
 print("\nODD\n")
-add_rulers.unique().odd().print().disable().print().flip().print()
+add_rulers.unique().odd().print().disable().print().reverse_position().print()
 
 print("\nROOT\n")
 userRulers.print()
 
 print("\nSTAFF\n")
-staff_grid.print()
+staff_grid.print_group_by(level=1)
 print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 # print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 

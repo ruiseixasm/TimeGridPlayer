@@ -79,21 +79,21 @@ class Staff:
                 self.play_range[0] = [0, 0]
             elif start == None and self.play_range[0] != []:
                 start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range[0]))
-                self.play_range[0] = self.position(start_pulses)
+                self.play_range[0] = self.position(pulses=start_pulses)
             elif start != None:
                 start_pulses = min(self.total_pulses - 1, self.pulses(start))
-                self.play_range[0] = self.position(start_pulses)
+                self.play_range[0] = self.position(pulses=start_pulses)
 
             if finish == [] or self.play_range[1] == []:
                 finish_pulses = self.total_pulses - 1
-                self.play_range[1] = self.position(finish_pulses)
+                self.play_range[1] = self.position(pulses=finish_pulses)
             elif finish == None and self.play_range[1] != []:
                 start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range[1]))
-                self.play_range[1] = self.position(start_pulses)
+                self.play_range[1] = self.position(pulses=start_pulses)
             elif finish != None:
                 start_pulses = self.pulses(self.play_range[0])
                 finish_pulses = max(start_pulses, min(self.total_pulses - 1, self.pulses(start)))
-                self.play_range[1] = self.position(finish_pulses)
+                self.play_range[1] = self.position(pulses=finish_pulses)
 
         return self
     
@@ -135,9 +135,31 @@ class Staff:
                     filtered_list = self.filter_list(measure=staff_pulse['measure'], beat=staff_pulse['beat'], step=staff_pulse['step'])
                     self.print_staff_sums(filtered_list)
                 case 3:
-                    self.print_staff_sums(staff_pulse)
+                    print (staff_pulse)
                 case _: # default
                     print("[EMPTY]")
+        else:
+            print("[EMPTY]")
+        return self
+    
+    def print_group_by(self, level=0):
+        if self.len() > 0:
+            for staff_pulse in self.staff:
+                pulse_remainders = self.pulseRemainders(staff_pulse['pulse'])
+                match level:
+                    case 0:
+                        if pulse_remainders['measure'] == 0:
+                            self.print_level_sums(staff_pulse['pulse'], level)
+                    case 1:
+                        if pulse_remainders['beat'] == 0:
+                            self.print_level_sums(staff_pulse['pulse'], level)
+                    case 2:
+                        if pulse_remainders['step'] == 0:
+                            self.print_level_sums(staff_pulse['pulse'], level)
+                    case 3:
+                        print (staff_pulse)
+                    case _: # default
+                        print("[EMPTY]")
         else:
             print("[EMPTY]")
         return self
@@ -163,6 +185,17 @@ class Staff:
     
     def len(self):
         return self.total_pulses
+    
+    def addPositions(self, position_1=[0, 0], position_2=[0, 0]):
+
+        steps_1 = self.steps(position_1)
+        steps_2 = self.steps(position_2)
+        total_steps = steps_1 + steps_2
+        
+        return self.position(steps=total_steps)
+
+    def steps(self, position=[0, 0]): # position: [measure, step]
+        return position[0] * self.beats_per_measure * self.steps_per_beat + position[1]
 
     def pulses(self, position=[0, 0]): # position: [measure, step]
         return position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat)
@@ -175,11 +208,17 @@ class Staff:
             return [self.pulses(self.play_range[0]), self.pulses(self.play_range[1])]
         return [self.pulses(play_range[0]), self.pulses(play_range[1])]
 
-    def position(self, pulses):
-        measures = int(pulses / (self.pulses_per_beat * self.beats_per_measure))
-        steps = pulses * self.steps_per_beat / self.pulses_per_beat % (self.steps_per_beat * self.beats_per_measure)
-        if pulses < 0:
-            steps = -(-pulses * self.steps_per_beat / self.pulses_per_beat % (self.steps_per_beat * self.beats_per_measure))
+    def position(self, steps=None, pulses=None):
+        if (steps != None):
+            measures = int(steps / (self.steps_per_beat * self.beats_per_measure))
+            steps = steps % (self.steps_per_beat * self.beats_per_measure)
+            if steps < 0:
+                steps = -(-steps % (self.steps_per_beat * self.beats_per_measure))
+        elif (pulses != None):
+            measures = int(pulses / (self.pulses_per_beat * self.beats_per_measure))
+            steps = pulses * self.steps_per_beat / self.pulses_per_beat % (self.steps_per_beat * self.beats_per_measure)
+            if pulses < 0:
+                steps = -(-pulses * self.steps_per_beat / self.pulses_per_beat % (self.steps_per_beat * self.beats_per_measure))
         return [measures, steps]
     
     def add(self, rulers, enabled_one=1, total_one=1):
