@@ -68,10 +68,16 @@ print (list_a)
 # print(round(-1.5))
 # print(round(-1.6))
 
-print (2.5 % 2)
-print (round(2.777777 % 2, 6))
+# print (2.5 % 2)
+# print (round(2.777777 % 2, 6))
 
-test = "TEST"
-o = "{"
-c = "}"
-print(f"{o}{test}{c}")
+# test = "TEST"
+# o = "{"
+# c = "}"
+# print(f"{o}{test}{c}")
+
+# int_number = 2
+# float_number = 3.0
+# another_float_number = 4.3
+
+# print (f"{int_number} {float_number:.6f} {another_float_number:.0f}")
