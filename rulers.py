@@ -318,8 +318,11 @@ class Rulers():
                 # ruler_str = ""
                 # for key, value in self._rulers_list[index].items():
                 #     ...
-                lines = {'id': self._rulers_list[index]['id'], 'lines': self._rulers_list[index]['lines']}
-                print(f"{index}: {lines}")
+                lines = f"{index}: " + "{" + f"id: {self._rulers_list[index]['id']}    ["
+                for line in self._rulers_list[index]['lines']:
+                    lines += f"{line}  "
+                lines += "}"
+                print(lines)
         else:
             print("[EMPTY]")
         print("-" * 170)
