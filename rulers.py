@@ -443,7 +443,7 @@ class Rulers():
             self.rulers_list[ruler_index]['position'] = original_positions[rotated_index]
         self.drop()
 
-        return self.rotate()
+        return self.rotate(increments)
     
     def reverse_position(self):
         self = self.unique().reverse()
