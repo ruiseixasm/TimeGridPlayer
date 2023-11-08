@@ -465,7 +465,6 @@ class Rulers():
             total_lines = tail_offset - head_offset + 1
             
             string_top_length = {'sequence': 0, 'id': 0, 'lines': [0] * total_lines}
-            full_string_top_length = 0
 
             # TOTALS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -481,8 +480,6 @@ class Rulers():
 
                 full_string_length += key_value_length
                 string_top_length['lines'][line_index - head_offset] = max(string_top_length['lines'][line_index - head_offset], key_value_length)
-
-            full_string_top_length = max(full_string_top_length, full_string_length)
 
             sequence_index = 0
             for ruler in self._rulers_list: # get maximum sizes
@@ -519,8 +516,6 @@ class Rulers():
                             full_string_length += key_value_length
                             string_top_length[key] = max(string_top_length[key], key_value_length)
 
-                full_string_top_length = max(full_string_top_length, full_string_length)
-
             # OUTPUT PRINT -----------------------------------------------------------------------------------------------------------------------
 
             lines_str_header = " " * (string_top_length['sequence'] - 3) + "lines:" + " " * (string_top_length['id'] + 1)
@@ -550,12 +545,17 @@ class Rulers():
                         key_value_str = " " + key_value_str + " "
 
                 lines_str_tail += key_value_str
+
+            full_string_top_length = 0
+            number_lines = len(string_top_length['lines'])
+            for line_length in string_top_length['lines']:
+                full_string_top_length += line_length
                 
-            print("-" * (full_string_top_length + 43))
+            print("-" * (full_string_top_length + 2) + "----" * (number_lines + 3))
 
             print(lines_str_header + lines_str_tail)
 
-            print("-" * (full_string_top_length + 43))
+            print("-" * (full_string_top_length + 2) + "----" * (number_lines + 3))
 
             sequence_index = 0
             for ruler in self._rulers_list:
@@ -608,7 +608,7 @@ class Rulers():
 
                 print(lines_str)
 
-            print("-" * (full_string_top_length + 43))
+            print("-" * (full_string_top_length + 2) + "----" * (number_lines + 3))
 
         else:
             print("-" * 7)
