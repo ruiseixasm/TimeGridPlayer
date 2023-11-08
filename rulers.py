@@ -104,10 +104,24 @@ class Rulers():
 
         return self
     
-    def add_lines(self, lines):
-        for ruler in self._rulers_list:
-            ruler['lines'] = lines
+    def add_lines(self, id=None, line=None, amount=1):
+        target_rulers = self
+        if id != None:
+            target_rulers = self.filter(ids=[id])
+        for ruler in target_rulers:
+            new_lines = [None] * (len(ruler['lines']) + amount)
+            if line != None:
+                line = min(len(ruler['lines']), line)
+            else:
+                line = len(ruler['lines'])
+            for line_index in range(len(ruler['lines'])):
+                if line_index < line:
+                    new_lines[line_index] = ruler['lines'][line_index]
+                else:
+                    new_lines[line_index + amount] = ruler['lines'][line_index]
 
+            ruler['lines'] = new_lines
+            
         return self
            
     def copy(self):
@@ -274,6 +288,28 @@ class Rulers():
         head_rulers_list = self._rulers_list[:elements]
         return Rulers(head_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
     
+    def insert_lines(self, id=None, line=None, lines=[None]):
+        target_rulers = self
+        if id != None:
+            target_rulers = self.filter(ids=[id])
+        for ruler in target_rulers:
+            new_lines = [None] * (len(ruler['lines']) + len(lines))
+            if line != None:
+                line = min(len(ruler['lines']), line)
+            else:
+                line = len(ruler['lines'])
+            for line_index in range(len(new_lines)):
+                if line_index < line:
+                    new_lines[line_index] = ruler['lines'][line_index]
+                elif line_index < line + len(lines):
+                    new_lines[line_index] = lines[line_index - (line + len(lines))]
+                else:
+                    new_lines[line_index] = ruler['lines'][line_index - len(lines)]
+
+            ruler['lines'] = new_lines
+
+        return self
+           
     def list(self):
         return self._rulers_list
     
@@ -547,15 +583,14 @@ class Rulers():
                 lines_str_tail += key_value_str
 
             full_string_top_length = 0
-            number_lines = len(string_top_length['lines'])
             for line_length in string_top_length['lines']:
                 full_string_top_length += line_length
                 
-            print("-" * (full_string_top_length + 2) + "----" * (number_lines + 3))
+            print("-" * (full_string_top_length + 2) + "----" * (total_lines + 3))
 
             print(lines_str_header + lines_str_tail)
 
-            print("-" * (full_string_top_length + 2) + "----" * (number_lines + 3))
+            print("-" * (full_string_top_length + 2) + "----" * (total_lines + 3))
 
             sequence_index = 0
             for ruler in self._rulers_list:
@@ -608,7 +643,7 @@ class Rulers():
 
                 print(lines_str)
 
-            print("-" * (full_string_top_length + 2) + "----" * (number_lines + 3))
+            print("-" * (full_string_top_length + 2) + "----" * (total_lines + 3))
 
         else:
             print("-" * 7)
@@ -624,7 +659,7 @@ class Rulers():
         self._rulers_list = []
         return self
     
-    def remove_lines(self):
+    def remove_lines(self, id=None, line=None, amount=None):
         for ruler in self._rulers_list:
             ruler['lines'] = []
         return self
@@ -714,6 +749,12 @@ class Rulers():
 
         return self.rotate(increments)
     
+    def set_lines(self, lines):
+        for ruler in self._rulers_list:
+            ruler['lines'] = lines
+
+        return self
+
     def set_position(self, position=[None, None]):
         if position[0] != None and position[1] != None:
             self.float()
