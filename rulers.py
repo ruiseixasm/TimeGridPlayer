@@ -501,7 +501,7 @@ class Rulers():
                             for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
                                 if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
-                                    key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else ""
+                                    key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "."
 
                                     # if line_index != ruler['offset'] + len(ruler['lines']) - 1:
                                     #     key_value_str += "  "
@@ -523,8 +523,6 @@ class Rulers():
 
             # OUTPUT PRINT -----------------------------------------------------------------------------------------------------------------------
 
-            print("-" * (full_string_top_length + 1))
-
             lines_str_header = " " * (string_top_length['sequence'] - 3) + "lines:" + " " * (string_top_length['id'] + 1)
             lines_str_tail = ""
 
@@ -539,18 +537,25 @@ class Rulers():
                     key_value_str += "  "
 
                 # TOTALS AGNOSTIC FOR "[" and "]"
-                if line_index == head_offset == head_offset + len(string_top_length['lines']) - 1:
-                    key_value_str = "[" + key_value_str + "]"
-                elif line_index == head_offset:
-                    key_value_str = "[" + key_value_str + " "
-                elif line_index == head_offset + len(string_top_length['lines']) - 1:
-                    key_value_str = " " + key_value_str + "]"
-                else:
+                if True:
                     key_value_str = " " + key_value_str + " "
+                else:
+                    if line_index == head_offset == head_offset + len(string_top_length['lines']) - 1:
+                        key_value_str = "[" + key_value_str + "]"
+                    elif line_index == head_offset:
+                        key_value_str = "[" + key_value_str + " "
+                    elif line_index == head_offset + len(string_top_length['lines']) - 1:
+                        key_value_str = " " + key_value_str + "]"
+                    else:
+                        key_value_str = " " + key_value_str + " "
 
                 lines_str_tail += key_value_str
                 
+            print("-" * (full_string_top_length + 43))
+
             print(lines_str_header + lines_str_tail)
+
+            print("-" * (full_string_top_length + 43))
 
             sequence_index = 0
             for ruler in self._rulers_list:
@@ -568,7 +573,7 @@ class Rulers():
                             for line_index in range(head_offset, head_offset + len(string_top_length[key])):
                                 if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
-                                    key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else ""
+                                    key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
 
                                     key_value_length = len(key_value_str)
                                     key_value_str += (" " * (string_top_length['lines'][line_index - head_offset] - key_value_length))
@@ -577,14 +582,17 @@ class Rulers():
                                         key_value_str += "  "
 
                                     # TOTALS AGNOSTIC FOR "[" and "]"
-                                    if line_index == ruler['offset'] == ruler['offset'] + len(ruler['lines']) - 1:
-                                        key_value_str = "[" + key_value_str + "]"
-                                    elif line_index == ruler['offset']:
-                                        key_value_str = "[" + key_value_str + " "
-                                    elif line_index == ruler['offset'] + len(ruler['lines']) - 1:
-                                        key_value_str = " " + key_value_str + "]"
-                                    else:
+                                    if True:
                                         key_value_str = " " + key_value_str + " "
+                                    else:
+                                        if line_index == ruler['offset'] == ruler['offset'] + len(ruler['lines']) - 1:
+                                            key_value_str = "[" + key_value_str + "]"
+                                        elif line_index == ruler['offset']:
+                                            key_value_str = "[" + key_value_str + " "
+                                        elif line_index == ruler['offset'] + len(ruler['lines']) - 1:
+                                            key_value_str = " " + key_value_str + "]"
+                                        else:
+                                            key_value_str = " " + key_value_str + " "
 
                                     lines_str += key_value_str
 
@@ -600,7 +608,7 @@ class Rulers():
 
                 print(lines_str)
 
-            print("-" * (full_string_top_length + 1))
+            print("-" * (full_string_top_length + 43))
 
         else:
             print("-" * 7)

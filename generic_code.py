@@ -81,3 +81,5 @@ print (list_a)
 # another_float_number = 4.3
 
 # print (f"{int_number} {float_number:.6f} {another_float_number:.0f}")
+
+print ("  `  ´  .  -  _  ")
