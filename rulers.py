@@ -474,8 +474,8 @@ class Rulers():
 
                 key_value_str = f"{line_index}"
 
-                if line_index != head_offset + len(string_top_length['lines']) - 1:
-                    key_value_str += "  "
+                # if line_index != head_offset + len(string_top_length['lines']) - 1:
+                #     key_value_str += "  "
 
                 key_value_length = len(key_value_str)
 
@@ -503,8 +503,8 @@ class Rulers():
 
                                     key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else ""
 
-                                    if line_index != ruler['offset'] + len(ruler['lines']) - 1:
-                                        key_value_str += "  "
+                                    # if line_index != ruler['offset'] + len(ruler['lines']) - 1:
+                                    #     key_value_str += "  "
 
                                     key_value_length = len(key_value_str)
 
@@ -525,29 +525,32 @@ class Rulers():
 
             print("-" * (full_string_top_length + 1))
 
-            lines_str = ""
             lines_str_header = " " * (string_top_length['sequence'] - 3) + "lines:" + " " * (string_top_length['id'] + 1)
+            lines_str_tail = ""
+
             for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
 
                 key_value_str = f"{line_index}"
+
+                key_value_length = len(key_value_str)
+                key_value_str += (" " * (string_top_length['lines'][line_index - head_offset] - key_value_length))
 
                 if line_index != head_offset + len(string_top_length['lines']) - 1:
                     key_value_str += "  "
 
                 # TOTALS AGNOSTIC FOR "[" and "]"
                 if line_index == head_offset == head_offset + len(string_top_length['lines']) - 1:
-                    key_value_str += "[" + key_value_str + "]"
+                    key_value_str = "[" + key_value_str + "]"
                 elif line_index == head_offset:
                     key_value_str = "[" + key_value_str + " "
                 elif line_index == head_offset + len(string_top_length['lines']) - 1:
-                    key_value_str += " " + key_value_str + "]"
+                    key_value_str = " " + key_value_str + "]"
                 else:
                     key_value_str = " " + key_value_str + " "
 
-                key_value_length = len(key_value_str)
-                lines_str += key_value_str + (" " * (string_top_length['lines'][line_index] - key_value_length))
+                lines_str_tail += key_value_str
                 
-            print(lines_str_header + lines_str)
+            print(lines_str_header + lines_str_tail)
 
             sequence_index = 0
             for ruler in self._rulers_list:
@@ -561,12 +564,14 @@ class Rulers():
                         key_value_length = len(key_value_str)
                         lines_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
                     else:
-                        lines_value = ""
                         if key == 'lines':
                             for line_index in range(head_offset, head_offset + len(string_top_length[key])):
                                 if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
                                     key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else ""
+
+                                    key_value_length = len(key_value_str)
+                                    key_value_str += (" " * (string_top_length['lines'][line_index - head_offset] - key_value_length))
 
                                     if line_index != ruler['offset'] + len(ruler['lines']) - 1:
                                         key_value_str += "  "
@@ -581,18 +586,17 @@ class Rulers():
                                     else:
                                         key_value_str = " " + key_value_str + " "
 
-                                    key_value_length = len(key_value_str)
-                                    lines_str += key_value_str + (" " * (string_top_length['lines'][line_index] - key_value_length))
+                                    lines_str += key_value_str
 
                                 else:
-                                    lines_str += " " * (string_top_length['lines'][line_index] + 0)
+                                    lines_str += " " * (string_top_length['lines'][line_index - head_offset] + 4)
                         else: # id
                             lines_value = ruler[key]
                             key_value_str = f"{key}: {lines_value}    "
 
                             key_value_length = len(key_value_str)
                             lines_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
-                lines_str += "  }"
+                lines_str += " }"
 
                 print(lines_str)
 
