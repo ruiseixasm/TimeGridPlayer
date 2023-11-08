@@ -312,28 +312,28 @@ class Rulers():
 
         for type_group in type_groups:
 
-            subject_rulers = self.filter(types=[type_group['type']], groups=[type_group['group']]).list()
+            subject_rulers_list = self.filter(types=[type_group['type']], groups=[type_group['group']]).list()
                                 
-            head_offset = 0
-            tail_offset = 0
-            for ruler in subject_rulers:
-                if ruler['offset'] < head_offset:
+            head_offset = None
+            tail_offset = None
+            for ruler in subject_rulers_list:
+                if head_offset == None or ruler['offset'] < head_offset:
                     head_offset = ruler['offset']
-                if (len(ruler['lines']) + ruler['offset'] > tail_offset):
+                if tail_offset == None or (len(ruler['lines']) + ruler['offset'] > tail_offset):
                     tail_offset = len(ruler['lines']) - 1 + ruler['offset']
 
             merged_ruler = {
-                'id': subject_rulers[0]['id'],
+                'id': subject_rulers_list[0]['id'],
                 'type': type_group['type'],
                 'group': type_group['group'],
-                'position': subject_rulers[0]['position'],
+                'position': subject_rulers_list[0]['position'],
                 'lines': [None] * (tail_offset - head_offset + 1), # list
                 'offset': head_offset,
-                'enabled': subject_rulers[0]['enabled'],
+                'enabled': subject_rulers_list[0]['enabled'],
                 'on_staff': False
             }
 
-            for subject_ruler in subject_rulers:
+            for subject_ruler in subject_rulers_list:
                 for i in range(len(subject_ruler['lines'])):
                     merged_line = i + subject_ruler['offset'] - merged_ruler['offset']
                     if (merged_ruler['lines'][merged_line] == None):
@@ -390,7 +390,7 @@ class Rulers():
                 
                 for key, value in string_top_length.items():
                     if key == 'sequence':
-                        key_value_length = len(f"{sequence_index}:" + " {   ")
+                        key_value_length = len(f"{sequence_index}:" + " { ")
                         sequence_index += 1
                     else:
                         ruler_value = ""
@@ -403,7 +403,10 @@ class Rulers():
                         else:
                             ruler_value = ruler[key]
 
-                        key_value_length = len(f"{key}: {ruler_value}    ")
+                        key_value_length = len(f"{key}: {ruler_value} ")
+
+                        if key != 'on_staff':
+                            key_value_length += len("   ")
 
                     full_string_length += key_value_length
                     string_top_length[key] = max(string_top_length[key], key_value_length)
@@ -414,10 +417,10 @@ class Rulers():
             sequence_index = 0
             for ruler in self._rulers_list:
 
-                pulse_str = ""
+                rule_str = ""
                 for key, value in string_top_length.items():
                     if key == 'sequence':
-                        key_value_str = f"{sequence_index}:" + " {   "
+                        key_value_str = f"{sequence_index}:" + " { "
                         sequence_index += 1
                     else:
                         ruler_value = ""
@@ -429,12 +432,16 @@ class Rulers():
                             ruler_value = len(ruler[key])
                         else:
                             ruler_value = ruler[key]
-                        key_value_str = f"{key}: {ruler_value}    "
+
+                        key_value_str = f"{key}: {ruler_value} "
+
+                        if key != 'on_staff':
+                            key_value_str += "   "
 
                     key_value_length = len(key_value_str)
-                    pulse_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
-                pulse_str += "}"
-                print(pulse_str)
+                    rule_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
+                rule_str += "}"
+                print(rule_str)
             print("'" * (full_string_top_length + 1))
 
         else:
@@ -444,30 +451,156 @@ class Rulers():
         return self
 
     def print_lines(self):
-        print("-" * 170)
-        total_rulers = self.len()
-        if total_rulers > 0:
-            merged_rulers = self.merge()
-            merged_rulers_list = merged_rulers.list()
-            global_offset = merged_rulers_list[0]['offset']
-            merged_lines_size = len(merged_rulers_list[0]['lines'])
-            line_number = []
-            for line in range(global_offset, global_offset + merged_lines_size):
-                line_number.append(line)
-            print(f"lines: {line_number}")
-            for index in range(total_rulers):
-                
-                lines = f"{index}: " + "{" + f"id: {self._rulers_list[index]['id']}    ["
-                for line in self._rulers_list[index]['lines']:
-                    if line != None:
-                        lines += f"{line}  "
+        
+        rulers_size = self.len()
+        if rulers_size > 0:
+            rulers_list = self.list()
+            head_offset = None
+            tail_offset = None
+            for ruler in rulers_list:
+                if head_offset == None or ruler['offset'] < head_offset:
+                    head_offset = ruler['offset']
+                if tail_offset == None or (len(ruler['lines']) + ruler['offset'] > tail_offset):
+                    tail_offset = len(ruler['lines']) - 1 + ruler['offset']
+            total_lines = tail_offset + 1 - head_offset
+            
+            string_top_length = {'sequence': 0, 'id': 0, 'lines': [0] * total_lines}
+            full_string_top_length = 0
+
+            full_string_length = 0
+            key_value_str = "lines:    "
+            for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
+                if line_index == head_offset:
+                    key_value_str += "["
+                else:
+                    key_value_str = " "
+
+                key_value_str += f"{line_index}  "
+
+                if line_index == head_offset + len(string_top_length['lines']) - 1:
+                    key_value_str += "]"
+                else:
+                    key_value_str += " "
+
+                key_value_length = len(key_value_str)
+
+                full_string_length += key_value_length
+                string_top_length['lines'][line_index - head_offset] = max(string_top_length['lines'][line_index - head_offset], key_value_length)
+
+            full_string_top_length = max(full_string_top_length, full_string_length)
+
+            sequence_index = 0
+            for ruler in self._rulers_list: # get maximum sizes
+
+                full_string_length = 0
+                for key, value in string_top_length.items():
+                    if key == 'sequence':
+                        key_value_length = len(f"{sequence_index}:" + " { ")
+                        sequence_index += 1
+
+                        full_string_length += key_value_length
+                        string_top_length[key] = max(string_top_length[key], key_value_length)
                     else:
-                        lines += f"-  "
-                lines += "}"
-                print(lines)
+                        lines_value = ""
+                        if key == 'lines':
+                            for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
+                                if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
+                                    if line_index == ruler['offset']:
+                                        key_value_str = "["
+                                    else:
+                                        key_value_str = " "
+
+                                    key_value_str += f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else ""
+                                    
+                                    if line_index == ruler['offset'] + len(ruler['lines']) - 1:
+                                        key_value_str += "]"
+                                    else:
+                                        key_value_str += " "
+
+                                    key_value_length = len(f"{key_value_str}  ")
+
+                                    full_string_length += key_value_length
+                                    string_top_length['lines'][line_index - head_offset] = max(string_top_length['lines'][line_index - head_offset], key_value_length)
+                        else: # id
+                            lines_value = ruler[key]
+
+                            key_value_length = len(f"{lines_value}    ")
+
+                            full_string_length += key_value_length
+                            string_top_length[key] = max(string_top_length[key], key_value_length)
+
+                full_string_top_length = max(full_string_top_length, full_string_length)
+
+            print("-" * (full_string_top_length + 1))
+
+            lines_str = ""
+            key_value_str = "lines:    "
+            for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
+                if line_index == head_offset:
+                    key_value_str += "["
+                else:
+                    key_value_str = " "
+
+                key_value_str += f"{line_index}  "
+
+                if line_index == head_offset + len(string_top_length['lines']) - 1:
+                    key_value_str += "]"
+                else:
+                    key_value_str += " "
+
+                key_value_length = len(key_value_str)
+                lines_str += key_value_str + (" " * (string_top_length['lines'][line_index] - key_value_length))
+
+            print(lines_str)
+
+            sequence_index = 0
+            for ruler in self._rulers_list:
+
+                lines_str = ""
+                for key, value in string_top_length.items():
+                    if key == 'sequence':
+                        key_value_str = f"{sequence_index}:" + " { "
+                        sequence_index += 1
+
+                        key_value_length = len(key_value_str)
+                        lines_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
+                    else:
+                        lines_value = ""
+                        if key == 'lines':
+                            for line_index in range(head_offset, head_offset + len(string_top_length[key])):
+                                if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
+                                    if line_index == ruler['offset']:
+                                        key_value_str = "["
+                                    else:
+                                        key_value_str = " "
+                                        
+                                    key_value_str += f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else ""
+
+                                    if line_index == ruler['offset'] + len(ruler['lines']) - 1:
+                                        key_value_str += "]"
+                                    else:
+                                        key_value_str += " "
+
+                                    key_value_str += "  "
+
+                                    key_value_length = len(key_value_str)
+                                    lines_str += key_value_str + (" " * (string_top_length['lines'][line_index] - key_value_length))
+                        else: # id
+                            lines_value = ruler[key]
+                            key_value_str = f"{key}: {lines_value}    "
+
+                            key_value_length = len(key_value_str)
+                            lines_str += key_value_str + (" " * (string_top_length[key] - key_value_length))
+                lines_str += "}"
+
+                print(lines_str)
+
+            print("-" * (full_string_top_length + 1))
+
         else:
+            print("-" * 7)
             print("[EMPTY]")
-        print("-" * 170)
+            print("-" * 7)
         return self
 
     def remove(self):
