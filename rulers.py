@@ -28,28 +28,7 @@ class Rulers():
             else:
                 for ruler in rulers_list:
                     self.add(ruler)
-
-    def root(self):
-        return self.root_self
-            
-    def reroot(self):
-        if self._staff != None:
-            extra_root_rulers = (self.root_self - self).unique()
-            self._staff.remove(extra_root_rulers.list())
-        
-        self.root_self = self
-        return self
-    
-    def resetStaff(self):
-        if self._staff != None:
-            self._staff.clear()
-            for staff_ruler in self.root_self.list():
-                staff_ruler['on_staff'] = True
-            unique_rulers_list = self.root_self.unique().list()
-            self._staff.add(unique_rulers_list)
-
-        return self
-            
+ 
     # + Operator Overloading in Python
     def __add__(self, other):
         '''Works as Union'''
@@ -83,33 +62,6 @@ class Rulers():
 
         return union_rulers - intersection_rulers
     
-    def list(self):
-        return self._rulers_list
-    
-    def list_lines(self):
-        all_lines = []
-        for ruler in self._rulers_list:
-            all_lines.append(ruler['lines'])
-        return all_lines
-    
-    def len(self):
-        return len(self._rulers_list)
-    
-    def len_lines(self):
-        total_lines = 0
-        for ruler in self._rulers_list:
-            total_lines += len(ruler['lines'])
-        return total_lines
-    
-    def empty(self):
-        empty_rulers_list = []
-        return Rulers(empty_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
-    
-    def empty_lines(self):
-        for ruler in self._rulers_list:
-            ruler['lines'] = []
-        return self
-
     def add(self, ruler): # Must be able to remove removed rulers from the main list
         
         if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
@@ -157,33 +109,39 @@ class Rulers():
             ruler['lines'] = lines
 
         return self
-                
-    def remove(self):
-        self.root_self._rulers_list = [ ruler for ruler in self.root_self._rulers_list if ruler not in self._rulers_list ]
-        if self._staff != None:
-            unique_rulers_list = self.unique().list()
-            self._staff.remove(unique_rulers_list)
-        self._rulers_list = []
-        return self
+           
+    def copy(self):
+        """Shows just the copied rulers"""
+        source_rulers = self + self.empty()
+        duplicated_rulers = self.duplicate()
+        copied_rulers = duplicated_rulers - source_rulers
+        return copied_rulers
     
-    def remove_lines(self):
+    def empty(self):
+        empty_rulers_list = []
+        return Rulers(empty_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+    
+    def empty_lines(self):
         for ruler in self._rulers_list:
             ruler['lines'] = []
         return self
-    
-    def erase_lines(self):
-        for rulers in self._rulers_list:
-            for index in len(rulers['lines']):
-                rulers['lines'][index] = None
-
-        return self
-    
+  
     def enable(self):
         enabled_rulers_list = self.filter(enabled=False).unique().list()
         for disabled_ruler in enabled_rulers_list:
             disabled_ruler['enabled'] = True
         if self._staff != None:
             self._staff.enable(enabled_rulers_list)
+        return self
+    
+    def enabled(self):
+        return self.filter(enabled=True)
+    
+    def erase_lines(self):
+        for rulers in self._rulers_list:
+            for index in len(rulers['lines']):
+                rulers['lines'][index] = None
+
         return self
     
     def disable(self):
@@ -194,22 +152,88 @@ class Rulers():
             enabled_ruler['enabled'] = False
         return self
     
-    def enabled(self):
-        return self.filter(enabled=True)
-    
     def disabled(self):
         return self.filter(enabled=False)
     
-    def float(self):
-        if self._staff != None:
-            self._staff.remove(self.unique().list())
-        return self
+    def distribute_position(self, range_steps=None, range_positions=[[None, None], [None, None]]):
+        sorted_rulers = self.unique().sort()
+        number_intervals = sorted_rulers.len()
+        if self._staff != None and number_intervals > 1:
+            if range_positions[0][0] != None and range_positions[0][1] != None and range_positions[1][0] != None and range_positions[1][1] != None:
+                distance_pulses = self._staff.pulses(range_positions[1]) - self._staff.pulses(range_positions[0]) # total distance
+                start_pulses = self._staff.pulses(range_positions[0])
+                finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
+            elif range_steps != None:
+                distance_pulses = self._staff.pulses([0, range_steps]) # total distance
+                start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
+                finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
+            else:
+                finish_pulses = \
+                    self._staff.pulses(sorted_rulers.list()[number_intervals - 1]['position'])\
+                    - self._staff.pulses(sorted_rulers.list()[0]['position']) # total distance
+                distance_pulses = finish_pulses * number_intervals / (number_intervals - 1)
+                start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
+
+            if not finish_pulses < 0 and finish_pulses < self._staff.len():
+                sorted_rulers.float()
+                for index in range(number_intervals):
+                    new_position = self._staff.position(pulses=start_pulses + round(index * distance_pulses / number_intervals))
+                    sorted_rulers.list()[index]['position'] = new_position
+                sorted_rulers.drop()
+
+        return sorted_rulers
     
     def drop(self):
         if self._staff != None:
             self._staff.add(self.unique().list())
         return self
 
+    def duplicate(self):
+        """Duplicates the listed rulers"""
+        for ruler in self._rulers_list[:]:
+            self.add(ruler.copy())
+        return self
+    
+    def even(self):
+        even_rulers_list = self._rulers_list[::2]
+        return Rulers(even_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+    
+    def exclude(self, index=0):
+        if (self.len() > index):
+            excluding_rulers = self.single(self, index)
+            return self - excluding_rulers
+        return self
+
+    def expand_lines(self, spread=1):
+        for ruler in self._rulers_list:
+            old_total_lines = len(ruler['lines'])
+            if spread > 0:
+                new_total_lines = (old_total_lines * (spread + 1))
+                new_lines = [None] * new_total_lines
+                for line in range(old_total_lines):
+                    new_lines[line * (spread + 1)] = ruler['lines'][line]
+                ruler['lines'] = new_lines
+            else:
+                new_total_lines = int(old_total_lines / (-spread + 1))
+                new_lines = [None] * new_total_lines
+                for line in range(new_total_lines):
+                    new_lines[line] = ruler['lines'][line * (-spread + 1)]
+
+        return self
+    
+    def expand_position(self, spread_steps=4):
+        first_position = self._rulers_list[0]['position']
+        self.float()
+        for ruler_index in range(1, self.len()):
+            self._rulers_list[ruler_index]['position'] = self._staff.addPositions(first_position, [0, ruler_index * spread_steps])
+        self.drop()
+        return self
+    
+    def float(self):
+        if self._staff != None:
+            self._staff.remove(self.unique().list())
+        return self
+    
     def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
 
         filtered_rulers = self._rulers_list.copy()
@@ -245,6 +269,115 @@ class Rulers():
                         if not (position_lt(ruler['position'], position_range[0]) and position_lt(ruler['position'], position_range[1]))
             ]
         return Rulers(filtered_rulers, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+    
+    def head(self, elements=1):
+        head_rulers_list = self._rulers_list[:elements]
+        return Rulers(head_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+    
+    def list(self):
+        return self._rulers_list
+    
+    def list_lines(self):
+        all_lines = []
+        for ruler in self._rulers_list:
+            all_lines.append(ruler['lines'])
+        return all_lines
+    
+    def len(self):
+        return len(self._rulers_list)
+    
+    def len_lines(self):
+        total_lines = 0
+        for ruler in self._rulers_list:
+            total_lines += len(ruler['lines'])
+        return total_lines
+    
+    def lines(self, index=0):
+        single_ruler = self.single(index)
+        if single_ruler.len() > 0:
+            return self.single(index).list()[0]['lines']
+        else:
+            return []
+
+    def merge(self):
+
+        type_groups = [] # merge agregates rulers by type and gorup
+
+        for ruler in self._rulers_list:
+            ruler_type_group = {'type': ruler['type'], 'group': ruler['group']}
+            if ruler_type_group not in type_groups:
+                type_groups.append(ruler_type_group)
+
+        merged_rulers = []
+
+        for type_group in type_groups:
+
+            subject_rulers = self.filter(types=[type_group['type']], groups=[type_group['group']]).list()
+                                
+            head_offset = 0
+            tail_offset = 0
+            for ruler in subject_rulers:
+                if ruler['offset'] < head_offset:
+                    head_offset = ruler['offset']
+                if (len(ruler['lines']) + ruler['offset'] > tail_offset):
+                    tail_offset = len(ruler['lines']) - 1 + ruler['offset']
+
+            merged_ruler = {
+                'id': subject_rulers[0]['id'],
+                'type': type_group['type'],
+                'group': type_group['group'],
+                'position': subject_rulers[0]['position'],
+                'lines': [None] * (tail_offset - head_offset + 1), # list
+                'offset': head_offset,
+                'enabled': subject_rulers[0]['enabled'],
+                'on_staff': False
+            }
+
+            for subject_ruler in subject_rulers:
+                for i in range(len(subject_ruler['lines'])):
+                    merged_line = i + subject_ruler['offset'] - merged_ruler['offset']
+                    if (merged_ruler['lines'][merged_line] == None):
+                        merged_ruler['lines'][merged_line] = subject_ruler['lines'][i]
+
+            merged_rulers.append(merged_ruler)
+
+        return Rulers(merged_rulers, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+    
+    def move_lines(self, increments=1):
+        for ruler in self._rulers_list:
+            ruler['offset'] += increments
+
+        return self
+    
+    def move_position(self, position=[None, None]):
+        if position[0] != None and position[1] != None:
+            sorted_rulers = self.sort(key=position)
+            sorted_rulers_size = sorted_rulers.len()
+            sorted_rulers_list = sorted_rulers.list()
+            first_ruler_position = sorted_rulers_list[0]['position']
+            move_steps = self._staff.steps(position) - self._staff.steps(first_ruler_position)
+            if move_steps > 0:
+                last_staff_step = self._staff.len_steps() - 1
+                last_ruler_position = sorted_rulers_list[sorted_rulers_size - 1]['position']
+                last_ruler_step = self._staff.steps(last_ruler_position)
+                slack_steps = last_staff_step - last_ruler_step
+                move_steps = min(slack_steps, move_steps)
+            else:
+                first_staff_step = 0
+                first_ruler_step = self._staff.steps(first_ruler_position)
+                slack_steps = first_ruler_step - first_staff_step
+                move_steps = -min(slack_steps, -move_steps)
+
+            self.float()
+            for ruler in self._rulers_list:
+                ruler['position'] = self._staff.addPositions(ruler['position'], [0, move_steps])
+            self.drop()
+
+        return self
+    
+    def odd(self):
+        odd_rulers_list = self._rulers_list[1::2]
+        return Rulers(odd_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
     
     def print(self):
         
@@ -314,13 +447,22 @@ class Rulers():
         print("-" * 170)
         total_rulers = self.len()
         if total_rulers > 0:
+            merged_rulers = self.merge()
+            merged_rulers_list = merged_rulers.list()
+            global_offset = merged_rulers_list[0]['offset']
+            merged_lines_size = len(merged_rulers_list[0]['lines'])
+            line_number = []
+            for line in range(global_offset, global_offset + merged_lines_size):
+                line_number.append(line)
+            print(f"lines: {line_number}")
             for index in range(total_rulers):
-                # ruler_str = ""
-                # for key, value in self._rulers_list[index].items():
-                #     ...
+                
                 lines = f"{index}: " + "{" + f"id: {self._rulers_list[index]['id']}    ["
                 for line in self._rulers_list[index]['lines']:
-                    lines += f"{line}  "
+                    if line != None:
+                        lines += f"{line}  "
+                    else:
+                        lines += f"-  "
                 lines += "}"
                 print(lines)
         else:
@@ -328,13 +470,36 @@ class Rulers():
         print("-" * 170)
         return self
 
-    def unique(self):
-        unique_rulers_list = []
+    def remove(self):
+        self.root_self._rulers_list = [ ruler for ruler in self.root_self._rulers_list if ruler not in self._rulers_list ]
+        if self._staff != None:
+            unique_rulers_list = self.unique().list()
+            self._staff.remove(unique_rulers_list)
+        self._rulers_list = []
+        return self
+    
+    def remove_lines(self):
         for ruler in self._rulers_list:
-            if ruler not in unique_rulers_list:
-                unique_rulers_list.append(ruler)
+            ruler['lines'] = []
+        return self
+    
+    def reroot(self):
+        if self._staff != None:
+            extra_root_rulers = (self.root_self - self).unique()
+            self._staff.remove(extra_root_rulers.list())
+        
+        self.root_self = self
+        return self
+    
+    def resetStaff(self):
+        if self._staff != None:
+            self._staff.clear()
+            for staff_ruler in self.root_self.list():
+                staff_ruler['on_staff'] = True
+            unique_rulers_list = self.root_self.unique().list()
+            self._staff.add(unique_rulers_list)
 
-        return Rulers(unique_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+        return self
     
     def reverse(self):
         rulers_list_size = self.len()
@@ -348,13 +513,102 @@ class Rulers():
     def reverse_lines(self):
         for rulers in self._rulers_list:
             lines_size = len(rulers['lines'])
-            for i in range(int(lines_size/2)):
-                temp_line = rulers['lines'][i]
-                rulers['lines'][i] = rulers['lines'][lines_size - 1 - i]
-                rulers['lines'][lines_size - 1 - i] = temp_line
+            for index in range(int(lines_size/2)):
+                temp_line = rulers['lines'][index]
+                rulers['lines'][index] = rulers['lines'][lines_size - 1 - index]
+                rulers['lines'][lines_size - 1 - index] = temp_line
+
+        return self
+         
+    def reverse_position(self):
+        self = self.unique().reverse()
+        rulers_list_size = self.len()
+        self.float()
+        for index in range(int(rulers_list_size/2)):
+            temp_position = self._rulers_list[index]['position']
+            self._rulers_list[index]['position'] = self._rulers_list[rulers_list_size - 1 - index]['position']
+            self._rulers_list[rulers_list_size - 1 - index]['position'] = temp_position
+        self.drop()
 
         return self
     
+    def root(self):
+        return self.root_self
+              
+    def rotate(self, increments=1):
+        rulers_size = self.len()
+        original_rulers_list = self._rulers_list[:]
+        for ruler_index in range(rulers_size):
+            rotated_index = (ruler_index - increments) % rulers_size
+            self._rulers_list[ruler_index] = original_rulers_list[rotated_index]
+
+        return self
+    
+    def rotate_lines(self, increments=1):
+        for rulers in self._rulers_list:
+            lines_size = len(rulers['lines'])
+            original_lines = rulers['lines'][:]
+            for index in range(lines_size):
+                rotated_index = (index - increments) % lines_size
+                rulers['lines'][index] = original_lines[rotated_index]
+
+        return self
+    
+    def rotate_position(self, increments=1):
+        original_positions = []
+        rulers_size = self.len()
+        for original_ruler in self._rulers_list:
+            original_positions.append(original_ruler['position'].copy())
+
+        self.float()
+        for ruler_index in range(rulers_size):
+            rotated_index = (ruler_index + increments) % rulers_size
+            self._rulers_list[ruler_index]['position'] = original_positions[rotated_index]
+        self.drop()
+
+        return self.rotate(increments)
+    
+    def set_position(self, position=[None, None]):
+        if position[0] != None and position[1] != None:
+            self.float()
+            for ruler in self._rulers_list:
+                ruler['position'] = position
+            self.drop()
+
+        return self
+    
+    def single(self, index=0):
+        if (self.len() > index):
+            ruler_list = [ self._rulers_list[index] ]
+            return Rulers(ruler_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+        return self
+
+    def slide_position(self, distance_steps=4):
+        if self._staff != None and distance_steps != 0:
+
+            distance_pulses = self._staff.pulses([0, distance_steps])
+            if distance_pulses > 0:
+                last_position_pulses = self._staff.len() - 1
+                for ruler in self._rulers_list:
+                    ruler_position_pulses = self._staff.pulses(ruler['position'])
+                    distance_pulses = min(distance_pulses, last_position_pulses - ruler_position_pulses)
+            elif distance_pulses < 0:
+                for ruler in self._rulers_list:
+                    ruler_position_pulses = -self._staff.pulses(ruler['position'])
+                    distance_pulses = max(distance_pulses, ruler_position_pulses)
+            else:
+                return self
+            
+            self.float()
+
+            for ruler in self._rulers_list:
+                new_position_pulses = self._staff.pulses(ruler['position']) + distance_pulses # always positive
+                ruler['position'] = self._staff.position(pulses=new_position_pulses)
+
+            self.drop()
+
+        return self
+
     def sort(self, key='position', reverse = False):
         rulers_list = self.list()
         rulers_list_size = self.len()
@@ -395,273 +649,18 @@ class Rulers():
             return self.reverse_lines()
         return self
 
-    def merge(self):
-
-        type_groups = [] # merge agregates rulers by type and gorup
-
-        for ruler in self._rulers_list:
-            ruler_type_group = {'type': ruler['type'], 'group': ruler['group']}
-            if ruler_type_group not in type_groups:
-                type_groups.append(ruler_type_group)
-
-        merged_rulers = []
-
-        for type_group in type_groups:
-
-            subject_rulers = self.filter(types=[type_group['type']], groups=[type_group['group']]).list()
-                                
-            head_offset = 0
-            tail_offset = 0
-            for ruler in subject_rulers:
-                if ruler['offset'] < head_offset:
-                    head_offset = ruler['offset']
-                if (len(ruler['lines']) + ruler['offset'] > tail_offset):
-                    tail_offset = len(ruler['lines']) - 1 + ruler['offset']
-
-            merged_ruler = {
-                'id': subject_rulers[0]['id'],
-                'type': type_group['type'],
-                'group': type_group['group'],
-                'position': subject_rulers[0]['position'],
-                'lines': [None] * (tail_offset - head_offset + 1), # list
-                'offset': head_offset,
-                'enabled': subject_rulers[0]['enabled'],
-                'on_staff': False
-            }
-
-            for subject_ruler in subject_rulers:
-                for i in range(len(subject_ruler['lines'])):
-                    merged_line = i + subject_ruler['offset'] - merged_ruler['offset']
-                    if (merged_ruler['lines'][merged_line] == None):
-                        merged_ruler['lines'][merged_line] = subject_ruler['lines'][i]
-
-            merged_rulers.append(merged_ruler)
-
-        return Rulers(merged_rulers, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
-    
-    def single(self, index=0):
-        if (self.len() > index):
-            ruler_list = [ self._rulers_list[index] ]
-            return Rulers(ruler_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
-        return self
-
-    def exclude(self, index=0):
-        if (self.len() > index):
-            excluding_rulers = self.single(self, index)
-            return self - excluding_rulers
-        return self
-
-    def lines(self, index=0):
-        single_ruler = self.single(index)
-        if single_ruler.len() > 0:
-            return self.single(index).list()[0]['lines']
-        else:
-            return []
-
-    def duplicate(self):
-        """Duplicates the listed rulers"""
-        for ruler in self._rulers_list[:]:
-            self.add(ruler.copy())
-        return self
-    
-    def copy(self):
-        """Shows just the copied rulers"""
-        source_rulers = self + self.empty()
-        duplicated_rulers = self.duplicate()
-        copied_rulers = duplicated_rulers - source_rulers
-        return copied_rulers
-    
-    def set_position(self, position=[None, None]):
-        if position[0] != None and position[1] != None:
-            self.float()
-            for ruler in self._rulers_list:
-                ruler['position'] = position
-            self.drop()
-
-        return self
-    
-    def move_position(self, position=[None, None]):
-        if position[0] != None and position[1] != None:
-            sorted_rulers = self.sort(key=position)
-            sorted_rulers_size = sorted_rulers.len()
-            sorted_rulers_list = sorted_rulers.list()
-            first_ruler_position = sorted_rulers_list[0]['position']
-            move_steps = self._staff.steps(position) - self._staff.steps(first_ruler_position)
-            if move_steps > 0:
-                last_staff_step = self._staff.len_steps() - 1
-                last_ruler_position = sorted_rulers_list[sorted_rulers_size - 1]['position']
-                last_ruler_step = self._staff.steps(last_ruler_position)
-                slack_steps = last_staff_step - last_ruler_step
-                move_steps = min(slack_steps, move_steps)
-            else:
-                first_staff_step = 0
-                first_ruler_step = self._staff.steps(first_ruler_position)
-                slack_steps = first_ruler_step - first_staff_step
-                move_steps = -min(slack_steps, -move_steps)
-
-            self.float()
-            for ruler in self._rulers_list:
-                ruler['position'] = self._staff.addPositions(ruler['position'], [0, move_steps])
-            self.drop()
-
-        return self
-    
-    def move_lines(self, increments=1):
-        for ruler in self._rulers_list:
-            ruler['offset'] += increments
-
-        return self
-    
-    def slide_position(self, distance_steps=4):
-        if self._staff != None and distance_steps != 0:
-
-            distance_pulses = self._staff.pulses([0, distance_steps])
-            if distance_pulses > 0:
-                last_position_pulses = self._staff.len() - 1
-                for ruler in self._rulers_list:
-                    ruler_position_pulses = self._staff.pulses(ruler['position'])
-                    distance_pulses = min(distance_pulses, last_position_pulses - ruler_position_pulses)
-            elif distance_pulses < 0:
-                for ruler in self._rulers_list:
-                    ruler_position_pulses = -self._staff.pulses(ruler['position'])
-                    distance_pulses = max(distance_pulses, ruler_position_pulses)
-            else:
-                return self
-            
-            self.float()
-
-            for ruler in self._rulers_list:
-                new_position_pulses = self._staff.pulses(ruler['position']) + distance_pulses # always positive
-                ruler['position'] = self._staff.position(pulses=new_position_pulses)
-
-            self.drop()
-
-        return self
-
-    def expand_position(self, spread_steps=4):
-        first_position = self._rulers_list[0]['position']
-        self.float()
-        for ruler_index in range(1, self.len()):
-            self._rulers_list[ruler_index]['position'] = self._staff.addPositions(first_position, [0, ruler_index * spread_steps])
-        self.drop()
-        return self
-    
-    def expand_lines(self, spread=1):
-        for ruler in self._rulers_list:
-            old_total_lines = len(ruler['lines'])
-            if spread > 0:
-                new_total_lines = (old_total_lines * (spread + 1))
-                new_lines = [None] * new_total_lines
-                for line in range(old_total_lines):
-                    new_lines[line * (spread + 1)] = ruler['lines'][line]
-                ruler['lines'] = new_lines
-            else:
-                new_total_lines = int(old_total_lines / (-spread + 1))
-                new_lines = [None] * new_total_lines
-                for line in range(new_total_lines):
-                    new_lines[line] = ruler['lines'][line * (-spread + 1)]
-
-        return self
-    
-    def distribute_position(self, range_steps=None, range_positions=[[None, None], [None, None]]):
-        sorted_rulers = self.unique().sort()
-        number_intervals = sorted_rulers.len()
-        if self._staff != None and number_intervals > 1:
-            if range_positions[0][0] != None and range_positions[0][1] != None and range_positions[1][0] != None and range_positions[1][1] != None:
-                distance_pulses = self._staff.pulses(range_positions[1]) - self._staff.pulses(range_positions[0]) # total distance
-                start_pulses = self._staff.pulses(range_positions[0])
-                finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
-            elif range_steps != None:
-                distance_pulses = self._staff.pulses([0, range_steps]) # total distance
-                start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
-                finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
-            else:
-                finish_pulses = \
-                    self._staff.pulses(sorted_rulers.list()[number_intervals - 1]['position'])\
-                    - self._staff.pulses(sorted_rulers.list()[0]['position']) # total distance
-                distance_pulses = finish_pulses * number_intervals / (number_intervals - 1)
-                start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
-
-            if not finish_pulses < 0 and finish_pulses < self._staff.len():
-                sorted_rulers.float()
-                for index in range(number_intervals):
-                    new_position = self._staff.position(pulses=start_pulses + round(index * distance_pulses / number_intervals))
-                    sorted_rulers.list()[index]['position'] = new_position
-                sorted_rulers.drop()
-
-        return sorted_rulers
-    
-    def rotate(self, increments=1):
-        rulers_size = self.len()
-        original_rulers_list = self._rulers_list[:]
-        for ruler_index in range(rulers_size):
-            rotated_index = (ruler_index - increments) % rulers_size
-            self._rulers_list[ruler_index] = original_rulers_list[rotated_index]
-
-        return self
-    
-    def rotate_position(self, increments=1):
-        original_positions = []
-        rulers_size = self.len()
-        for original_ruler in self._rulers_list:
-            original_positions.append(original_ruler['position'].copy())
-
-        self.float()
-        for ruler_index in range(rulers_size):
-            rotated_index = (ruler_index + increments) % rulers_size
-            self._rulers_list[ruler_index]['position'] = original_positions[rotated_index]
-        self.drop()
-
-        return self.rotate(increments)
-    
-    def rotate_lines(self, increments=1):
-        for rulers in self._rulers_list:
-            lines_size = len(rulers['lines'])
-            original_lines = rulers['lines'][:]
-            for index in range(lines_size):
-                rotated_index = (index - increments) % lines_size
-                rulers['lines'][index] = original_lines[rotated_index]
-
-        return self
-    
-    def reverse_position(self):
-        self = self.unique().reverse()
-        rulers_list_size = self.len()
-        self.float()
-        for index in range(int(rulers_list_size/2)):
-            temp_position = self._rulers_list[index]['position']
-            self._rulers_list[index]['position'] = self._rulers_list[rulers_list_size - 1 - index]['position']
-            self._rulers_list[rulers_list_size - 1 - index]['position'] = temp_position
-        self.drop()
-
-        return self
-    
-    def reverse_lines(self):
-        for rulers in self._rulers_list:
-            lines_size = len(rulers['lines'])
-            for index in range(int(lines_size/2)):
-                temp_line = rulers['lines'][index]
-                rulers['lines'][index] = rulers['lines'][lines_size - 1 - index]
-                rulers['lines'][lines_size - 1 - index] = temp_line
-
-        return self
-    
-    def odd(self):
-        odd_rulers_list = self._rulers_list[1::2]
-        return Rulers(odd_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
-    
-    def even(self):
-        even_rulers_list = self._rulers_list[::2]
-        return Rulers(even_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
-    
-    def head(self, elements=1):
-        head_rulers_list = self._rulers_list[:elements]
-        return Rulers(head_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
-    
     def tail(self, elements=1):
         tail_rulers_list = self._rulers_list[-elements:]
         return Rulers(tail_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
 
+    def unique(self):
+        unique_rulers_list = []
+        for ruler in self._rulers_list:
+            if ruler not in unique_rulers_list:
+                unique_rulers_list.append(ruler)
+
+        return Rulers(unique_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+       
     # self is the list to work with!
 
     # def cleanRulers(self):
