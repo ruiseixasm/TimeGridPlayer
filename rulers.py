@@ -534,7 +534,7 @@ class Rulers():
             print("-" * (full_string_top_length + 1))
 
             lines_str = ""
-            key_value_str = "lines:    "
+            key_value_str = " " * (string_top_length['sequence'] - 3) + "lines:" + " " * (string_top_length['id'] + 1)
             for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
                 if line_index == head_offset:
                     key_value_str += "["
@@ -585,6 +585,8 @@ class Rulers():
 
                                     key_value_length = len(key_value_str)
                                     lines_str += key_value_str + (" " * (string_top_length['lines'][line_index] - key_value_length))
+                                else:
+                                    lines_str += " " * (string_top_length['lines'][line_index] + 0)
                         else: # id
                             lines_value = ruler[key]
                             key_value_str = f"{key}: {lines_value}    "
