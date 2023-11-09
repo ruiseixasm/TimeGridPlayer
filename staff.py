@@ -9,13 +9,13 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import rulers
+import rulers as Rulers
 
 class Staff:
 
     def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
 
-        self._rulers = rulers.Rulers(staff=self)
+        self._rulers = Rulers.Rulers(staff=self)
         self._staff = []
         self.total_pulses = 0
         self.play_range = [[], []]

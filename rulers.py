@@ -9,13 +9,15 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import staff
+import staff as Staff
 
 class Rulers():
 
     def __init__(self, rulers_list = None, staff = None, root_self = None, FROM_RULERS = False):
 
         self._staff = staff
+        if self._staff == None:
+            self._staff = Staff.Staff()
 
         self.root_self = self
         if root_self != None:
@@ -765,6 +767,12 @@ class Rulers():
 
         return self
     
+    def roll_lines(self, increments=1):
+        self.rotate_lines(-increments)
+        self.move_lines(increments)
+
+        return self
+
     def root(self):
         return self.root_self
               

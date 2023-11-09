@@ -1,11 +1,11 @@
-import clock
-import player
+import clock as Clock
+import actions_piano as Piano
 
-master_clock = clock.Clock(80, 24)
+master_clock = Clock.Clock(80, 24)
 
-master = player.Master("master")
-trigger = player.Trigger("trigger")
-note = player.Note("notes", 1, 4, 1, play_range=[[0, 0], [1, 0]])
+master = Piano.Master("master")
+trigger = Piano.Trigger("trigger")
+note = Piano.Note("notes", 1, 4, 1, play_range=[[0, 0], [1, 0]])
 
 print("\n\n")
 
@@ -31,7 +31,7 @@ master.rulers().filter(types=["arguments"]).sort().print().print_lines().roll_li
 master.connectClock(master_clock)
 note.connectClock(master_clock)
 trigger.connectClock(master_clock)
-#master_clock.start()
+master_clock.start()
 print("\n\n\nNEXT ITERATION\n\n")
 range_pulses = master.staff().setPlayRange([4, 0], [6, 0])
 #master_clock.start(range_pulses)
