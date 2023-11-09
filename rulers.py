@@ -519,13 +519,13 @@ class Rulers():
             print("'" * 7)
         return self
 
-    def print_lines(self):
+    def print_lines(self, first_line=None, last_line=None):
         
         rulers_size = self.len()
         if rulers_size > 0:
             rulers_list = self.list()
-            head_offset = None
-            tail_offset = None
+            head_offset = first_line
+            tail_offset = last_line
             for ruler in rulers_list:
                 if head_offset == None or ruler['offset'] < head_offset:
                     head_offset = ruler['offset']

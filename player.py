@@ -31,28 +31,6 @@ class Player:
         self.clocked_actions = []
         self.next_clocked_pulse = -1
 
-    def getStaff(self):
-        return self._staff
-
-    def getRulers(self):
-        return self._staff_rulers
-
-    def rulers(self):
-        return self._staff_rulers
-
-    def staff(self):
-        return self._staff
-    
-    def rangePulses(self):
-        range_pulses = self._staff.playRange()
-        start_pulses = self._staff.pulses(range_pulses[0])
-        finish_pulses = self._staff.pulses(range_pulses[1])
-        return {'start': start_pulses, 'finish': finish_pulses}
-
-    def connectClock(self, clock):
-        self.clock = clock
-        self.clock.attach(self)
-
     def addClockedAction(self, clocked_action): # Clocked actions AREN'T rulers!
         if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
             clock_tempo = self.clock.getClockTempo()
@@ -66,6 +44,19 @@ class Player:
                 self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
             else:
                 self.next_clocked_pulse = clocked_action['pulse']
+
+    def connectClock(self, clock):
+        self.clock = clock
+        self.clock.attach(self)
+
+    def getRulers(self):
+        return self._staff_rulers
+
+    def getStaff(self):
+        return self._staff
+
+    def play(self):
+        ...
 
     def pulse(self, tempo):
         
@@ -136,10 +127,18 @@ class Player:
                 for clocked_action in self.clocked_actions:
                     self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
 
+    def rangePulses(self):
+        range_pulses = self._staff.playRange()
+        start_pulses = self._staff.pulses(range_pulses[0])
+        finish_pulses = self._staff.pulses(range_pulses[1])
+        return {'start': start_pulses, 'finish': finish_pulses}
 
-    def play(self):
-        ...
+    def rulers(self):
+        return self._staff_rulers
 
+    def staff(self):
+        return self._staff
+    
     def stop(self):
         ...
 
