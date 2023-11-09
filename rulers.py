@@ -104,25 +104,29 @@ class Rulers():
 
         return self
     
-    def add_lines(self, id=None, line=None, amount=1):
+    def add_lines(self, line, amount=1, id=None):
+        """Add new empty lines lines"""
         target_rulers = self
         if id != None:
             target_rulers = self.filter(ids=[id])
-        for ruler in target_rulers:
-            new_lines = [None] * (len(ruler['lines']) + amount)
-            if line != None:
-                line = min(len(ruler['lines']), line)
-            else:
-                line = len(ruler['lines'])
-            for line_index in range(len(ruler['lines'])):
-                if line_index < line:
-                    new_lines[line_index] = ruler['lines'][line_index]
-                elif line_index + amount < len(ruler['lines']):
-                    new_lines[line_index + amount] = ruler['lines'][line_index]
-                else:
-                    break
+        for ruler in target_rulers.list():
 
-            ruler['lines'] = new_lines
+            lines_size = len(ruler['lines'])
+            first_line = ruler['offset']
+            last_line = first_line + lines_size - 1
+
+            if not (line < first_line or line > last_line):
+                
+                new_lines_size = lines_size + amount
+                new_lines = [None] * new_lines_size
+
+                for line_index in range(lines_size):
+                    if line_index < line - ruler['offset']:
+                        new_lines[line_index] = ruler['lines'][line_index]
+                    else:
+                        new_lines[line_index + amount] = ruler['lines'][line_index]
+
+                ruler['lines'] = new_lines
             
         return self
            
@@ -210,6 +214,26 @@ class Rulers():
             self.add(ruler.copy())
         return self
     
+    def erase_lines(self, line, amount=1, id=None):
+        target_rulers = self
+        if id != None:
+            target_rulers = self.filter(ids=[id])
+        for ruler in target_rulers.list():
+
+            lines_size = len(ruler['lines'])
+            first_line = ruler['offset']
+            last_line = first_line + lines_size - 1
+
+            if not (line < first_line or line > last_line):
+                
+                amount = min(amount, lines_size - (line - first_line))
+
+                for line_index in range(lines_size):
+                    if not line_index < line - ruler['offset'] and line_index < line - ruler['offset'] + amount:
+                        ruler['lines'][line_index] = None
+
+        return self
+    
     def even(self):
         even_rulers_list = self._rulers_list[::2]
         return Rulers(even_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
@@ -290,25 +314,30 @@ class Rulers():
         head_rulers_list = self._rulers_list[:elements]
         return Rulers(head_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
     
-    def insert_lines(self, id=None, line=None, lines=[None]):
+    def insert_lines(self, line, lines=[None], id=None):
         target_rulers = self
         if id != None:
             target_rulers = self.filter(ids=[id])
-        for ruler in target_rulers:
-            new_lines = [None] * (len(ruler['lines']) + len(lines))
-            if line != None:
-                line = min(len(ruler['lines']), line)
-            else:
-                line = len(ruler['lines'])
-            for line_index in range(len(new_lines)):
-                if line_index < line:
-                    new_lines[line_index] = ruler['lines'][line_index]
-                elif line_index < line + len(lines):
-                    new_lines[line_index] = lines[line_index - (line + len(lines))]
-                else:
-                    new_lines[line_index] = ruler['lines'][line_index - len(lines)]
+        for ruler in target_rulers.list():
 
-            ruler['lines'] = new_lines
+            lines_size = len(ruler['lines'])
+            first_line = ruler['offset']
+            last_line = first_line + lines_size - 1
+
+            if not (line < first_line or line > last_line):
+                
+                new_lines_size = lines_size + len(lines)
+                new_lines = [None] * new_lines_size
+
+                for line_index in range(new_lines_size):
+                    if line_index < line - ruler['offset']:
+                        new_lines[line_index] = ruler['lines'][line_index]
+                    elif line_index < line - ruler['offset'] + len(lines):
+                        new_lines[line_index] = lines[line_index - line + ruler['offset']]
+                    else:
+                        new_lines[line_index] = ruler['lines'][line_index - len(lines)]
+
+                ruler['lines'] = new_lines
 
         return self
            
@@ -661,7 +690,7 @@ class Rulers():
         self._rulers_list = []
         return self
     
-    def remove_lines(self, id=None, line=0, amount=1):
+    def remove_lines(self, line, amount=1, id=None):
         target_rulers = self
         if id != None:
             target_rulers = self.filter(ids=[id])
