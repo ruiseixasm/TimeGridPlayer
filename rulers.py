@@ -117,8 +117,10 @@ class Rulers():
             for line_index in range(len(ruler['lines'])):
                 if line_index < line:
                     new_lines[line_index] = ruler['lines'][line_index]
-                else:
+                elif line_index + amount < len(ruler['lines']):
                     new_lines[line_index + amount] = ruler['lines'][line_index]
+                else:
+                    break
 
             ruler['lines'] = new_lines
             
@@ -659,9 +661,30 @@ class Rulers():
         self._rulers_list = []
         return self
     
-    def remove_lines(self, id=None, line=None, amount=None):
-        for ruler in self._rulers_list:
-            ruler['lines'] = []
+    def remove_lines(self, id=None, line=0, amount=1):
+        target_rulers = self
+        if id != None:
+            target_rulers = self.filter(ids=[id])
+        for ruler in target_rulers.list():
+
+            lines_size = len(ruler['lines'])
+            first_line = ruler['offset']
+            last_line = first_line + lines_size - 1
+
+            if not (line < first_line or line > last_line):
+                
+                amount = min(amount, lines_size - (line - first_line))
+                new_lines_size = lines_size - amount
+                new_lines = [None] * new_lines_size
+
+                for line_index in range(new_lines_size):
+                    if line_index < line - ruler['offset']:
+                        new_lines[line_index] = ruler['lines'][line_index]
+                    else:
+                        new_lines[line_index] = ruler['lines'][line_index + amount]
+
+                ruler['lines'] = new_lines
+
         return self
     
     def reroot(self):
