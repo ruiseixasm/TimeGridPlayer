@@ -65,13 +65,13 @@ class Player:
             if (self.play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
 
                 position = self._staff.position(pulses=self.play_pulse)
-                enabled_key_rulers = self._staff.filter_list(pulse=self.play_pulse)[0]['arguments']['enabled']
-                enabled_action_rulers = self._staff.filter_list(pulse=self.play_pulse)[0]['actions']['enabled']
+                enabled_key_rulers = self._staff.filterList(pulse=self.play_pulse)[0]['arguments']['enabled']
+                enabled_action_rulers = self._staff.filterList(pulse=self.play_pulse)[0]['actions']['enabled']
 
                 if self._staff.pulseRemainders(self.play_pulse)['beat'] == 0:
                     # str_position = self._staff.str_position(pulses=position)
                     # print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
-                    self._staff.print_level_sums(self.play_pulse, 1)
+                    self._staff.printSinglePulse(self.play_pulse)
 
                 if (enabled_key_rulers > 0):
                     

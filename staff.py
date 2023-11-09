@@ -25,6 +25,50 @@ class Staff:
             self.setPlayRange(start=play_range[0], finish=play_range[1])
         self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat)
 
+    def _getStaffSums(self, staff_list): # outputs single staff pulse
+        staff_list_sums = {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
+        for staff_pulse in staff_list:
+            staff_list_sums['arguments']['enabled'] += staff_pulse['arguments']['enabled']
+            staff_list_sums['arguments']['total'] += staff_pulse['arguments']['total']
+            staff_list_sums['actions']['enabled'] += staff_pulse['actions']['enabled']
+            staff_list_sums['actions']['total'] += staff_pulse['actions']['total']
+
+        return staff_list_sums
+    
+    def _setTopLengths(self):
+        return self._setTopLengths_Values()._setTopLengths_Sums()
+
+    def _setTopLengths_Values(self):
+
+        for key, value in self.string_top_lengths.items():
+            if key == 'measure' or key == 'beat' or key == 'step' or key == 'pulse':
+                self.string_top_length = 0
+
+        for staff_pulse in self._staff: # get maximum sizes
+            for key, value in staff_pulse.items():
+                if key == 'measure' or key == 'beat' or key == 'step' or key == 'pulse':
+                    self.string_top_lengths[key] = max(self.string_top_lengths[key], len(f"{value}"))
+
+        self.string_top_length = 0
+        for value in self.string_top_lengths.values():
+            self.string_top_length += value
+
+        return self
+    
+    def _setTopLengths_Sums(self):
+
+        staff_list_sums = self._getStaffSums(self._staff)
+        self.string_top_lengths['arguments_enabled'] = staff_list_sums['arguments']['enabled']
+        self.string_top_lengths['arguments_total'] = staff_list_sums['arguments']['total']
+        self.string_top_lengths['actions_enabled'] = staff_list_sums['actions']['enabled']
+        self.string_top_lengths['actions_total'] = staff_list_sums['actions']['total']
+
+        self.string_top_length = 0
+        for value in self.string_top_lengths.values():
+            self.string_top_length += value
+
+        return self
+    
     def actions(self):
         total_actions = {'enabled': 0, 'total': 0}
         for staff_pulse in self._staff:
@@ -41,7 +85,7 @@ class Staff:
                         self._staff[pulses][ruler['type']]['enabled'] += enabled_one
                     self._staff[pulses][ruler['type']]['total'] += total_one
         
-        return self.setTopLengths()
+        return self._setTopLengths_Sums()
     
     def addPositions(self, position_1=[0, 0], position_2=[0, 0]):
 
@@ -63,7 +107,7 @@ class Staff:
             staff_pulse['arguments'] = {'enabled': 0, 'total': 0}
             staff_pulse['actions'] = {'enabled': 0, 'total': 0}
 
-        return self.setTopLengths()
+        return self._setTopLengths_Sums()
 
     def disable(self, rulers):
         return self.remove(rulers, total_one=0)
@@ -71,8 +115,12 @@ class Staff:
     def enable(self, rulers):
         return self.add(rulers, total_one=0)
 
-    def filter_list(self, measure=None, beat=None, step=None, pulse=None):
-        filtered_list = self._staff[:]
+    def filterList(self, measure=None, beat=None, step=None, pulse=None, list=None):
+        if list != None:
+            filtered_list = list[:]
+        else:
+            filtered_list = self._staff[:]
+
         if measure != None:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['measure'] == measure
@@ -125,47 +173,57 @@ class Staff:
         return [measures, steps]
     
     def print(self):
-        spaces_between = 6
         if len(self._staff) > 0:
             if len(self._staff) > 1:
-                print("$" * (self.string_top_length + 128))
-            for staff_pulse in self._staff:
+                print("$" * (self.string_top_length + 132))
 
-                pulse_str = "{ "
-                for key, value in staff_pulse.items():
-                    if key == 'arguments':
-                        enabled_value_str = f"{staff_pulse['arguments']['enabled']}"
-                        enabled_value_length = len(enabled_value_str)
-                        enabled_value_str = "arguments: { enabled: " + enabled_value_str + (" " * (self.string_top_lengths['arguments_enabled'] - enabled_value_length))
-                        enabled_value_str += " " * int(spaces_between / 2)
-                        total_value_str = f"{staff_pulse['arguments']['total']}"
-                        total_value_length = len(total_value_str)
-                        total_value_str = "total: " + total_value_str + (" " * (self.string_top_lengths['arguments_total'] - total_value_length)) + " }"
-                        pulse_str += enabled_value_str + total_value_str + " " * spaces_between
-                    elif key == 'actions':
-                        enabled_value_str = f"{staff_pulse['actions']['enabled']}"
-                        enabled_value_length = len(enabled_value_str)
-                        enabled_value_str = "actions: { enabled: " + enabled_value_str + (" " * (self.string_top_lengths['actions_enabled'] - enabled_value_length))
-                        enabled_value_str += " " * int(spaces_between / 2)
-                        total_value_str = f"{staff_pulse['actions']['total']}"
-                        total_value_length = len(total_value_str)
-                        total_value_str = "total: " + total_value_str + (" " * (self.string_top_lengths['actions_total'] - total_value_length)) + " }"
-                        pulse_str += enabled_value_str + total_value_str + " " * 0
-                    else:
-                        key_value_str = f"{value}"
-                        key_value_length = len(key_value_str)
-                        key_value_str += (" " * (self.string_top_lengths[key] - key_value_length))
-                        key_value_str = f"{key}: " + key_value_str
-                        pulse_str += key_value_str + " " * spaces_between
-                pulse_str += " }"
-                print(pulse_str)
+            for staff_pulse in self._staff:
+                self.printSinglePulse(staff_pulse['pulse'])
 
             if len(self._staff) > 1:
-                print("$" * (self.string_top_length + 128))
+                print("$" * (self.string_top_length + 132))
         else:
             print("[EMPTY]")
         return self
     
+    def printSinglePulse(self, pulse=0, sums='pulse'):
+
+        spaces_between = 6
+
+        staff_pulse = self._staff[pulse]
+        pulse_sums = self.pulseSums(staff_pulse['pulse'])
+
+        pulse_str = "{ "
+        for key, value in staff_pulse.items():
+            if key == 'arguments':
+                enabled_value_str = f"{pulse_sums[sums]['arguments']['enabled']}"
+                enabled_value_length = len(enabled_value_str)
+                enabled_value_str = "arguments: { enabled: " + (" " * (self.string_top_lengths['arguments_enabled'] - enabled_value_length)) + enabled_value_str
+                enabled_value_str += " " * int(spaces_between / 2)
+                total_value_str = f"{pulse_sums[sums]['arguments']['total']}"
+                total_value_length = len(total_value_str)
+                total_value_str = "total: " + (" " * (self.string_top_lengths['arguments_total'] - total_value_length)) + total_value_str + " }"
+                pulse_str += enabled_value_str + total_value_str + " " * spaces_between
+            elif key == 'actions':
+                enabled_value_str = f"{pulse_sums[sums]['actions']['enabled']}"
+                enabled_value_length = len(enabled_value_str)
+                enabled_value_str = "actions: { enabled: " + (" " * (self.string_top_lengths['actions_enabled'] - enabled_value_length)) + enabled_value_str
+                enabled_value_str += " " * int(spaces_between / 2)
+                total_value_str = f"{pulse_sums[sums]['actions']['total']}"
+                total_value_length = len(total_value_str)
+                total_value_str = "total: " + (" " * (self.string_top_lengths['actions_total'] - total_value_length)) + total_value_str + " }"
+                pulse_str += enabled_value_str + total_value_str + " " * 0
+            else:
+                key_value_str = f"{value}"
+                key_value_length = len(key_value_str)
+                key_value_str = (" " * (self.string_top_lengths[key] - key_value_length)) + key_value_str
+                key_value_str = f"{key}: " + key_value_str
+                pulse_str += key_value_str + " " * spaces_between
+        pulse_str += " }"
+        print(pulse_str)
+
+        return self
+
     def print_group_by(self, level=0):
         if self.len() > 0:
             for staff_pulse in self._staff:
@@ -193,13 +251,13 @@ class Staff:
             staff_pulse = self._staff[pulse]
             match level:
                 case 0:
-                    filtered_list = self.filter_list(measure=staff_pulse['measure'])
+                    filtered_list = self.filterList(measure=staff_pulse['measure'])
                     self.print_staff_sums(filtered_list)
                 case 1:
-                    filtered_list = self.filter_list(measure=staff_pulse['measure'], beat=staff_pulse['beat'])
+                    filtered_list = self.filterList(measure=staff_pulse['measure'], beat=staff_pulse['beat'])
                     self.print_staff_sums(filtered_list)
                 case 2:
-                    filtered_list = self.filter_list(measure=staff_pulse['measure'], beat=staff_pulse['beat'], step=staff_pulse['step'])
+                    filtered_list = self.filterList(measure=staff_pulse['measure'], beat=staff_pulse['beat'], step=staff_pulse['step'])
                     self.print_staff_sums(filtered_list)
                 case 3:
                     print (staff_pulse)
@@ -232,6 +290,45 @@ class Staff:
             'step': pulse % (self.pulses_per_beat / self.steps_per_beat),
             'pulse': 0 # by definition is pulse % pulse = 0
         }
+    
+    def pulseSums(self, pulse=0):
+        pulse_sums = {
+            'measure': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}},
+            'beat': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}},
+            'step': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}},
+            'pulse': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
+        }
+
+        measure = self._staff[pulse]['measure']
+        measure_list = self.filterList(measure=measure)
+        for staff_pulse in measure_list:
+            pulse_sums['measure']['arguments']['enabled'] += staff_pulse['arguments']['enabled']
+            pulse_sums['measure']['arguments']['total'] += staff_pulse['arguments']['total']
+            pulse_sums['measure']['actions']['enabled'] += staff_pulse['actions']['enabled']
+            pulse_sums['measure']['actions']['total'] += staff_pulse['actions']['total']
+
+        beat = self._staff[pulse]['beat']
+        beat_list = self.filterList(beat=beat, list=measure_list)
+        for staff_pulse in beat_list:
+            pulse_sums['beat']['arguments']['enabled'] += staff_pulse['arguments']['enabled']
+            pulse_sums['beat']['arguments']['total'] += staff_pulse['arguments']['total']
+            pulse_sums['beat']['actions']['enabled'] += staff_pulse['actions']['enabled']
+            pulse_sums['beat']['actions']['total'] += staff_pulse['actions']['total']
+
+        step = self._staff[pulse]['step']
+        step_list = self.filterList(step=step, list=beat_list)
+        for staff_pulse in step_list:
+            pulse_sums['step']['arguments']['enabled'] += staff_pulse['arguments']['enabled']
+            pulse_sums['step']['arguments']['total'] += staff_pulse['arguments']['total']
+            pulse_sums['step']['actions']['enabled'] += staff_pulse['actions']['enabled']
+            pulse_sums['step']['actions']['total'] += staff_pulse['actions']['total']
+
+        pulse_sums['pulse']['arguments']['enabled'] += self._staff[pulse]['arguments']['enabled']
+        pulse_sums['pulse']['arguments']['total'] += self._staff[pulse]['arguments']['total']
+        pulse_sums['pulse']['actions']['enabled'] += self._staff[pulse]['actions']['enabled']
+        pulse_sums['pulse']['actions']['total'] += self._staff[pulse]['actions']['total']
+
+        return pulse_sums
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
         return position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat)
@@ -298,33 +395,8 @@ class Staff:
                             self._staff[position_pulses][ruler_type]['enabled'] = staff_pulse[ruler_type]['enabled']
                             self._staff[position_pulses][ruler_type]['total'] = staff_pulse[ruler_type]['total']
 
-        return self.setPlayRange(start=None, finish=None).setTopLengths()
+        return self.setPlayRange(start=None, finish=None)._setTopLengths()
     
-    def setTopLengths(self):
-
-        for value in self.string_top_lengths.values():
-            self.string_top_length = 0
-        for staff_pulse in self._staff: # get maximum sizes
-            for key, value in staff_pulse.items():
-                if key == 'arguments':
-                    self.string_top_lengths['arguments_enabled'] = \
-                        max(self.string_top_lengths['arguments_enabled'], len(f"{staff_pulse['arguments']['enabled']}"))
-                    self.string_top_lengths['arguments_total'] = \
-                        max(self.string_top_lengths['arguments_total'], len(f"{staff_pulse['arguments']['total']}"))
-                elif key == 'actions':
-                    self.string_top_lengths['actions_enabled'] = \
-                        max(self.string_top_lengths['actions_enabled'], len(f"{staff_pulse['actions']['enabled']}"))
-                    self.string_top_lengths['actions_total'] = \
-                        max(self.string_top_lengths['actions_total'], len(f"{staff_pulse['actions']['total']}"))
-                else:
-                    self.string_top_lengths[key] = max(self.string_top_lengths[key], len(f"{value}"))
-
-        self.string_top_length = 0
-        for value in self.string_top_lengths.values():
-            self.string_top_length += value
-
-        return self
-
     def signature(self):
         return {
             'beats_per_measure': self.beats_per_measure,
