@@ -75,12 +75,12 @@ class Player:
 
                 if (enabled_key_rulers > 0):
                     
-                    pulse_key_rulers = self._staff_rulers.filter(types=['arguments'], positions=[position], enabled=True)
+                    pulse_key_rulers = self._staff_rulers.filter(type='arguments', positions=[position], enabled=True)
                     self.internal_key_rulers = (pulse_key_rulers + self.internal_key_rulers).merge()
 
                 if (enabled_action_rulers > 0):
                     
-                    pulse_action_rulers = self._staff_rulers.filter(types=['actions'], positions=[position], enabled=True)
+                    pulse_action_rulers = self._staff_rulers.filter(type='actions', positions=[position], enabled=True)
                     merged_staff_arguments = (self.external_key_rulers + self.internal_key_rulers).merge()
 
                     for triggered_action in pulse_action_rulers.list(): # single ruler actions

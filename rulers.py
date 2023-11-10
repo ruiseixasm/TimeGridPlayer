@@ -23,6 +23,7 @@ class Rulers():
         if root_self != None:
             self.root_self = root_self # type Rulers
 
+        self._next_id = 0
         self._rulers_list = []
         if (rulers_list != None):
             if (FROM_RULERS):
@@ -64,12 +65,20 @@ class Rulers():
 
         return union_rulers - intersection_rulers
     
+    def _str_position(self, position):
+        
+        position_value = [position[0], round(position[1], 3)]
+        if position_value[1] % 1 == 0:
+            position_value = [position_value[0], int(position_value[1])]
+        
+        return f"{position_value}"
+
     def add(self, ruler): # Must be able to remove removed rulers from the main list
         
         if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
 
             structured_ruler = {
-                'id': None,
+                'id': self._next_id,
                 'type': ruler['type'],
                 'group': "main",
                 'position': [0, 0],
@@ -78,14 +87,7 @@ class Rulers():
                 'enabled': True,
                 'on_staff': self._staff != None
             }
-
-            for ruler_id in range(self.root_self.len() + 1): # get available ruler id
-                existent_rulers = [
-                    ruler for ruler in self.root_self._rulers_list if ruler['id'] == ruler_id
-                ]
-                if len(existent_rulers) == 0: # id not found thus available
-                    structured_ruler['id'] = ruler_id
-                    break
+            self._next_id += 1
 
             if 'group' in ruler and ruler['group'] != None:
                 structured_ruler['group'] = ruler['group']
@@ -276,7 +278,7 @@ class Rulers():
             self._staff.remove(self.unique().list())
         return self
     
-    def filter(self, ids = [], types = [], groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
+    def filter(self, ids = [], type = "arguments", groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
 
         filtered_rulers = self._rulers_list.copy()
 
@@ -292,9 +294,13 @@ class Rulers():
             filtered_rulers = [
                 ruler for ruler in filtered_rulers if ruler['id'] in ids
             ]
-        if (len(types) > 0 and types != [None]):
+        if (type != None):
+            if "actions".find(type) != -1:
+                type = "actions"
+            else:
+                type = "arguments"
             filtered_rulers = [
-                ruler for ruler in filtered_rulers if ruler['type'] in types
+                ruler for ruler in filtered_rulers if ruler['type'] == type
             ]
         if (len(groups) > 0 and groups != [None]):
             filtered_rulers = [
@@ -312,6 +318,9 @@ class Rulers():
             ]
         return Rulers(filtered_rulers, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
     
+    def group(self, group="arguments"):
+        return self.filter(groups=[group])
+
     def head(self, elements=1):
         head_rulers_list = self._rulers_list[:elements]
         return Rulers(head_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
@@ -381,7 +390,7 @@ class Rulers():
 
         for type_group in type_groups:
 
-            subject_rulers_list = self.filter(types=[type_group['type']], groups=[type_group['group']]).list()
+            subject_rulers_list = self.filter(type=type_group['type'], groups=[type_group['group']]).list()
                                 
             head_offset = None
             tail_offset = None
@@ -464,10 +473,8 @@ class Rulers():
                     else:
                         ruler_value = ""
                         if key == 'position':
-                            ruler_value = [ruler[key][0], round(ruler[key][1], 3)]
-                            if ruler_value[1] % 1 == 0:
-                                ruler_value = [ruler_value[0], int(ruler_value[1])]
-                        if key == 'lines':
+                            ruler_value = self._str_position(ruler['position'])
+                        elif key == 'lines':
                             ruler_value = len(ruler[key])
                         else:
                             ruler_value = ruler[key]
@@ -494,10 +501,8 @@ class Rulers():
                     else:
                         ruler_value = ""
                         if key == 'position':
-                            ruler_value = [ruler[key][0], round(ruler[key][1], 3)]
-                            if ruler_value[1] % 1 == 0:
-                                ruler_value = [ruler_value[0], int(ruler_value[1])]
-                        if key == 'lines':
+                            ruler_value = self._str_position(ruler['position'])
+                        elif key == 'lines':
                             ruler_value = len(ruler[key])
                         else:
                             ruler_value = ruler[key]
@@ -524,13 +529,19 @@ class Rulers():
         rulers_size = self.len()
         if rulers_size > 0:
             rulers_list = self.list()
+
             head_offset = first_line
             tail_offset = last_line
-            for ruler in rulers_list:
-                if head_offset == None or ruler['offset'] < head_offset:
-                    head_offset = ruler['offset']
-                if tail_offset == None or (len(ruler['lines']) + ruler['offset'] > tail_offset):
-                    tail_offset = len(ruler['lines']) - 1 + ruler['offset']
+
+            if head_offset == None:
+                for ruler in rulers_list:
+                    if head_offset == None or ruler['offset'] < head_offset:
+                        head_offset = ruler['offset']
+            if tail_offset == None:
+                for ruler in rulers_list:
+                    if tail_offset == None or (len(ruler['lines']) + ruler['offset'] > tail_offset):
+                        tail_offset = len(ruler['lines']) - 1 + ruler['offset']
+                        
             total_lines = tail_offset - head_offset + 1
             
             string_top_length = {'sequence': 0, 'id': 0, 'lines': [0] * total_lines}
@@ -906,6 +917,9 @@ class Rulers():
     def tail(self, elements=1):
         tail_rulers_list = self._rulers_list[-elements:]
         return Rulers(tail_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
+
+    def type(self, type="arguments"):
+        return self.filter(type=type)
 
     def unique(self):
         unique_rulers_list = []

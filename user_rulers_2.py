@@ -61,7 +61,7 @@ print("\nROOT\n")
 userRulers.print()
 
 print("\nSTAFF\n")
-staff_grid.print_group_by(level=1)
+staff_grid.printSinglePulse(0, "beat")
 print(f"arguments: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 # print(f"keys: {staff_grid.arguments()} actions: {staff_grid.actions()}")
 
