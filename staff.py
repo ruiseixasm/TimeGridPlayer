@@ -58,10 +58,14 @@ class Staff:
     def _setTopLengths_Sums(self):
 
         staff_list_sums = self._getStaffSums(self._staff)
-        self.string_top_lengths['arguments_enabled'] = staff_list_sums['arguments']['enabled']
-        self.string_top_lengths['arguments_total'] = staff_list_sums['arguments']['total']
-        self.string_top_lengths['actions_enabled'] = staff_list_sums['actions']['enabled']
-        self.string_top_lengths['actions_total'] = staff_list_sums['actions']['total']
+        self.string_top_lengths['arguments_enabled'] = \
+            max(self.string_top_lengths['arguments_enabled'], len(f"{staff_list_sums['arguments']['enabled']}"))
+        self.string_top_lengths['arguments_total'] = \
+            max(self.string_top_lengths['arguments_total'], len(f"{staff_list_sums['arguments']['total']}"))
+        self.string_top_lengths['actions_enabled'] = \
+            max(self.string_top_lengths['actions_enabled'], len(f"{staff_list_sums['actions']['enabled']}"))
+        self.string_top_lengths['actions_total'] = \
+            max(self.string_top_lengths['actions_total'], len(f"{staff_list_sums['actions']['total']}"))
 
         self.string_top_length = 0
         for value in self.string_top_lengths.values():
@@ -175,13 +179,13 @@ class Staff:
     def print(self):
         if len(self._staff) > 0:
             if len(self._staff) > 1:
-                print("$" * (self.string_top_length + 132))
+                print("$" * (self.string_top_length + 128))
 
             for staff_pulse in self._staff:
                 self.printSinglePulse(staff_pulse['pulse'])
 
             if len(self._staff) > 1:
-                print("$" * (self.string_top_length + 132))
+                print("$" * (self.string_top_length + 128))
         else:
             print("[EMPTY]")
         return self
