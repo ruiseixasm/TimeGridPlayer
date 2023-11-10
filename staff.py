@@ -191,25 +191,25 @@ class Staff:
         spaces_between = 6
 
         staff_pulse = self._staff[pulse]
-        pulse_sums = self.pulseSums(staff_pulse['pulse'])
+        pulse_sums = self.pulseSums(staff_pulse['pulse'], sums)
 
         pulse_str = "{ "
         for key, value in staff_pulse.items():
             if key == 'arguments':
-                enabled_value_str = f"{pulse_sums[sums]['arguments']['enabled']}"
+                enabled_value_str = f"{pulse_sums['arguments']['enabled']}"
                 enabled_value_length = len(enabled_value_str)
                 enabled_value_str = "arguments: { enabled: " + (" " * (self.string_top_lengths['arguments_enabled'] - enabled_value_length)) + enabled_value_str
                 enabled_value_str += " " * int(spaces_between / 2)
-                total_value_str = f"{pulse_sums[sums]['arguments']['total']}"
+                total_value_str = f"{pulse_sums['arguments']['total']}"
                 total_value_length = len(total_value_str)
                 total_value_str = "total: " + (" " * (self.string_top_lengths['arguments_total'] - total_value_length)) + total_value_str + " }"
                 pulse_str += enabled_value_str + total_value_str + " " * spaces_between
             elif key == 'actions':
-                enabled_value_str = f"{pulse_sums[sums]['actions']['enabled']}"
+                enabled_value_str = f"{pulse_sums['actions']['enabled']}"
                 enabled_value_length = len(enabled_value_str)
                 enabled_value_str = "actions: { enabled: " + (" " * (self.string_top_lengths['actions_enabled'] - enabled_value_length)) + enabled_value_str
                 enabled_value_str += " " * int(spaces_between / 2)
-                total_value_str = f"{pulse_sums[sums]['actions']['total']}"
+                total_value_str = f"{pulse_sums['actions']['total']}"
                 total_value_length = len(total_value_str)
                 total_value_str = "total: " + (" " * (self.string_top_lengths['actions_total'] - total_value_length)) + total_value_str + " }"
                 pulse_str += enabled_value_str + total_value_str + " " * 0
@@ -291,42 +291,34 @@ class Staff:
             'pulse': 0 # by definition is pulse % pulse = 0
         }
     
-    def pulseSums(self, pulse=0):
-        pulse_sums = {
-            'measure': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}},
-            'beat': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}},
-            'step': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}},
-            'pulse': {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
-        }
+    def pulseSums(self, pulse=0, sums='pulse'):
+        pulse_sums = {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
 
         measure = self._staff[pulse]['measure']
-        measure_list = self.filterList(measure=measure)
-        for staff_pulse in measure_list:
-            pulse_sums['measure']['arguments']['enabled'] += staff_pulse['arguments']['enabled']
-            pulse_sums['measure']['arguments']['total'] += staff_pulse['arguments']['total']
-            pulse_sums['measure']['actions']['enabled'] += staff_pulse['actions']['enabled']
-            pulse_sums['measure']['actions']['total'] += staff_pulse['actions']['total']
-
         beat = self._staff[pulse]['beat']
-        beat_list = self.filterList(beat=beat, list=measure_list)
-        for staff_pulse in beat_list:
-            pulse_sums['beat']['arguments']['enabled'] += staff_pulse['arguments']['enabled']
-            pulse_sums['beat']['arguments']['total'] += staff_pulse['arguments']['total']
-            pulse_sums['beat']['actions']['enabled'] += staff_pulse['actions']['enabled']
-            pulse_sums['beat']['actions']['total'] += staff_pulse['actions']['total']
-
         step = self._staff[pulse]['step']
-        step_list = self.filterList(step=step, list=beat_list)
-        for staff_pulse in step_list:
-            pulse_sums['step']['arguments']['enabled'] += staff_pulse['arguments']['enabled']
-            pulse_sums['step']['arguments']['total'] += staff_pulse['arguments']['total']
-            pulse_sums['step']['actions']['enabled'] += staff_pulse['actions']['enabled']
-            pulse_sums['step']['actions']['total'] += staff_pulse['actions']['total']
 
-        pulse_sums['pulse']['arguments']['enabled'] += self._staff[pulse]['arguments']['enabled']
-        pulse_sums['pulse']['arguments']['total'] += self._staff[pulse]['arguments']['total']
-        pulse_sums['pulse']['actions']['enabled'] += self._staff[pulse]['actions']['enabled']
-        pulse_sums['pulse']['actions']['total'] += self._staff[pulse]['actions']['total']
+        match sums:
+            case 'measure':
+                measure = self._staff[pulse]['measure']
+                filtered_list = self.filterList(measure=measure)
+            case 'beat':
+                measure = self._staff[pulse]['measure']
+                beat = self._staff[pulse]['beat']
+                filtered_list = self.filterList(measure=measure, beat=beat)
+            case 'step':
+                measure = self._staff[pulse]['measure']
+                beat = self._staff[pulse]['beat']
+                step = self._staff[pulse]['step']
+                filtered_list = self.filterList(measure=measure, beat=beat, step=step)
+            case default:
+                filtered_list = [ self._staff[pulse] ]
+
+        for staff_pulse in filtered_list:
+            pulse_sums['arguments']['enabled'] += staff_pulse['arguments']['enabled']
+            pulse_sums['arguments']['total'] += staff_pulse['arguments']['total']
+            pulse_sums['actions']['enabled'] += staff_pulse['actions']['enabled']
+            pulse_sums['actions']['total'] += staff_pulse['actions']['total']
 
         return pulse_sums
     
