@@ -21,7 +21,7 @@ master.rulers().add({'type': "arguments", 'group': "generic", 'position': [3, 0]
 master.rulers().add({'type': "arguments", 'group': "specific", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "specific", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
 master.rulers().add({'type': "arguments", 'group': "specific", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-master.rulers().filter(types=["arguments"]).sort().print().print_lines(-8, 10).roll_lines(-2).print_lines(-8, 10).print()
+master.rulers().filter(types=["arguments"]).sort().print().print_lines(-10, 10).spread_lines(-2).print_lines(-10, 10).print()
 
 # master.staff().print()
 # trigger.staff().print()

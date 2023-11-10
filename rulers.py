@@ -896,6 +896,13 @@ class Rulers():
             return self.reverse_lines()
         return self
 
+    def spread_lines(self, increments=1):
+        rulers_list_size = self.len()
+        for ruler_index in range(rulers_list_size):
+            self._rulers_list[ruler_index]['offset'] += ruler_index * increments
+
+        return self
+
     def tail(self, elements=1):
         tail_rulers_list = self._rulers_list[-elements:]
         return Rulers(tail_rulers_list, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)

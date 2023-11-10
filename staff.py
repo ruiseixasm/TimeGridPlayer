@@ -228,65 +228,6 @@ class Staff:
 
         return self
 
-    def print_group_by(self, level=0):
-        if self.len() > 0:
-            for staff_pulse in self._staff:
-                pulse_remainders = self.pulseRemainders(staff_pulse['pulse'])
-                match level:
-                    case 0:
-                        if pulse_remainders['measure'] == 0:
-                            self.print_level_sums(staff_pulse['pulse'], level)
-                    case 1:
-                        if pulse_remainders['beat'] == 0:
-                            self.print_level_sums(staff_pulse['pulse'], level)
-                    case 2:
-                        if pulse_remainders['step'] == 0:
-                            self.print_level_sums(staff_pulse['pulse'], level)
-                    case 3:
-                        print (staff_pulse)
-                    case _: # default
-                        print("[EMPTY]")
-        else:
-            print("[EMPTY]")
-        return self
-    
-    def print_level_sums(self, pulse=0, level=0):
-        if self.len() > 0:
-            staff_pulse = self._staff[pulse]
-            match level:
-                case 0:
-                    filtered_list = self.filterList(measure=staff_pulse['measure'])
-                    self.print_staff_sums(filtered_list)
-                case 1:
-                    filtered_list = self.filterList(measure=staff_pulse['measure'], beat=staff_pulse['beat'])
-                    self.print_staff_sums(filtered_list)
-                case 2:
-                    filtered_list = self.filterList(measure=staff_pulse['measure'], beat=staff_pulse['beat'], step=staff_pulse['step'])
-                    self.print_staff_sums(filtered_list)
-                case 3:
-                    print (staff_pulse)
-                case _: # default
-                    print("[EMPTY]")
-        else:
-            print("[EMPTY]")
-        return self
-    
-    def print_staff_sums(self, staff_list): # outputs single staff pulse
-        staff_list_pulses = len(staff_list)
-        copy_staff_pulse = staff_list[0].copy() # pulse content copy
-        copy_staff_pulse['arguments'] = copy_staff_pulse['arguments'].copy() # arguments content copy
-        copy_staff_pulse['actions'] = copy_staff_pulse['actions'].copy() # actions content copy
-        if staff_list_pulses > 0:
-            for pulse in range(1, staff_list_pulses):
-                copy_staff_pulse['arguments']['enabled'] += staff_list[pulse]['arguments']['enabled']
-                copy_staff_pulse['arguments']['total'] += staff_list[pulse]['arguments']['total']
-                copy_staff_pulse['actions']['enabled'] += staff_list[pulse]['actions']['enabled']
-                copy_staff_pulse['actions']['total'] += staff_list[pulse]['actions']['total']
-            print(copy_staff_pulse)
-        else:
-            print("[EMPTY]")
-        return self
-    
     def pulseRemainders(self, pulse=0):
         return {
             'measure': pulse % (self.pulses_per_beat * self.beats_per_measure),
@@ -312,7 +253,6 @@ class Staff:
                 filtered_list = self.filterList(measure=measure, beat=beat)
             case 'step':
                 measure = self._staff[pulse]['measure']
-                beat = self._staff[pulse]['beat']
                 step = self._staff[pulse]['step']
                 filtered_list = self.filterList(measure=measure, beat=beat, step=step)
             case default:
