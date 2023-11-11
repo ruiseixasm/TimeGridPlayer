@@ -139,9 +139,14 @@ class Player:
     def staff(self):
         return self._staff
     
+    def start(self):
+        ...
+
     def stop(self):
         ...
 
+    def tick(self):
+        ...
 
     ### ACTIONS ###
 

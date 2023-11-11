@@ -301,7 +301,7 @@ class Staff:
     
     def setStaff(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note  = 24):
 
-        self.size_total_measures = int(max(0, size_measures))                           # staff total size
+        self.size_total_measures = int(max(1, size_measures))                           # staff total size
         self.beats_per_measure = int(max(1, beats_per_measure))                         # beats in each measure
         self.steps_per_beat = 1 if steps_per_beat == 0 else steps_per_beat              # how many steps take each beat
         self.pulses_per_quarter_note = pulses_per_quarter_note                          # sets de resolution of clock pulses
