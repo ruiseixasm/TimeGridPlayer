@@ -22,7 +22,7 @@ class Clock(): # Subject
         self.observer_id = 0
 
     def setClock(self, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
-        pulses_per_beat = converter_PPQN_PPB(pulses_per_quarter_note)
+        pulses_per_beat = steps_per_beat * round(converter_PPQN_PPB(pulses_per_quarter_note) / steps_per_beat)
         self.tempo = {'beats_per_minute': beats_per_minute, 'steps_per_beat': steps_per_beat, 'pulses_per_quarter_note': pulses_per_quarter_note, \
                       'pulses_per_beat': pulses_per_beat, 'fast_forward': False, 'pulse': 0} # pulse sould be True or False were False means just a tick
         self.pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
@@ -97,7 +97,7 @@ class Clock(): # Subject
                     #nextTime = startTime + (pulse - first_pulse) * self.pulse_duration
                     nextTime = startTime + (pulse - first_pulse) * 60.0 / (self.tempo['pulses_per_beat'] * self.tempo['beats_per_minute'])
 
-def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4):
+def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
     STEPS_PER_QUARTER_NOTE = 4
     pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
