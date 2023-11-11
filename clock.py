@@ -12,17 +12,19 @@ Lesser General Public License for more details.'''
 import time
 
 class Clock(): # Subject
-    def __init__(self, beats_per_minute, pulses_per_beat):
+    def __init__(self, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
         """create an empty observer list"""
 
-        self.setClock(beats_per_minute, pulses_per_beat)
+        self.setClock(beats_per_minute, pulses_per_quarter_note, steps_per_beat)
 
         self._observers = []
         self.clock_running = False
         self.observer_id = 0
 
-    def setClock(self, beats_per_minute, pulses_per_beat):
-        self.tempo = {'beats_per_minute': beats_per_minute, 'pulses_per_beat': pulses_per_beat, 'fast_forward': False, 'pulse': 0}
+    def setClock(self, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
+        pulses_per_beat = converter_PPQN_PPB(pulses_per_quarter_note)
+        self.tempo = {'beats_per_minute': beats_per_minute, 'steps_per_beat': steps_per_beat, 'pulses_per_quarter_note': pulses_per_quarter_note, \
+                      'pulses_per_beat': pulses_per_beat, 'fast_forward': False, 'pulse': 0} # pulse sould be True or False were False means just a tick
         self.pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
 
     def getPulseDuration(self, beats_per_minute, pulses_per_beat): # in seconds
@@ -94,6 +96,12 @@ class Clock(): # Subject
                     #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + pulse * self.pulse_duration:.6f}\t{time.time() - startTime:.6f}")
                     #nextTime = startTime + (pulse - first_pulse) * self.pulse_duration
                     nextTime = startTime + (pulse - first_pulse) * 60.0 / (self.tempo['pulses_per_beat'] * self.tempo['beats_per_minute'])
+
+def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4):
+    '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
+    STEPS_PER_QUARTER_NOTE = 4
+    pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
+    return pulses_per_beat
 
 # class Subject:
 

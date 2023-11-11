@@ -31,7 +31,7 @@ master.rulers().filter(type="arguments").sort().print().print_lines(None, 8).spr
 master.connectClock(master_clock)
 note.connectClock(master_clock)
 trigger.connectClock(master_clock)
-#master_clock.start()
+master_clock.start()
 print("\n\n\nNEXT ITERATION\n\n")
 range_pulses = master.staff().setPlayRange([4, 0], [6, 0])
 #master_clock.start(range_pulses)

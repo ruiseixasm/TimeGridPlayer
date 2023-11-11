@@ -13,7 +13,7 @@ import rulers as Rulers
 
 class Staff:
 
-    def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
+    def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note  = 24, play_range=[[], []]):
 
         self._rulers = Rulers.Rulers(staff=self)
         self._staff = []
@@ -23,7 +23,7 @@ class Staff:
         self.play_range = [[], []]
         if play_range != [[], []]:
             self.setPlayRange(start=play_range[0], finish=play_range[1])
-        self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat)
+        self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note )
 
     def _getStaffSums(self, staff_list): # outputs single staff pulse
         staff_list_sums = {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
@@ -267,7 +267,7 @@ class Staff:
         return pulse_sums
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
-        return position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat)
+        return int(position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat))
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -299,14 +299,16 @@ class Staff:
 
         return self
     
-    def setStaff(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24):
+    def setStaff(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note  = 24):
 
-        self.size_total_measures = size_measures            # staff total size
-        self.beats_per_measure = beats_per_measure          # beats in each measure
-        self.steps_per_beat = steps_per_beat                # how many steps take each beat
-        self.pulses_per_beat = pulses_per_beat              # sets de resolution of clock pulses
-        
-        self.total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
+        self.size_total_measures = size_measures                    # staff total size
+        self.beats_per_measure = beats_per_measure                  # beats in each measure
+        self.steps_per_beat = steps_per_beat                        # how many steps take each beat
+        self.pulses_per_quarter_note = pulses_per_quarter_note      # sets de resolution of clock pulses
+
+        self.pulses_per_beat = converter_PPQN_PPB(pulses_per_quarter_note)
+
+        self.total_pulses = int(self.size_total_measures * self.beats_per_measure * self.pulses_per_beat)
 
         old_staff = self._staff[:]
         self._staff = []
@@ -337,6 +339,7 @@ class Staff:
         return {
             'beats_per_measure': self.beats_per_measure,
             'steps_per_beat': self.steps_per_beat,
+            'pulses_per_quarter_note': self.pulses_per_quarter_note,
             'pulses_per_beat': self.pulses_per_beat,
             'pulses_per_step': self.pulses_per_beat / self.steps_per_beat
         }
@@ -366,4 +369,9 @@ def position_lt(left_position, right_position):
             if (left_position[1] < right_position[1]):
                 return True
     return False
-    
+
+def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4):
+    '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
+    STEPS_PER_QUARTER_NOTE = 4
+    pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
+    return pulses_per_beat
