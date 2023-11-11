@@ -101,7 +101,7 @@ def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4):
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
     STEPS_PER_QUARTER_NOTE = 4
     pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
-    return pulses_per_beat
+    return int(pulses_per_beat)
 
 # class Subject:
 

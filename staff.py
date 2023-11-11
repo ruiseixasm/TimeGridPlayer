@@ -267,7 +267,7 @@ class Staff:
         return pulse_sums
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
-        return int(position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat))
+        return position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat)
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -308,7 +308,7 @@ class Staff:
 
         self.pulses_per_beat = converter_PPQN_PPB(pulses_per_quarter_note)
 
-        self.total_pulses = int(self.size_total_measures * self.beats_per_measure * self.pulses_per_beat)
+        self.total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
 
         old_staff = self._staff[:]
         self._staff = []
@@ -374,4 +374,4 @@ def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4):
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
     STEPS_PER_QUARTER_NOTE = 4
     pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
-    return pulses_per_beat
+    return int(pulses_per_beat)
