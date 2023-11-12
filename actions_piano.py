@@ -15,13 +15,13 @@ import midi_tools
 
 class Master(Player.Player):
     
-    def __init__(self, name, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
-        super().__init__(name, size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
+    def __init__(self, name, beats_per_minute=120, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
+        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
 
 class Note(Player.Player):
     
-    def __init__(self, name, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
-        super().__init__(name, size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
+    def __init__(self, name, beats_per_minute=120, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
+        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
         self.windows_synth = midi_tools.Instrument()
         self.windows_synth.connect(name="loop")
         first_position = self._staff.playRange()[0]
@@ -63,7 +63,7 @@ class Note(Player.Player):
 class Trigger(Player.Player):
     
     def __init__(self, name):
-        super().__init__(name, size_measures = 1, beats_per_measure = 1, steps_per_beat = 1) # not self init
+        super().__init__(name, beats_per_minute=120, size_measures = 1, beats_per_measure = 1, steps_per_beat = 1) # not self init
         self._staff_rulers.add({'type': "actions", 'group': "triggers", 'lines': [self]})
 
     ### ACTIONS ###

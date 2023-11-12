@@ -282,14 +282,6 @@ class Rulers():
 
         filtered_rulers = self._rulers_list.copy()
 
-        if (enabled != None):
-            filtered_rulers = [
-                ruler for ruler in filtered_rulers if ruler['enabled'] == enabled
-            ]
-        if (on_staff != None):
-            filtered_rulers = [
-                ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
-            ]
         if (len(ids) > 0 and ids != [None]):
             filtered_rulers = [
                 ruler for ruler in filtered_rulers if ruler['id'] in ids
@@ -315,6 +307,14 @@ class Rulers():
             filtered_rulers = [
                 ruler for ruler in filtered_rulers
                         if not (position_lt(ruler['position'], position_range[0]) and position_lt(ruler['position'], position_range[1]))
+            ]
+        if (enabled != None):
+            filtered_rulers = [
+                ruler for ruler in filtered_rulers if ruler['enabled'] == enabled
+            ]
+        if (on_staff != None):
+            filtered_rulers = [
+                ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
             ]
         return Rulers(filtered_rulers, staff = self._staff, root_self = self.root_self, FROM_RULERS = True)
     
@@ -355,6 +355,17 @@ class Rulers():
     def list(self):
         return self._rulers_list
     
+    def list_actions(self, enabled=None):
+        actions_rulers = self.filter(type="actions", enabled=enabled, on_staff=True)
+        actions_list = []
+
+        for ruler in actions_rulers.list():
+            for action in ruler['lines']:
+                if action != None and action not in actions_list:
+                    actions_list.append(action)
+
+        return actions_list
+
     def list_lines(self):
         all_lines = []
         for ruler in self._rulers_list:
@@ -541,7 +552,7 @@ class Rulers():
                 for ruler in rulers_list:
                     if tail_offset == None or (len(ruler['lines']) + ruler['offset'] > tail_offset):
                         tail_offset = len(ruler['lines']) - 1 + ruler['offset']
-                        
+
             total_lines = tail_offset - head_offset + 1
             
             string_top_length = {'sequence': 0, 'id': 0, 'lines': [0] * total_lines}

@@ -16,7 +16,7 @@ master_clock = Clock.Clock(80, 24)
 
 master = Piano.Master("master")
 trigger = Piano.Trigger("trigger")
-note = Piano.Note("notes", 1, 4, 1, play_range=[[0, 0], [1, 0]])
+note = Piano.Note("notes", 120, 1, 4, 1, play_range=[[0, 0], [1, 0]])
 
 print("\n\n")
 

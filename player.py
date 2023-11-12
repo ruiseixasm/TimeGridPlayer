@@ -10,15 +10,19 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import staff as Staff
+import clock_new as Clock
 
 class Player:
 
-    def __init__(self, name, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []], staff = None):
+    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []], staff=None):
 
         self._name = name
         self._staff = staff
         if self._staff == None:
-            self._staff = Staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range)
+            self._staff = Staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range)
+
+        self._clock = Clock.Clock(self, beats_per_measure, pulses_per_quarter_note, steps_per_beat)
+        self._internal_clock = False
 
         self._staff_rulers = self._staff.getRulers()
         self.internal_key_rulers = self._staff_rulers.empty()
@@ -56,7 +60,8 @@ class Player:
         return self._staff
 
     def play(self):
-        ...
+        while False:
+            ...
 
     def pulse(self, tempo):
         
