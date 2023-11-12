@@ -12,37 +12,35 @@ Lesser General Public License for more details.'''
 import time
 
 class Clock(): # Subject
-    def __init__(self, player, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
+    def __init__(self, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
         """create an empty observer list"""
 
-        self._player = player
         self.setClock(beats_per_minute, pulses_per_quarter_note, steps_per_beat)
 
         self._observers = []
-        self._clock_running = False
+        self.clock_running = False
         self.observer_id = 0
 
     def setClock(self, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
         pulses_per_beat = steps_per_beat * round(converter_PPQN_PPB(pulses_per_quarter_note) / steps_per_beat)
-
-        self._tempo = {'beats_per_minute': beats_per_minute, 'steps_per_beat': steps_per_beat, 'pulses_per_quarter_note': pulses_per_quarter_note, \
-                      'pulses_per_beat': pulses_per_beat}
-        self._pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
+        self.tempo = {'beats_per_minute': beats_per_minute, 'steps_per_beat': steps_per_beat, 'pulses_per_quarter_note': pulses_per_quarter_note, \
+                      'pulses_per_beat': pulses_per_beat, 'fast_forward': False, 'pulse': 0} # pulse sould be True or False were False means just a tick
+        self.pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
 
     def getPulseDuration(self, beats_per_minute, pulses_per_beat): # in seconds
         return 60.0 / (pulses_per_beat * beats_per_minute)
     
     def getClockTempo(self):
-        return self._tempo
+        return self.tempo
 
     def notify(self):
         """Pulses the observers"""
         self.observer_id = 0
         # triggers top action observer as the master one on the first pulse
-        if (self._tempo['pulse'] == 0):
+        if (self.tempo['pulse'] == 0):
             self._observers[0].actionExternalTrigger()
         for observer in self._observers:
-            observer.pulse(self._tempo) # calls the Observers update method
+            observer.pulse(self.tempo) # calls the Observers update method
             self.observer_id += 1
             #print("PULSE")
 
@@ -64,11 +62,11 @@ class Clock(): # Subject
 
     def stop(self, FORCE_STOP = False):
         if (self.observer_id == 0 or FORCE_STOP):
-            self._clock_running = False
+            self.clock_running = False
 
     def start(self, non_fast_forward_range_pulses = []): # Where a non fast forward range is set
 
-        self._clock_running = True
+        self.clock_running = True
         first_pulse = 0
         last_pulse = None
 
@@ -81,27 +79,23 @@ class Clock(): # Subject
         startTime = None
         nextTime = 0
         pulse = 0
-        while (self._clock_running and len(self._observers) > 0):
+        while (self.clock_running and len(self._observers) > 0):
             if (pulse < first_pulse or (last_pulse != None and pulse > last_pulse)):
-                self._tempo['fast_forward'] = True
+                self.tempo['fast_forward'] = True
             else:
-                self._tempo['fast_forward'] = False
+                self.tempo['fast_forward'] = False
                 if (startTime == None):
                     startTime = time.time() # in seconds
                     nextTime = startTime
 
-            if nextTime < time.time() or self._tempo['fast_forward'] == True:
-                self._tempo['pulse'] = pulse
+            if nextTime < time.time() or self.tempo['fast_forward'] == True:
+                self.tempo['pulse'] = pulse
                 pulse += 1
                 self.notify()
                 if (startTime != None):
-                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + pulse * self._pulse_duration:.6f}\t{time.time() - startTime:.6f}")
-                    #nextTime = startTime + (pulse - first_pulse) * self._pulse_duration
-                    nextTime = startTime + (pulse - first_pulse) * 60.0 / (self._tempo['pulses_per_beat'] * self._tempo['beats_per_minute'])
-
-    def tick(self):
-        tick = {'tempo': self._tempo, 'fast_forward': False, 'pulse': False, 'clock': self, 'player': self._player} # pulse sould be True or False were False means just a tick
-        return self.tick
+                    #print(f"CLOCK:\t\t{nextTime:.6f}\t{startTime + pulse * self.pulse_duration:.6f}\t{time.time() - startTime:.6f}")
+                    #nextTime = startTime + (pulse - first_pulse) * self.pulse_duration
+                    nextTime = startTime + (pulse - first_pulse) * 60.0 / (self.tempo['pulses_per_beat'] * self.tempo['beats_per_minute'])
 
 def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''

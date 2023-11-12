@@ -10,48 +10,43 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import staff as Staff
-import clock_new as Clock
+import clock as Clock
 
 class Player:
 
-    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []], staff=None):
+    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24,
+                 play_range=[[], []], staff=None):
 
         self._name = name
         self._staff = staff
         if self._staff == None:
             self._staff = Staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range)
 
-        self._clock = Clock.Clock(self, beats_per_measure, pulses_per_quarter_note, steps_per_beat)
+        self._clock = Clock.Clock(self, beats_per_minute, pulses_per_quarter_note, steps_per_beat)
         self._internal_clock = False
 
         self._staff_rulers = self._staff.getRulers()
         self.internal_key_rulers = self._staff_rulers.empty()
         self.external_key_rulers = self._staff_rulers.empty()
 
-        self.play_mode = False
-        self.play_pulse = self.rangePulses()['start']
+        self._play_mode = False
+        self._play_pulse = self.rangePulses()['start']
 
-        self.clock = None
         self.clocked_actions = []
         self.next_clocked_pulse = -1
 
-    def addClockedAction(self, clocked_action): # Clocked actions AREN'T rulers!
-        if (clocked_action['duration'] != None and clocked_action['action'] != None and self.clock != None):
-            clock_tempo = self.clock.getClockTempo()
+    def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
+        if (clocked_action['duration'] != None and clocked_action['action'] != None):
             pulses_duration = clocked_action['duration'] * self._staff.signature()['pulses_per_step'] # Action pulses per step considered
-            clocked_action['pulse'] = round(clock_tempo['pulse'] + pulses_duration)
+            clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
             clocked_action['source'] = "clock" # to know the source of the trigger
             clocked_action['stack_id'] = len(self.clocked_actions)
             self.clocked_actions.append(clocked_action)
 
-            if (not self.next_clocked_pulse < clock_tempo['pulse']):
+            if (not self.next_clocked_pulse < tick['pulse']):
                 self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
             else:
                 self.next_clocked_pulse = clocked_action['pulse']
-
-    def connectClock(self, clock):
-        self.clock = clock
-        self.clock.attach(self)
 
     def getRulers(self):
         return self._staff_rulers
@@ -59,24 +54,51 @@ class Player:
     def getStaff(self):
         return self._staff
 
-    def play(self):
-        while False:
-            ...
+    def isPlaying(self):
+        return self._play_mode
 
-    def pulse(self, tempo):
+    def play(self, start, finish):
+
+        clocked_actions = [self]
+        clocked_actions = self._staff_rulers.list_actions(True, clocked_actions)
+
+        non_fast_forward_range = [None, None]
+        if start != None:
+            non_fast_forward_range[0] = self._staff.pulses(start)
+        if finish != None:
+            non_fast_forward_range[1] = self._staff.pulses(finish)
+
+        self.start()
+        self._clock.start(non_fast_forward_range)
+
+        still_playing = True
+        while still_playing:
+
+            tick = self._clock.tick()
+            if tick['pulse'] != None:
+                still_playing = False
+                for action in clocked_actions:
+                    action.pulse(tick)
+                    if action.isPlaying():
+                        still_playing = True
         
-        if (self.play_mode):
+        self._clock.stop()
+        self.stop()
 
-            if (self.play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
+    def pulse(self, tick):
 
-                position = self._staff.position(pulses=self.play_pulse)
-                enabled_key_rulers = self._staff.filterList(pulse=self.play_pulse)[0]['arguments']['enabled']
-                enabled_action_rulers = self._staff.filterList(pulse=self.play_pulse)[0]['actions']['enabled']
+        if self._play_mode:
+        
+            if (self._play_pulse < self.rangePulses()['finish']): # plays staff range from start to finish
 
-                if self._staff.pulseRemainders(self.play_pulse)['beat'] == 0:
+                position = self._staff.position(pulses=self._play_pulse)
+                enabled_key_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
+                enabled_action_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
+
+                if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self:
                     # str_position = self._staff.str_position(pulses=position)
-                    # print(f"{self.play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tempo['fast_forward']}\t{tempo['pulse']}\t{self.next_clocked_pulse}")
-                    self._staff.printSinglePulse(self.play_pulse)
+                    # print(f"{self._play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tick['fast_forward']}\t{tick['pulse']}\t{self.next_clocked_pulse}")
+                    self._staff.printSinglePulse(self._play_pulse)
 
                 if (enabled_key_rulers > 0):
                     
@@ -101,29 +123,28 @@ class Player:
                                 action_object = triggered_action['lines'][action_line]
 
                                 if (action_object == self):        
-                                    action_object.actionInternalTrigger(triggered_action, merged_staff_arguments, tempo) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionInternalTrigger(triggered_action, merged_staff_arguments, tick) # WHERE ACTION IS TRIGGERED
                                 else:        
-                                    action_object.actionExternalTrigger(triggered_action, merged_staff_arguments, tempo) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionExternalTrigger(triggered_action, merged_staff_arguments, tick) # WHERE ACTION IS TRIGGERED
 
-                self.play_pulse += 1
+                self._play_pulse += 1
 
             else:
-                self.clock.stop()
-                self.play_mode = False
-                self.play_pulse = self.rangePulses()['start']
+                self._play_mode = False
+                self._play_pulse = self.rangePulses()['start']
 
         # clock triggers staked to be called
-        if (self.next_clocked_pulse == tempo['pulse']):
+        if (self.next_clocked_pulse == tick['pulse']):
             clockedActions = [
-                clockedAction for clockedAction in self.clocked_actions if clockedAction['pulse'] == tempo['pulse']
+                clockedAction for clockedAction in self.clocked_actions if clockedAction['pulse'] == tick['pulse']
             ].copy() # To enable deletion of the original list while looping
 
             for clockedAction in clockedActions:
                 action_object = clockedAction['action']
                 if (action_object == self):        
-                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_arguments'], tempo) # WHERE ACTION IS TRIGGERED
+                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
                 else:        
-                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_arguments'], tempo) # WHERE ACTION IS TRIGGERED
+                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
                     
             for clockedAction in clockedActions:
                 del(self.clocked_actions[clockedAction['stack_id']])
@@ -141,25 +162,25 @@ class Player:
     def rulers(self):
         return self._staff_rulers
 
+    def setPlayMode(self, play_mode):
+        self._play_mode = play_mode
+
     def staff(self):
         return self._staff
     
     def start(self):
-        ...
+        self._play_mode = True
 
     def stop(self):
-        ...
-
-    def tick(self):
-        ...
+        self._play_mode = False
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
-        self.play_mode = True
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tick = {}):
+        self._play_mode = True
         self.external_staff_arguments = merged_staff_arguments # becomes read only, no need to copy
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tick = {}):
         ...
 
     ### CLASS ###

@@ -15,46 +15,50 @@ import midi_tools
 
 class Master(Player.Player):
     
-    def __init__(self, name, beats_per_minute=120, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
-        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
+    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
+        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
 
 class Note(Player.Player):
     
-    def __init__(self, name, beats_per_minute=120, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_beat = 24, play_range=[[], []]):
-        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_beat, play_range) # not self init
+    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
+        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
         self.windows_synth = midi_tools.Instrument()
         self.windows_synth.connect(name="loop")
         first_position = self._staff.playRange()[0]
         self._staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
-        self.note = None
+        self._note = {'key': "C", 'octave': 4, 'velocity': 100}
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
-        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tempo)
-        if (tempo['fast_forward']):
-            self.play_mode = False
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
+        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tick)
+        if (tick['fast_forward']):
+            self.setPlayMode(False)
         if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
             given_lines = merged_staff_arguments.list()[0]['lines']
             key_line = merged_staff_arguments.list()[0]['line']
             key_value = given_lines[key_line]
-            self.note = key_value # may need tranlation!
+            self._note['key'] = key_value # may need tranlation!
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
-        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tempo)
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
+        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tick)
+
         if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
             given_lines = merged_staff_arguments.list()[0]['lines']
             key_line = merged_staff_arguments.list()[0]['line']
             key_value = given_lines[key_line]
         else:
-            key_value = self.note # may need tranlation!
+            key_value = self._note['key'] # may need tranlation!
+
         if (triggered_action['source'] == "staff"):
+
             print(f"note ON:\t{key_value}")
             note = {'key': key_value, 'octave': 4, 'velocity': 100}
             self.windows_synth.pressNote(note)
-            self.addClockedAction(clocked_action =
-                                  {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4, 'action': self}
-                                  )
+            self.addClockedAction(
+                {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4, 'action': self},
+                tick
+            )
         else:
             print(f"note OFF:\t{key_value}")
             note = {'key': key_value, 'octave': 4, 'velocity': 100}
@@ -63,17 +67,17 @@ class Note(Player.Player):
 class Trigger(Player.Player):
     
     def __init__(self, name):
-        super().__init__(name, beats_per_minute=120, size_measures = 1, beats_per_measure = 1, steps_per_beat = 1) # not self init
+        super().__init__(name, beats_per_minute=120, size_measures=1, beats_per_measure=1, steps_per_beat=1) # not self init
         self._staff_rulers.add({'type': "actions", 'group': "triggers", 'lines': [self]})
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
-        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tempo)
+    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
+        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tick)
         print("EXTERNALLY TRIGGERED")
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tempo = {}):
-        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tempo)
+    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
+        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tick)
         print("LOCALLY TRIGGERED")
 
     # def __str__(self):
