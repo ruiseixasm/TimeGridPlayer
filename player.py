@@ -48,8 +48,11 @@ class Player:
             else:
                 self.next_clocked_pulse = clocked_action['pulse']
 
+        return self
+
     def finish(self):
-        ...
+        if self._internal_clock:
+            self._clock.stop()
 
     def getClock(self):
         return self._clock
@@ -68,16 +71,15 @@ class Player:
         clocked_actions = [self]
         clocked_actions = self._staff_rulers.list_actions(True, clocked_actions)
 
+        for action in clocked_actions:
+            action.start()
+        
         non_fast_forward_range = [None, None]
         if start != None:
             non_fast_forward_range[0] = self._staff.pulses(start)
         if finish != None:
             non_fast_forward_range[1] = self._staff.pulses(finish)
 
-
-        for action in clocked_actions:
-            action.start()
-        
         self._play_mode = True
         self._clock.start(non_fast_forward_range)
 
@@ -85,17 +87,18 @@ class Player:
         while still_playing:
 
             tick = self._clock.tick()
-            if tick['pulse'] != None:
-                still_playing = False
-                for action in clocked_actions:
-                    action.pulse(tick)
-                    if action.isPlaying():
-                        still_playing = True
+            still_playing = False
+            for action in clocked_actions:
+                action.tick(tick)
+                if action.isPlaying():
+                    still_playing = True
         
         self._clock.stop()
         for action in clocked_actions:
             action.finish()
         self._play_mode = False
+
+        return self
 
     def pulse(self, tick):
 
@@ -165,6 +168,8 @@ class Player:
                 for clocked_action in self.clocked_actions:
                     self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
 
+        return self
+
     def rangePulses(self):
         range_pulses = self._staff.playRange()
         start_pulses = self._staff.pulses(range_pulses[0])
@@ -174,14 +179,30 @@ class Player:
     def rulers(self):
         return self._staff_rulers
 
+    def setInternalClock(self, internal_clock=False):
+        self._internal_clock = internal_clock
+
+        return self
+
     def setPlayMode(self, play_mode):
         self._play_mode = play_mode
+
+        return self
 
     def staff(self):
         return self._staff
     
     def start(self):
-        ...
+        if self._internal_clock:
+            self._clock.start()
+        return self
+
+    def tick(self, tick):
+        if self._internal_clock:
+            tick = self._clock.tick()
+        if tick['pulse'] != None:
+            self.pulse(tick)
+        return self
 
     ### ACTIONS ###
 

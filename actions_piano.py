@@ -27,9 +27,11 @@ class Note(Player.Player):
         self._note = {'key': "C", 'octave': 4, 'velocity': 100}
 
     def finish(self):
+        super().finish()
         self._midi_synth.disconnect()
 
     def start(self):
+        super().start()
         self._midi_synth.connect(name="loop")
 
     ### ACTIONS ###

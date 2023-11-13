@@ -356,10 +356,10 @@ class Rulers():
         return self._rulers_list
     
     def list_actions(self, enabled=None, actions_list=None):
-        actions_rulers = self.filter(type="actions", enabled=enabled, on_staff=True)
         if actions_list == None:
             actions_list = []
 
+        actions_rulers = self.filter(type="actions", enabled=enabled, on_staff=True).sort(key='id')
         for ruler in actions_rulers.list():
             for action in ruler['lines']:
                 if action != None and action not in actions_list:
