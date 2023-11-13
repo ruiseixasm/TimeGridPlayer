@@ -36,33 +36,33 @@ class Note(Player.Player):
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
-        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tick)
+    def actionExternalTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        super().actionExternalTrigger(triggered_action, merged_staff_arguments, staff, tick)
         if (tick['fast_forward']):
             self._play_mode = False
-        if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
+        if (merged_staff_arguments.len() > 0):
             given_lines = merged_staff_arguments.list()[0]['lines']
             key_line = merged_staff_arguments.list()[0]['line']
             key_value = given_lines[key_line]
             self._note['key'] = key_value # may need tranlation!
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
-        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tick)
+    def actionInternalTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        super().actionInternalTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
-        if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
+        if (merged_staff_arguments.len() > 0):
             given_lines = merged_staff_arguments.list()[0]['lines']
             key_line = merged_staff_arguments.list()[0]['line']
             key_value = given_lines[key_line]
         else:
             key_value = self._note['key'] # may need tranlation!
 
-        if (triggered_action['source'] == "staff"):
+        if (staff != None):
 
             print(f"note ON:\t{key_value}")
             note = {'key': key_value, 'octave': 4, 'velocity': 100}
             self._midi_synth.pressNote(note)
             # needs to convert steps duration accordingly to callers time signature
-            duration_converter = tick['tempo']['steps_per_beat'] / self._staff.signature()['steps_per_beat']
+            duration_converter = staff.signature()['steps_per_beat'] / self._staff.signature()['steps_per_beat']
             self.addClockedAction(
                 {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4 * duration_converter, 'action': self},
                 tick
@@ -80,12 +80,12 @@ class Trigger(Player.Player):
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
-        super().actionExternalTrigger(triggered_action, merged_staff_arguments, tick)
+    def actionExternalTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        super().actionExternalTrigger(triggered_action, merged_staff_arguments, staff, tick)
         print("EXTERNALLY TRIGGERED")
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
-        super().actionInternalTrigger(triggered_action, merged_staff_arguments, tick)
+    def actionInternalTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        super().actionInternalTrigger(triggered_action, merged_staff_arguments, staff, tick)
         print("LOCALLY TRIGGERED")
 
     # def __str__(self):

@@ -39,7 +39,6 @@ class Player:
         if (clocked_action['duration'] != None and clocked_action['action'] != None):
             pulses_duration = clocked_action['duration'] * self._staff.signature()['pulses_per_step'] # Action pulses per step considered
             clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
-            clocked_action['source'] = "clock" # to know the source of the trigger
             clocked_action['stack_id'] = len(self.clocked_actions)
             self.clocked_actions.append(clocked_action)
 
@@ -129,7 +128,6 @@ class Player:
                         for action_line in range(len(triggered_action['lines'])):
                             if (triggered_action['lines'][action_line] != None):
                                 triggered_action['line'] = action_line
-                                triggered_action['source'] = "staff" # to know the source of the trigger
                                 for key_ruler in merged_staff_arguments.list():
                                     key_ruler['line'] = action_line + triggered_action['offset'] - key_ruler['offset']
                                     if (key_ruler['line'] < 0 or not (key_ruler['line'] < len(key_ruler['lines']))):
@@ -138,9 +136,9 @@ class Player:
                                 action_object = triggered_action['lines'][action_line]
 
                                 if (action_object == self):        
-                                    action_object.actionInternalTrigger(triggered_action, merged_staff_arguments, tick) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionInternalTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
                                 else:        
-                                    action_object.actionExternalTrigger(triggered_action, merged_staff_arguments, tick) # WHERE ACTION IS TRIGGERED
+                                    action_object.actionExternalTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                 self._play_pulse += 1
 
@@ -157,9 +155,9 @@ class Player:
             for clockedAction in clockedActions:
                 action_object = clockedAction['action']
                 if (action_object == self):        
-                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
+                    action_object.actionInternalTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
                 else:        
-                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
+                    action_object.actionExternalTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
                     
             for clockedAction in clockedActions:
                 del(self.clocked_actions[clockedAction['stack_id']])
@@ -206,11 +204,11 @@ class Player:
 
     ### ACTIONS ###
 
-    def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tick = {}):
+    def actionExternalTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
         self._play_mode = True
         self.external_staff_arguments = merged_staff_arguments # becomes read only, no need to copy
 
-    def actionInternalTrigger(self, triggered_action = {}, merged_staff_arguments = None, tick = {}):
+    def actionInternalTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
         ...
 
     ### CLASS ###
