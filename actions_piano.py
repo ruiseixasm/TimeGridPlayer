@@ -80,7 +80,3 @@ class Trigger(Player.Player):
 
             case default: # EXTERNAL TRIGGER
                 print("EXTERNALLY TRIGGERED")
-
-    # def __str__(self):
-    #     finalString = f"{pulse['pulse']}\t{pulse['position']}\n"
-    #     return finalString
