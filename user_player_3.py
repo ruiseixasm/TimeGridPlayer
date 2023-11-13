@@ -39,5 +39,5 @@ master.rulers().filter(type="arguments").sort().print().print_lines(None, 8).spr
 #master.play()
 print("\n\n\nNEXT ITERATION\n\n")
 #range_pulses = master.staff().setPlayRange([4, 0], [6, 0])
-master.play([1, 0], [5, 0])
+master.play([1, 0], [4, 0])
 

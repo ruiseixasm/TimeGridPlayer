@@ -12,42 +12,6 @@ Lesser General Public License for more details.'''
 import rtmidi
 import time
 
-def getMidiNote(note={'key': "C", 'octave': 4}): # middle C by default
-    """Octaves range from -1 to 9"""
-    key_str = note['key'].upper()
-    midi_key = 0
-    # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-    str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
-
-    for index in range(12):
-        if key_str[0] == str_keys[index]:
-            midi_key = index
-            break
-
-    midi_key += (note['octave'] + 1) * 12 # first octave is -1
-
-    if (len(key_str) > 1):
-        if key_str[1] == '#':
-            midi_key += 1
-        elif key_str[1] == 'B': # upper b meaning flat
-            midi_key -= 1
-
-    return min(127, max(0, midi_key))
-
-def getNote(midi_note=60):
-    str_keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-
-    note_octave = int(midi_note / 12) - 1
-    note_key = str_keys[midi_note % 12]
-
-    return {'key': note_key, 'octave': note_octave}
-
-def transposeNote(note={'key': "C", 'octave': 4}, octaves=0, notes=0):
-    midi_note = getMidiNote(note)
-    midi_note += octaves * 12 + notes
-    midi_note = min(127, max(0, midi_note))
-    return getNote(midi_note)
-
 class Instrument():
     
     def __init__(self):
@@ -188,6 +152,42 @@ class Instrument():
         message = [command, parameter_1, parameter_2]
         return self.sendMessage(message)
     
+def getMidiNote(note={'key': "C", 'octave': 4}): # middle C by default
+    """Octaves range from -1 to 9"""
+    key_str = note['key'].upper()
+    midi_key = 0
+    # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
+
+    for index in range(12):
+        if key_str[0] == str_keys[index]:
+            midi_key = index
+            break
+
+    midi_key += (note['octave'] + 1) * 12 # first octave is -1
+
+    if (len(key_str) > 1):
+        if key_str[1] == '#':
+            midi_key += 1
+        elif key_str[1] == 'B': # upper b meaning flat
+            midi_key -= 1
+
+    return min(127, max(0, midi_key))
+
+def getNote(midi_note=60):
+    str_keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
+    note_octave = int(midi_note / 12) - 1
+    note_key = str_keys[midi_note % 12]
+
+    return {'key': note_key, 'octave': note_octave}
+
+def transposeNote(note={'key': "C", 'octave': 4}, octaves=0, notes=0):
+    midi_note = getMidiNote(note)
+    midi_note += octaves * 12 + notes
+    midi_note = min(127, max(0, midi_note))
+    return getNote(midi_note)
+
 
 # MIDI beat clock defines the following real-time messages:
 

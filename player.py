@@ -48,6 +48,12 @@ class Player:
             else:
                 self.next_clocked_pulse = clocked_action['pulse']
 
+    def finish(self):
+        ...
+
+    def getClock(self):
+        return self._clock
+
     def getRulers(self):
         return self._staff_rulers
 
@@ -68,7 +74,11 @@ class Player:
         if finish != None:
             non_fast_forward_range[1] = self._staff.pulses(finish)
 
-        self.start()
+
+        for action in clocked_actions:
+            action.start()
+        
+        self._play_mode = True
         self._clock.start(non_fast_forward_range)
 
         still_playing = True
@@ -83,7 +93,9 @@ class Player:
                         still_playing = True
         
         self._clock.stop()
-        self.stop()
+        for action in clocked_actions:
+            action.finish()
+        self._play_mode = False
 
     def pulse(self, tick):
 
@@ -169,10 +181,7 @@ class Player:
         return self._staff
     
     def start(self):
-        self._play_mode = True
-
-    def stop(self):
-        self._play_mode = False
+        ...
 
     ### ACTIONS ###
 

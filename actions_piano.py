@@ -12,7 +12,6 @@ Lesser General Public License for more details.'''
 import player as Player
 import midi_tools
 
-
 class Master(Player.Player):
     
     def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
@@ -22,18 +21,23 @@ class Note(Player.Player):
     
     def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
         super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
-        self.windows_synth = midi_tools.Instrument()
-        self.windows_synth.connect(name="loop")
+        self._midi_synth = midi_tools.Instrument()
         first_position = self._staff.playRange()[0]
         self._staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
         self._note = {'key': "C", 'octave': 4, 'velocity': 100}
+
+    def finish(self):
+        self._midi_synth.disconnect()
+
+    def start(self):
+        self._midi_synth.connect(name="loop")
 
     ### ACTIONS ###
 
     def actionExternalTrigger(self, triggered_action = {}, merged_staff_arguments=None, tick = {}):
         super().actionExternalTrigger(triggered_action, merged_staff_arguments, tick)
         if (tick['fast_forward']):
-            self.setPlayMode(False)
+            self._play_mode = False
         if (merged_staff_arguments != None and merged_staff_arguments.len() > 0):
             given_lines = merged_staff_arguments.list()[0]['lines']
             key_line = merged_staff_arguments.list()[0]['line']
@@ -54,7 +58,7 @@ class Note(Player.Player):
 
             print(f"note ON:\t{key_value}")
             note = {'key': key_value, 'octave': 4, 'velocity': 100}
-            self.windows_synth.pressNote(note)
+            self._midi_synth.pressNote(note)
             self.addClockedAction(
                 {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4, 'action': self},
                 tick
@@ -62,7 +66,7 @@ class Note(Player.Player):
         else:
             print(f"note OFF:\t{key_value}")
             note = {'key': key_value, 'octave': 4, 'velocity': 100}
-            self.windows_synth.releaseNote(note)
+            self._midi_synth.releaseNote(note)
 
 class Trigger(Player.Player):
     
