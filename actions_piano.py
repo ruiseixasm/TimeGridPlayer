@@ -61,8 +61,10 @@ class Note(Player.Player):
             print(f"note ON:\t{key_value}")
             note = {'key': key_value, 'octave': 4, 'velocity': 100}
             self._midi_synth.pressNote(note)
+            # needs to convert steps duration accordingly to callers time signature
+            duration_converter = tick['tempo']['steps_per_beat'] / self._staff.signature()['steps_per_beat']
             self.addClockedAction(
-                {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4, 'action': self},
+                {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4 * duration_converter, 'action': self},
                 tick
             )
         else:
