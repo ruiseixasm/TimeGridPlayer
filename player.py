@@ -110,7 +110,7 @@ class Player:
                 if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self:
                     # str_position = self._staff.str_position(pulses=position)
                     # print(f"{self._play_pulse}\t{str_position}\t{enabled_key_rulers}\t{enabled_action_rulers}\t{tick['fast_forward']}\t{tick['pulse']}\t{self.next_clocked_pulse}")
-                    self._staff.printSinglePulse(self._play_pulse)
+                    self._staff.printSinglePulse(self._play_pulse, extra_string=f" ticks: {tick['tick_pulse']}")
 
                 if (enabled_key_rulers > 0):
                     

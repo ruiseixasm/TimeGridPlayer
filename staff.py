@@ -190,7 +190,7 @@ class Staff:
             print("[EMPTY]")
         return self
     
-    def printSinglePulse(self, pulse=0, sums='pulse'):
+    def printSinglePulse(self, pulse=0, sums='pulse', extra_string=""):
 
         spaces_between = 6
 
@@ -224,7 +224,7 @@ class Staff:
                 key_value_str = f"{key}: " + key_value_str
                 pulse_str += key_value_str + " " * spaces_between
         pulse_str += " }"
-        print(pulse_str)
+        print(pulse_str + extra_string)
 
         return self
 

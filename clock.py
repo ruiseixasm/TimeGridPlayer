@@ -36,15 +36,19 @@ class Clock():
         if non_fast_forward_range_pulses != None and non_fast_forward_range_pulses != [] and len(non_fast_forward_range_pulses) == 2:
             self._non_fast_forward_range_pulses = non_fast_forward_range_pulses
 
+        self._tick_pulse = 0
         self._next_pulse = 0
         self._next_pulse_time = time.time()
 
-        self._tick = {'tempo': self._tempo, 'pulse': None, 'clock': self, 'player': self._player, 'fast_forward': False}
+        self._tick = {'tempo': self._tempo, 'pulse': None, 'clock': self, 'player': self._player, 'fast_forward': False, 'tick_pulse': 0}
         
     def stop(self, FORCE_STOP = False):
         ...
 
     def tick(self):
+
+        self._tick['tick_pulse'] = self._tick_pulse
+        self._tick_pulse += 1
 
         if not self._next_pulse_time > time.time():
 
@@ -57,6 +61,8 @@ class Clock():
                 self._next_pulse_time += self._pulse_duration
             else:
                 self._next_pulse_time = time.time()
+                
+            self._tick_pulse = 0
             self._next_pulse += 1
 
         else:
