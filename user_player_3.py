@@ -14,7 +14,7 @@ import actions_piano as Piano
 master = Piano.Master("master")
 trigger = Piano.Trigger("trigger")
 note = Piano.Note("notes", 440, 1, 4, 1, play_range=[[0, 0], [1, 0]])
-note.setInternalClock(True)
+note.useInternalClock(True)
 
 print("\n\n")
 

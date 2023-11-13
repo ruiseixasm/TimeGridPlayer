@@ -179,11 +179,6 @@ class Player:
     def rulers(self):
         return self._staff_rulers
 
-    def setInternalClock(self, internal_clock=False):
-        self._internal_clock = internal_clock
-
-        return self
-
     def setPlayMode(self, play_mode):
         self._play_mode = play_mode
 
@@ -202,6 +197,11 @@ class Player:
             tick = self._clock.tick()
         if tick['pulse'] != None:
             self.pulse(tick)
+        return self
+
+    def useInternalClock(self, internal_clock=False):
+        self._internal_clock = internal_clock
+
         return self
 
     ### ACTIONS ###
