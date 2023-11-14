@@ -10,7 +10,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import player as Player
-import midi_tools
 
 class Master(Player.Player):
     
@@ -19,31 +18,25 @@ class Master(Player.Player):
 
 class Note(Player.Player):
     
-    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
+    def __init__(self, name, midi_synth, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
         super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
-        self._midi_synth = midi_tools.Instrument()
-        first_position = self._staff.playRange()[0]
-        #self._staff_rulers.add({'type': "actions", 'group': "notes", 'position': first_position, 'lines': [self]})
-        self._note = {'key': "C", 'octave': 4, 'velocity': 100}
+        self._midi_synth = midi_synth
 
-    def finish(self):
-        super().finish()
-        self._midi_synth.disconnect()
+    class Action(Player.Player.Action):
+        
+        def __init__(self, player, midi_synth):
+            super().__init__(player) # not self init
+            self._midi_synth = midi_synth
+            self._note = {'key': "C", 'octave': 4, 'velocity': 100}
 
-    def start(self):
-        super().start()
-        self._midi_synth.connect(name="loop")
+        ### ACTIONS ###
 
-    ### ACTIONS ###
-
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-        super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
-        match staff:
-            case None: # CLOCKED TRIGGER
+        def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+            super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+            if staff == None: # CLOCKED TRIGGER
                 print(f"note OFF:\t{self._note['key']}")
                 self._midi_synth.releaseNote(self._note)
-
-            case default: # EXTERNAL TRIGGER OR INTERNAL TRIGGER
+            else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
 
                     if (merged_staff_arguments.len() > 0):
@@ -61,22 +54,15 @@ class Note(Player.Player):
                         tick
                     )
 
-class Trigger(Player.Player):
-    
-    def __init__(self, name):
-        super().__init__(name, beats_per_minute=120, size_measures=1, beats_per_measure=1, steps_per_beat=1) # not self init
-        #self._staff_rulers.add({'type': "actions", 'group': "triggers", 'lines': [self]})
+    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
+        if staff != self._staff or triggered_action == None:
+            player_action = self.Action(self, self._midi_synth)
+            self._actions.append(player_action)
+            player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
-    ### ACTIONS ###
+    def finish(self):
+        super().finish()
+        self._midi_synth.disconnect()
 
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-        super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
-        match staff:
-            case None: # CLOCKED TRIGGER
-                print("CLOCKED TRIGGERED")
-
-            case self._staff: # INTERNAL TRIGGER
-                print("INTERNALLY TRIGGERED")
-
-            case default: # EXTERNAL TRIGGER
-                print("EXTERNALLY TRIGGERED")
+    def start(self):
+        super().start()
