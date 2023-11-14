@@ -9,6 +9,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+import json
+
 class Staff:
 
     def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note  = 24, play_range=[[], []]):
@@ -356,6 +358,23 @@ class Staff:
 
             return self
             
+        def json_load(self, file_name):
+
+            # Opening JSON file
+            with open(file_name, 'r') as openfile:
+                # Reading from json file
+                json_object = json.load(openfile)
+
+            return self
+
+        def json_save(self, file_name):
+            rulers = []
+            # Writing to sample.json
+            with open(file_name, "w") as outfile:
+                json.dump(rulers, outfile, indent=2)
+
+            return self
+
         def list(self):
             return self._rulers_list
         
@@ -1067,6 +1086,41 @@ class Staff:
 
     def getRulers(self):
         return self._rulers
+
+    def json_load(self, file_name, part=None):
+        
+        # Opening JSON file
+        with open(file_name, 'r') as openfile:
+            # Reading from json file
+            json_object = json.load(openfile)
+
+        if part == "staff":
+            ...
+        elif part == "rulers":
+            ...
+        else:
+            ...
+
+        return self
+
+    def json_save(self, file_name, part=None):
+        staff = []
+        rulers = []
+        if part != "rulers":
+            staff = [
+                {'part': "staff"}
+            ]
+        if part != "staff":
+            rulers = [
+                {'part': "rulers"}
+            ]
+            
+
+        # Writing to sample.json
+        with open(file_name, "w") as outfile:
+            json.dump(staff + rulers, outfile, indent=2)
+
+        return self
 
     def len(self):
         return self.total_pulses
