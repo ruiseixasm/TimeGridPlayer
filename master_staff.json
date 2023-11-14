@@ -1,0 +1,31 @@
+[
+  {
+    "part": "staff",
+    "size_measures": 8,
+    "beats_per_measure": 4,
+    "steps_per_beat": 4,
+    "pulses_per_quarter_note": 24,
+    "play_range": [
+      [
+        0,
+        0
+      ],
+      [
+        7,
+        15.833333333333329
+      ]
+    ]
+  },
+  {
+    "part": "rulers",
+    "root_self": [
+      {
+        "id": 0,
+        "type": "actions",
+        "group": "note",
+        "position": [
+          2,
+          4
+        ],
+        "lines": [
+          

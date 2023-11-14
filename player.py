@@ -237,6 +237,18 @@ class Player:
                 self._actions.remove(action)
         return is_playing
 
+    def json_load(self, file_name, part=None):
+
+        self._staff.json_load(file_name, part)
+
+        return self
+
+    def json_save(self, file_name, part=None):
+
+        self._staff.json_save(file_name, part)
+
+        return self
+
     def play(self, start=None, finish=None):
 
         players = [self]

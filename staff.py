@@ -13,7 +13,7 @@ import json
 
 class Staff:
 
-    def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note  = 24, play_range=[[], []]):
+    def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note = 24, play_range=[[], []]):
 
         self._rulers = self.Rulers(self, [], None)
         self._staff = []
@@ -21,13 +21,12 @@ class Staff:
         self.string_top_lengths = {'measure': 0, 'beat': 0, 'step': 0, 'pulse': 0, 'arguments_enabled': 0, 'arguments_total': 0, 'actions_enabled': 0, 'actions_total': 0}
         self.string_top_length = 0
         self.play_range = [[], []]
-        if play_range != [[], []]:
-            self.setPlayRange(start=play_range[0], finish=play_range[1])
-        self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note )
+        self.setPlayRange(start=play_range[0], finish=play_range[1])
+        self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
 
     class Rulers():
 
-        def __init__(self, staff, rulers_list, root_self):
+        def __init__(self, staff, rulers_list, root_self, start_id=0):
 
             self._staff = staff
 
@@ -36,7 +35,7 @@ class Staff:
             if root_self != None:
                 self.root_self = root_self # type Rulers
 
-            self._next_id = 0
+            self._next_id = start_id
     
         # + Operator Overloading in Python
         def __add__(self, other):
@@ -365,10 +364,29 @@ class Staff:
                 # Reading from json file
                 json_object = json.load(openfile)
 
+            for dictionnaire in json_object:
+                if dictionnaire['part'] == "rulers":
+                    self = self.Rulers(
+                        staff=self._staff,
+                        rulers_list=dictionnaire['root_self'],
+                        root_self=dictionnaire['root_self'],
+                        start_id=dictionnaire['next_id']
+                    )
+                    self._staff.clear()
+                    self.drop()
+                    break
+
             return self
 
         def json_save(self, file_name):
-            rulers = []
+
+            rulers = [
+                {'part': "rulers",
+                 'root_self': self.root().list(),
+                 'next_id': self.next_id()
+                }
+            ]
+
             # Writing to sample.json
             with open(file_name, "w") as outfile:
                 json.dump(rulers, outfile, indent=2)
@@ -488,6 +506,9 @@ class Staff:
 
             return self
         
+        def next_id(self):
+            return self._next_id
+
         def odd(self):
             odd_rulers_list = self._rulers_list[1::2]
             return self._staff.Rulers(self._staff, odd_rulers_list, self.root_self)
@@ -1094,12 +1115,32 @@ class Staff:
             # Reading from json file
             json_object = json.load(openfile)
 
-        if part == "staff":
-            ...
-        elif part == "rulers":
-            ...
-        else:
-            ...
+        if part != "rulers":
+            for dictionnaire in json_object:
+                if dictionnaire['part'] == "staff":
+
+                    size_measures = dictionnaire['size_measures']
+                    beats_per_measure = dictionnaire['beats_per_measure']
+                    steps_per_beat = dictionnaire['steps_per_beat']
+                    pulses_per_quarter_note = dictionnaire['pulses_per_quarter_note']
+                    play_range = dictionnaire['play_range']
+
+                    self.setPlayRange(start=play_range[0], finish=play_range[1])
+                    self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+                    break
+        if part != "staff":
+            for dictionnaire in json_object:
+                if dictionnaire['part'] == "rulers":
+                    rulers = self.Rulers(
+                        staff=self,
+                        rulers_list=dictionnaire['root_self'],
+                        root_self=dictionnaire['root_self'],
+                        start_id=dictionnaire['next_id']
+                    )
+                    self._rulers = rulers
+                    self.clear()
+                    self._rulers.drop()
+                    break
 
         return self
 
@@ -1108,14 +1149,22 @@ class Staff:
         rulers = []
         if part != "rulers":
             staff = [
-                {'part': "staff"}
+                {'part': "staff",
+                 'size_measures': self.size_total_measures,
+                 'beats_per_measure': self.beats_per_measure,
+                 'steps_per_beat': self.steps_per_beat,
+                 'pulses_per_quarter_note': self.pulses_per_quarter_note,
+                 'play_range': self.play_range
+                }
             ]
         if part != "staff":
             rulers = [
-                {'part': "rulers"}
+                {'part': "rulers",
+                 'root_self': self._rulers.root().list(),
+                 'next_id': self._rulers.next_id()
+                }
             ]
             
-
         # Writing to sample.json
         with open(file_name, "w") as outfile:
             json.dump(staff + rulers, outfile, indent=2)

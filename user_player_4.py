@@ -46,6 +46,8 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'l
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
 master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(-2).print_lines(None, 8).print()
 
+#master.json_save("master_staff.json")
+
 #trigger.play()
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
