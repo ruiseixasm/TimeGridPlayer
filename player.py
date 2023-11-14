@@ -78,9 +78,10 @@ class Player:
                     action_object = clockedAction['action']
                     action_object.actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
                         
-                for clockedAction in clockedActions:
-                    del(self.clocked_actions[clockedAction['stack_id']]) # Where the self.clocked_actions are deleted!
-                if (len(self.clocked_actions) > 0):
+                self.clocked_actions = [
+                    clockedAction for clockedAction in self.clocked_actions if clockedAction['pulse'] > tick['pulse']
+                ] # Cleans up pass actions
+                if (len(self.clocked_actions) > 0): # gets the next pulse to be triggered
                     self.next_clocked_pulse = self.clocked_actions[0]['pulse']
                     for clocked_action in self.clocked_actions:
                         self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
@@ -118,15 +119,9 @@ class Player:
 
                 self._play_pulse += 1
 
-            elif self._play_mode:
-                future_clocked_actions = False
-                for clockedAction in self.clocked_actions:
-                    if clockedAction['pulse'] > tick['pulse']:
-                        future_clocked_actions = True
-                        break
-                if not future_clocked_actions:
-                    self._play_mode = False
-                    self._play_pulse = self._start_pulse
+            elif len(self.clocked_actions) == 0:
+                self._play_mode = False
+                self._play_pulse = self._start_pulse
 
             return self
 
