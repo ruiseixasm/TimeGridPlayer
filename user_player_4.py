@@ -10,7 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import player as Player
-import actions_piano as Piano
+import player_midi as MIDI
 import midi_tools
 
 trigger = Player.Trigger("trigger")
@@ -19,8 +19,8 @@ trigger = Player.Trigger("trigger")
 
 midi_synth = midi_tools.Instrument()
 midi_synth.connect(name="loop")
-master = Piano.Master("master")
-note = Piano.Note("notes", midi_synth, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
+master = Player.Player("master")
+note = MIDI.Note("note", midi_synth, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
 #note.useInternalClock(True)
 
 print("\n\n")
