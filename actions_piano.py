@@ -59,10 +59,3 @@ class Note(Player.Player):
             player_action = self.Action(self, self._midi_synth)
             self._actions.append(player_action)
             player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
-
-    def finish(self):
-        super().finish()
-        self._midi_synth.disconnect()
-
-    def start(self):
-        super().start()

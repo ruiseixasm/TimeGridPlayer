@@ -38,8 +38,8 @@ class Player:
             self._staff = self._player.getStaff()
 
             self._rulers = self._player.getRulers()
-            self.internal_key_rulers = self._rulers.empty()
-            self.external_key_rulers = self._rulers.empty()
+            self.internal_arguments_rulers = self._rulers.empty()
+            self.external_arguments_rulers = self._rulers.empty()
 
             self._play_mode = True # By default whenever a new Action is created is considered in play mode
             self._start_pulse = self._player.rangePulses()['start']
@@ -89,23 +89,23 @@ class Player:
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                 position = self._staff.position(pulses=self._play_pulse)
-                enabled_key_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
-                enabled_action_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
+                enabled_arguments_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
+                enabled_actions_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
 
                 if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
                     self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f" ticks: {tick['tick_pulse']}")
 
-                if (enabled_key_rulers > 0):
+                if (enabled_arguments_rulers > 0):
                     
-                    pulse_key_rulers = self._rulers.filter(type='arguments', positions=[position], enabled=True)
-                    self.internal_key_rulers = (pulse_key_rulers + self.internal_key_rulers).merge()
+                    pulse_arguments_rulers = self._rulers.filter(type='arguments', positions=[position], enabled=True)
+                    self.internal_arguments_rulers = (pulse_arguments_rulers + self.internal_arguments_rulers).merge()
 
-                if (enabled_action_rulers > 0):
+                if (enabled_actions_rulers > 0):
                     
-                    pulse_action_rulers = self._rulers.filter(type='actions', positions=[position], enabled=True)
-                    merged_staff_arguments = (self.external_key_rulers + self.internal_key_rulers).merge()
+                    pulse_actions_rulers = self._rulers.filter(type='actions', positions=[position], enabled=True)
+                    merged_staff_arguments = (self.external_arguments_rulers + self.internal_arguments_rulers).merge()
 
-                    for triggered_action in pulse_action_rulers.list(): # single ruler actions
+                    for triggered_action in pulse_actions_rulers.list(): # single ruler actions
                         for action_line in range(len(triggered_action['lines'])):
                             if (triggered_action['lines'][action_line] != None):
                                 triggered_action['line'] = action_line
@@ -237,7 +237,7 @@ class Player:
         if finish != None:
             non_fast_forward_range[1] = self._staff.pulses(finish)
 
-        # At least one Action needs to be triggered
+        # At least one Action needs to be externally triggered
         self._clock.start(non_fast_forward_range)
         tick = self._clock.tick()
         self.actionTrigger(None, None, self._staff, tick)
@@ -281,7 +281,8 @@ class Player:
         if self._internal_clock:
             tick = self._clock.tick()
         if tick['pulse'] != None:
-            for action in self._actions:
+            actions = self._actions[:]
+            for action in actions:
                 action.pulse(tick)
 
         return self        
@@ -294,10 +295,12 @@ class Player:
     ### ACTIONS ###
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
-        if staff != self._staff or triggered_action == None:
+        if staff != self._staff or triggered_action == None: # avoids self triggering
             player_action = self.Action(self)
             self._actions.append(player_action)
             player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+            if triggered_action != None:
+                player_action.pulse(tick)
 
     ### CLASS ###
     
