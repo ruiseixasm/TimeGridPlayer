@@ -49,7 +49,7 @@ class Note(Player.Player):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
             if staff == None: # CLOCKED TRIGGER
                 print(f"note OFF:\t{self._note}")
-                self._midi_synth.releaseNote(self._note)
+                self._midi_synth.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
 
@@ -80,7 +80,8 @@ class Note(Player.Player):
                         # needs to convert steps duration accordingly to callers time signature
                         duration_converter = staff.signature()['steps_per_beat'] / self._staff.signature()['steps_per_beat']
                         self.addClockedAction(
-                            {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4 * duration_converter, 'action': self},
+                            {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                             'duration': self._note['duration'] * duration_converter, 'action': self},
                             tick
                         )
 

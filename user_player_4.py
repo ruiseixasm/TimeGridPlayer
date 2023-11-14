@@ -27,15 +27,16 @@ print("\n\n")
 
 trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [1, 1], 'lines': [trigger]})
 trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [3, 1], 'lines': [trigger]})
-trigger.rulers().filter(type="actions").sort().print().print_lines()
+#trigger.rulers().filter(type="actions").sort().print().print_lines()
 
 # MASTER MIDI COMPOSITION
-master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 1], 'lines': [note]})
-master.rulers().add({'type': "actions", 'group': "note", 'position': [4, 1], 'lines': [note]})
+master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 4], 'lines': [note], 'offset': 2})
+master.rulers().add({'type': "actions", 'group': "note", 'position': [4, 4], 'lines': [note]})
 master.rulers().filter(type="actions").sort().print().print_lines()
 
-master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [1]})
+master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [60]})
+master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [8]})
 
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
@@ -43,7 +44,7 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 0], 'l
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-master.rulers().filter(type="arguments").sort().print().print_lines(None, 8).spread_lines(-2).print_lines(None, 8).print()
+master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(-2).print_lines(None, 8).print()
 
 #trigger.play()
 print("\n\n\nNEXT ITERATION\n\n")
