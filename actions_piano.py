@@ -27,32 +27,62 @@ class Note(Player.Player):
         def __init__(self, player, midi_synth):
             super().__init__(player) # not self init
             self._midi_synth = midi_synth
-            self._note = {'key': "C", 'octave': 4, 'velocity': 100}
+            self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1, 'duration': 4}
+
+        def getArgument(self, merged_staff_arguments, note_argument):
+            note_key = None
+
+            argument_ruler = merged_staff_arguments.group(note_argument)
+            if argument_ruler.len() > 0 and argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']] != None:
+                note_key = argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']]
+
+            else:
+                argument_ruler = merged_staff_arguments.group("staff_" + note_argument)
+                if argument_ruler.len() > 0:
+                    note_key = argument_ruler.list()[0]['lines'][0]
+
+            return note_key
 
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
             if staff == None: # CLOCKED TRIGGER
-                print(f"note OFF:\t{self._note['key']}")
+                print(f"note OFF:\t{self._note}")
                 self._midi_synth.releaseNote(self._note)
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
 
-                    if (merged_staff_arguments.len() > 0):
-                        given_lines = merged_staff_arguments.list()[0]['lines']
-                        key_line = merged_staff_arguments.list()[0]['line']
-                        key_value = given_lines[key_line]
-                        self._note['key'] = key_value # may need tranlation!
+                    note_channel = self.getArgument(merged_staff_arguments, "channel")
+                    if (note_channel != None):
+                        self._note['channel'] = note_channel
 
-                    print(f"note ON:\t{self._note['key']}")
-                    self._midi_synth.pressNote(self._note)
-                    # needs to convert steps duration accordingly to callers time signature
-                    duration_converter = staff.signature()['steps_per_beat'] / self._staff.signature()['steps_per_beat']
-                    self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4 * duration_converter, 'action': self},
-                        tick
-                    )
+                    note_velocity = self.getArgument(merged_staff_arguments, "velocity")
+                    if (note_velocity != None):
+                        self._note['velocity'] = note_velocity
+
+                    note_duration = self.getArgument(merged_staff_arguments, "duration")
+                    if (note_duration != None):
+                        self._note['duration'] = note_duration
+
+                    note_octave = self.getArgument(merged_staff_arguments, "octave")
+                    if (note_octave != None):
+                        self._note['octave'] = note_octave
+
+                    note_key = self.getArgument(merged_staff_arguments, "key")
+                    if (note_key != None):
+                        self._note['key'] = note_key
+
+                        print(f"note ON:\t{self._note}")
+                    
+                        self._midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                    
+                        # needs to convert steps duration accordingly to callers time signature
+                        duration_converter = staff.signature()['steps_per_beat'] / self._staff.signature()['steps_per_beat']
+                        self.addClockedAction(
+                            {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 4 * duration_converter, 'action': self},
+                            tick
+                        )
 
     ### PLAYER ACTIONS ###
 

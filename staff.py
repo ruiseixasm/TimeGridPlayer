@@ -322,7 +322,7 @@ class Staff:
                 ]
             return self._staff.Rulers(self._staff, filtered_rulers, self.root_self)
         
-        def group(self, group="arguments"):
+        def group(self, group):
             return self.filter(groups=[group])
 
         def head(self, elements=1):

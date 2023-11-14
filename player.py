@@ -109,10 +109,10 @@ class Player:
                         for action_line in range(len(triggered_action['lines'])):
                             if (triggered_action['lines'][action_line] != None):
                                 triggered_action['line'] = action_line
-                                for key_ruler in merged_staff_arguments.list():
-                                    key_ruler['line'] = action_line + triggered_action['offset'] - key_ruler['offset']
-                                    if (key_ruler['line'] < 0 or not (key_ruler['line'] < len(key_ruler['lines']))):
-                                        key_ruler['line'] = None # in case key line is out of range of the triggered action line
+                                for arguments_ruler in merged_staff_arguments.list():
+                                    arguments_ruler['line'] = action_line + triggered_action['offset'] - arguments_ruler['offset']
+                                    if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
+                                        arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
                                 action_object = triggered_action['lines'][action_line]
                                 action_object.actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED

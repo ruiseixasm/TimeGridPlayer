@@ -20,7 +20,7 @@ trigger = Player.Trigger("trigger")
 midi_synth = midi_tools.Instrument()
 midi_synth.connect(name="loop")
 master = Piano.Master("master")
-note = Piano.Note("notes", midi_synth, 440, 1, 4, 1, play_range=[[0, 0], [1, 0]])
+note = Piano.Note("notes", midi_synth, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
 #note.useInternalClock(True)
 
 print("\n\n")
@@ -29,13 +29,13 @@ trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [1, 1],
 trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [3, 1], 'lines': [trigger]})
 trigger.rulers().filter(type="actions").sort().print().print_lines()
 
-
+# MASTER MIDI COMPOSITION
 master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 1], 'lines': [note]})
 master.rulers().add({'type': "actions", 'group': "note", 'position': [4, 1], 'lines': [note]})
 master.rulers().filter(type="actions").sort().print().print_lines()
 
-master.rulers().add({'type': "arguments", 'group': "any_channel", 'position': [0, 0], 'lines': [1]})
-master.rulers().add({'type': "arguments", 'group': "any_velocity", 'position': [0, 0], 'lines': [60]})
+master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [1]})
+master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [60]})
 
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
