@@ -38,8 +38,8 @@ class Player:
             self._staff = self._player.getStaff()
 
             self._rulers = self._player.getRulers()
-            self.internal_arguments_rulers = self._rulers.empty()
-            self.external_arguments_rulers = self._rulers.empty()
+            self._internal_arguments_rulers = self._rulers.empty()
+            self._external_arguments_rulers = self._rulers.empty()
 
             self._play_mode = True # By default whenever a new Action is created is considered in play mode
             self._start_pulse = self._player.rangePulses()['start']
@@ -98,12 +98,12 @@ class Player:
                 if (enabled_arguments_rulers > 0):
                     
                     pulse_arguments_rulers = self._rulers.filter(type='arguments', positions=[position], enabled=True)
-                    self.internal_arguments_rulers = (pulse_arguments_rulers + self.internal_arguments_rulers).merge()
+                    self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge()
 
                 if (enabled_actions_rulers > 0):
                     
                     pulse_actions_rulers = self._rulers.filter(type='actions', positions=[position], enabled=True)
-                    merged_staff_arguments = (self.external_arguments_rulers + self.internal_arguments_rulers).merge()
+                    merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
 
                     for triggered_action in pulse_actions_rulers.list(): # single ruler actions
                         for action_line in range(len(triggered_action['lines'])):
@@ -124,14 +124,28 @@ class Player:
                 self._play_pulse = self._start_pulse
 
             return self
+        
+        # using property decorator 
+        # a getter function 
+        @property
+        def external_arguments_rulers(self):
+            return self._external_arguments_rulers
+    
+        # a setter function (requires previous @property decorator)
+        @external_arguments_rulers.setter 
+        def external_arguments_rulers(self, rulers):
+            self._external_arguments_rulers = rulers
 
-        ### ACTIONS ###
+        # a deleter function (requires previous @property decorator)
+        @external_arguments_rulers.deleter 
+        def external_arguments_rulers(self):
+            #del self._external_arguments_rulers
+            self._external_arguments_rulers = self._rulers.empty()
+
+        ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-            if staff == None: # CLOCKED TRIGGER 
-                ...
-            else: # EXTERNAL TRIGGER
-                self.external_staff_arguments = merged_staff_arguments # becomes read only, no need to copy
+                pass
 
     class Clock():
         def __init__(self, player, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
@@ -240,7 +254,7 @@ class Player:
         # At least one Action needs to be externally triggered
         self._clock.start(non_fast_forward_range)
         tick = self._clock.tick()
-        self.actionTrigger(None, None, self._staff, tick)
+        self.actionTrigger(None, self._rulers.empty(), self._staff, tick)
 
         self._clock.start(non_fast_forward_range)
 
@@ -281,8 +295,7 @@ class Player:
         if self._internal_clock:
             tick = self._clock.tick()
         if tick['pulse'] != None:
-            actions = self._actions[:]
-            for action in actions:
+            for action in self._actions:
                 action.pulse(tick)
 
         return self        
@@ -292,12 +305,16 @@ class Player:
 
         return self
 
-    ### ACTIONS ###
+    ### PLAYER ACTIONS ###
+
+    def actionFactoryMethod(self):
+        return self.Action(self)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
         if staff != self._staff or triggered_action == None: # avoids self triggering
-            player_action = self.Action(self)
+            player_action = self.actionFactoryMethod()
             self._actions.append(player_action)
+            player_action.external_arguments_rulers = merged_staff_arguments
             player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
             if triggered_action != None:
                 player_action.pulse(tick)
@@ -318,7 +335,7 @@ class Trigger(Player):
         def __init__(self, player):
             super().__init__(player) # not self init
 
-        ### ACTIONS ###
+        ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
@@ -330,12 +347,6 @@ class Trigger(Player):
                     {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 16, 'action': self},
                     tick
                 )
-
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
-        if staff != self._staff or triggered_action == None:
-            player_action = self.Action(self)
-            self._actions.append(player_action)
-            player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
 def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''

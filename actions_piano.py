@@ -29,7 +29,7 @@ class Note(Player.Player):
             self._midi_synth = midi_synth
             self._note = {'key': "C", 'octave': 4, 'velocity': 100}
 
-        ### ACTIONS ###
+        ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
@@ -54,8 +54,8 @@ class Note(Player.Player):
                         tick
                     )
 
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
-        if staff != self._staff or triggered_action == None:
-            player_action = self.Action(self, self._midi_synth)
-            self._actions.append(player_action)
-            player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+    ### PLAYER ACTIONS ###
+
+    def actionFactoryMethod(self):
+        return self.Action(self, self._midi_synth)
+    
