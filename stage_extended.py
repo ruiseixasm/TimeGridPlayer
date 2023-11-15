@@ -37,11 +37,10 @@ class StageExtended(Stage.Stage):
         return self
     
     def playerFactoryMethod(self, player_dictionnaire):
-        super().playerFactoryMethod(player_dictionnaire)
+        player = super().playerFactoryMethod(player_dictionnaire)
         match player_dictionnaire['class']:
             case "Note":
                 player = MIDI.Note(player_dictionnaire['name'], self._midi_synth)
-                player.json_load("", player_dictionnaire)
 
-        return self
+        return player
     

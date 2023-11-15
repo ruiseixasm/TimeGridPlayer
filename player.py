@@ -23,7 +23,6 @@ class Player:
         self._staff = staff
         if self._staff == None:
             self._staff = Staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range)
-        self._rulers = self._staff.getRulers()
 
         self._clock = self.Clock(self, beats_per_minute, pulses_per_quarter_note, steps_per_beat)
         self._internal_clock = False
@@ -33,7 +32,7 @@ class Player:
     @property
     def name(self):
         return self._name
-            
+    
     @property
     def stage(self):
         return self._stage
@@ -55,7 +54,7 @@ class Player:
                 self._player = Player()
             self._staff = self._player.getStaff()
 
-            self._rulers = self._player.getRulers()
+            self._rulers = self._player.rulers()
             self._internal_arguments_rulers = self._rulers.empty()
             self._external_arguments_rulers = self._rulers.empty()
 
@@ -283,9 +282,6 @@ class Player:
                 if playable_player['name'] == name and playable_player['player'] != self # can't trigger itself (infinite loop)
         ]
 
-    def getRulers(self):
-        return self._rulers
-
     def getStaff(self):
         return self._staff
 
@@ -344,7 +340,7 @@ class Player:
     def play(self, start=None, finish=None):
 
         players_names = [self.name] # Actions are refered by their players name
-        players_names = self._rulers.list_actions_names(enabled=True, actions_names_list=players_names)
+        players_names = self.rulers().list_actions_names(enabled=True, actions_names_list=players_names)
 
         staged_players = self._stage.players
 
@@ -364,7 +360,7 @@ class Player:
         # At least one Action needs to be externally triggered
         self._clock.start(non_fast_forward_range)
         tick = self._clock.tick()
-        self.actionTrigger(None, self._rulers.empty(), self._staff, tick)
+        self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
 
         self._clock.start(non_fast_forward_range)
 
@@ -390,7 +386,7 @@ class Player:
         return {'start': start_pulses, 'finish': finish_pulses}
 
     def rulers(self):
-        return self._rulers
+        return self._staff.rulers()
 
     def staff(self):
         return self._staff

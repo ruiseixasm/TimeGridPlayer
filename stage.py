@@ -37,7 +37,6 @@ class Stage:
         match player_dictionnaire['class']:
             case "Player":
                 player = Player.Player(player_dictionnaire['name'])
-                player.json_load("", player_dictionnaire)
 
         return player
     
@@ -49,7 +48,7 @@ class Stage:
             }
         
         for player_dictionnaire in self._players:
-            stage['players'].append( [ player_dictionnaire['player'].json_dictionnaire() ] )
+            stage['players'].append( player_dictionnaire['player'].json_dictionnaire() )
 
         return stage
     
@@ -61,11 +60,14 @@ class Stage:
                 # Reading from json file
                 json_object = json.load(openfile)
 
-        for dictionnaire in json_object:
-            if dictionnaire['part'] == "stage":
-                for player_dictionnaire in dictionnaire['players']:
+        self._players = []
+
+        for stage_dictionnaire in json_object:
+            if stage_dictionnaire['part'] == "stage":
+                for player_dictionnaire in stage_dictionnaire['players']:
                     player = self.playerFactoryMethod(player_dictionnaire)
                     if player != None:
+                        player.json_load(file_name, [ player_dictionnaire ])
                         self.add(player)
                 break
 
@@ -88,4 +90,3 @@ class Stage:
                 del player.stage
                 self._players.remove(player_data)
                 break
-

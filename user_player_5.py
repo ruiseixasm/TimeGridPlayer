@@ -45,11 +45,8 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'l
 master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(-2).print_lines(None, 8).print()
 
 # JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON
-master.json_save("player.json")
-master.json_load("player.json")
-
-# master.rulers().print()
-# master.staff().print()
+# master.json_save("player.json")
+# master.json_load("player.json")
 
 #trigger.play()
 print("\n\n\nNEXT ITERATION\n\n")
@@ -59,7 +56,20 @@ stage = StageExtended.StageExtended()
 stage.add(master)
 stage.add(note)
 
+#master.play()
+
 stage.json_save("stage.json")
+stage.json_load("stage.json")
+players = stage.players
+
+for player_dictionnaire in players:
+    if player_dictionnaire['name'] == "master":
+        master = player_dictionnaire['player']
+
+master.rulers().print()
+#master.staff().print()
+
+print(players)
 
 master.play()
 

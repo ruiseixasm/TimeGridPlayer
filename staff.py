@@ -1145,7 +1145,7 @@ class Staff:
                 self.setPlayRange(start=play_range[0], finish=play_range[1])
                 self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
             
-                self._rulers.json_load(file_name, dictionnaire['rulers'])
+                self._rulers = self._rulers.json_load(file_name, dictionnaire['rulers'])
 
                 break
 
