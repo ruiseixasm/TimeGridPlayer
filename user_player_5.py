@@ -60,7 +60,7 @@ stage.add(note)
 
 stage.json_save("stage.json")
 stage.json_load("stage.json")
-players = stage.players
+players = stage.players_list()
 
 for player_dictionnaire in players:
     if player_dictionnaire['name'] == "master":

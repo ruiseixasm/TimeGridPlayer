@@ -365,7 +365,7 @@ class Staff:
                     'next_id': self.next_id()
                 }
      
-        def json_load(self, file_name, json_object=None):
+        def json_load(self, file_name="rulers.json", json_object=None):
 
             if json_object == None:
                 # Opening JSON file
@@ -387,7 +387,7 @@ class Staff:
 
             return self
 
-        def json_save(self, file_name):
+        def json_save(self, file_name="rulers.json"):
 
             rulers = [ self.json_dictionnaire() ]
 
@@ -1124,7 +1124,7 @@ class Staff:
                 'rulers': [ self._rulers.json_dictionnaire() ]
             }
 
-    def json_load(self, file_name, json_object=None):
+    def json_load(self, file_name="staff.json", json_object=None):
         
         if json_object == None:
             # Opening JSON file
@@ -1151,7 +1151,7 @@ class Staff:
 
         return self
 
-    def json_save(self, file_name):
+    def json_save(self, file_name="staff.json"):
         staff = [ self.json_dictionnaire() ]
             
         # Writing to sample.json

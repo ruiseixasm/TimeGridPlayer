@@ -18,8 +18,7 @@ class Stage:
 
         self._players = []
 
-    @property
-    def players(self):
+    def players_list(self):
         return self._players
             
     def add(self, player):
@@ -33,10 +32,14 @@ class Stage:
         return self
     
     def playerFactoryMethod(self, player_dictionnaire):
+        return self.GetPlayer(player_dictionnaire['class'], player_dictionnaire['name'])
+
+    def GetPlayer(self, player_class="Player", player_name="player"):
         player = None
-        match player_dictionnaire['class']:
+        match player_class:
             case "Player":
-                player = Player.Player(player_dictionnaire['name'])
+                player = Player.Player(player_name)
+                self.add(player)
 
         return player
     
@@ -52,7 +55,7 @@ class Stage:
 
         return stage
     
-    def json_load(self, file_name, json_object=None):
+    def json_load(self, file_name="stage.json", json_object=None):
 
         if json_object == None:
             # Opening JSON file
@@ -68,12 +71,11 @@ class Stage:
                     player = self.playerFactoryMethod(player_dictionnaire)
                     if player != None:
                         player.json_load(file_name, [ player_dictionnaire ])
-                        self.add(player)
                 break
 
         return self
 
-    def json_save(self, file_name):
+    def json_save(self, file_name="stage.json"):
 
         stage = [ self.json_dictionnaire() ]
 

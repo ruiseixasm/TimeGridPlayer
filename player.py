@@ -187,7 +187,7 @@ class Player:
                     'pulses_per_quarter_note': self._tempo['pulses_per_quarter_note']
                 }
      
-        def json_load(self, file_name, json_object=None):
+        def json_load(self, file_name="clock.json", json_object=None):
 
             if json_object == None:
                 # Opening JSON file
@@ -207,7 +207,7 @@ class Player:
 
             return self
 
-        def json_save(self, file_name):
+        def json_save(self, file_name="clock.json"):
 
             clock = [ self.json_dictionnaire() ]
 
@@ -308,7 +308,7 @@ class Player:
                 'staff': [ self._staff.json_dictionnaire() ]
             }
 
-    def json_load(self, file_name, json_object=None):
+    def json_load(self, file_name="player.json", json_object=None):
 
         if json_object == None:
             # Opening JSON file
@@ -328,7 +328,7 @@ class Player:
 
         return self
 
-    def json_save(self, file_name):
+    def json_save(self, file_name="player.json"):
         player = [ self.json_dictionnaire() ]
             
         # Writing to sample.json
@@ -342,7 +342,7 @@ class Player:
         players_names = [self.name] # Actions are refered by their players name
         players_names = self.rulers().list_actions_names(enabled=True, actions_names_list=players_names)
 
-        staged_players = self._stage.players
+        staged_players = self._stage.players_list()
 
         self._playable_players = [
             playable_player for playable_player in staged_players if playable_player['name'] in players_names
@@ -387,6 +387,19 @@ class Player:
 
     def rulers(self):
         return self._staff.rulers()
+
+    def SetPlayer(self, name, staff=None):
+
+        self._name = name
+        if staff != None:
+            self._staff = staff
+
+        if self._stage != None:
+            for players_names in self._stage.players_list():
+                if players_names['player'] == self:
+                    players_names['name'] = self._name
+
+        return self
 
     def staff(self):
         return self._staff

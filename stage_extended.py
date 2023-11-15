@@ -25,22 +25,17 @@ class StageExtended(Stage.Stage):
         self._midi_synth.disconnect()
 
     def add(self, player):
-        player_data = {
-            'class': player.__class__.__name__,
-            'name': player.name,
-            'player': player
-        }
-        self._players.append(player_data)
-        player.stage = self
+        super().add(player)
         if player.__class__.__name__ == "Note":
             player.midi_synth = self._midi_synth
         return self
     
-    def playerFactoryMethod(self, player_dictionnaire):
-        player = super().playerFactoryMethod(player_dictionnaire)
-        match player_dictionnaire['class']:
+    def GetPlayer(self, player_class="Note", player_name="note"):
+        player = super().GetPlayer(player_class, player_name)
+        match player_class:
             case "Note":
-                player = MIDI.Note(player_dictionnaire['name'], self._midi_synth)
+                player = MIDI.Note(player_name, self._midi_synth)
+                self.add(player)
 
         return player
     
