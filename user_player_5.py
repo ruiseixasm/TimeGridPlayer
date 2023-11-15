@@ -26,13 +26,13 @@ note = MIDI.Note("note", midi_synth, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
 
 print("\n\n")
 
-trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [1, 1], 'lines': [trigger]})
-trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [3, 1], 'lines': [trigger]})
+trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [1, 1], 'lines': ["trigger"]})
+trigger.rulers().add({'type': "actions", 'group': "trigger", 'position': [3, 1], 'lines': ["trigger"]})
 #trigger.rulers().filter(type="actions").sort().print().print_lines()
 
 # MASTER MIDI COMPOSITION
-master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 4], 'lines': [note], 'offset': 2})
-master.rulers().add({'type': "actions", 'group': "note", 'position': [4, 4], 'lines': [note]})
+master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 4], 'lines': ["note"], 'offset': 2})
+master.rulers().add({'type': "actions", 'group': "note", 'position': [4, 4], 'lines': ["note"]})
 master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})

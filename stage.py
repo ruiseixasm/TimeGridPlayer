@@ -28,13 +28,14 @@ class Stage:
             'player': player
         }
         self._players.append(player_data)
+        player.stage = self
         return self
     
     def remove(self, player):
         players = self._players[:]
         for player_data in players:
             if player_data['player'] == player:
+                del player.stage
                 self._players.remove(player_data)
                 break
 
-            

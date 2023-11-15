@@ -17,6 +17,7 @@ class Player:
     def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24,
                  play_range=[[], []], staff=None):
 
+        self._stage = None
         self._name = name
         self._staff = staff
         if self._staff == None:
@@ -31,6 +32,18 @@ class Player:
     @property
     def name(self):
         return self._name
+            
+    @property
+    def stage(self):
+        return self._stage
+            
+    @stage.setter
+    def stage(self, stage):
+        self._stage = stage
+
+    @stage.deleter
+    def stage(self):
+        self._stage = None  
             
     class Action():
 
@@ -135,8 +148,10 @@ class Player:
                                     if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                         arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
-                                action_object = triggered_action['lines'][action_line]
-                                action_object.actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                                action_name = triggered_action['lines'][action_line]
+                                action_players = self._player.getPlayablePlayers(action_name)
+                                for action_player in action_players:
+                                    action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                 self._play_pulse += 1
 
@@ -222,6 +237,12 @@ class Player:
     def getFinishPulse(self):
         return self._finish_pulse
 
+    def getPlayablePlayers(self, name):
+        return [
+            playable_player for playable_player in self.playable_players 
+                if playable_player['name'] == name and playable_player['player'] != self # can't trigger itself (infinite loop)
+        ]
+
     def getRulers(self):
         return self._rulers
 
@@ -255,11 +276,17 @@ class Player:
 
     def play(self, start=None, finish=None):
 
-        players = [self]
-        players = self._rulers.list_actions(True, players)
+        players_names = [self.name] # Actions are refered by their players name
+        players_names = self._rulers.list_actions_names(enabled=True, actions_names_list=players_names)
 
-        for player in players:
-            player.start()
+        staged_players = self._stage.players
+
+        self.playable_players = [
+            playable_player for playable_player in staged_players if playable_player['name'] in players_names
+        ]
+
+        for player in self.playable_players:
+            player['player'].start()
         
         non_fast_forward_range = [None, None]
         if start != None:
@@ -278,14 +305,14 @@ class Player:
         while still_playing:
             tick = self._clock.tick()
             still_playing = False
-            for player in players:
-                player.tick(tick)
-                if player.isPlaying():
+            for player in self.playable_players:
+                player['player'].tick(tick)
+                if player['player'].isPlaying():
                     still_playing = True
         
         self._clock.stop()
-        for player in players:
-            player.finish()
+        for player in self.playable_players:
+            player['player'].finish()
         self._play_mode = False
 
         return self
@@ -327,13 +354,12 @@ class Player:
         return self.Action(self)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
-        if staff != self._staff or triggered_action == None: # avoids self triggering
-            player_action = self.actionFactoryMethod()
-            self._actions.append(player_action)
-            player_action.external_arguments_rulers = merged_staff_arguments
-            player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
-            if triggered_action != None:
-                player_action.pulse(tick)
+        player_action = self.actionFactoryMethod()
+        self._actions.append(player_action)
+        player_action.external_arguments_rulers = merged_staff_arguments
+        player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+        if triggered_action != None:
+            player_action.pulse(tick)
 
     ### CLASS ###
     

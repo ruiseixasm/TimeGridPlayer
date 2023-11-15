@@ -396,17 +396,17 @@ class Staff:
         def list(self):
             return self._rulers_list
         
-        def list_actions(self, enabled=None, actions_list=None):
-            if actions_list == None:
-                actions_list = []
+        def list_actions_names(self, enabled=None, actions_names_list=None):
+            if actions_names_list == None:
+                actions_names_list = []
 
             actions_rulers = self.filter(type="actions", enabled=enabled, on_staff=True).sort(key='id')
             for ruler in actions_rulers.list():
-                for action in ruler['lines']:
-                    if action != None and action not in actions_list:
-                        actions_list.append(action)
+                for action_name in ruler['lines']:
+                    if action_name != None and action_name not in actions_names_list:
+                        actions_names_list.append(action_name)
 
-            return actions_list
+            return actions_names_list
 
         def list_lines(self):
             all_lines = []
