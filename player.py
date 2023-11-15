@@ -28,6 +28,10 @@ class Player:
 
         self._actions = []
 
+    @property
+    def name(self):
+        return self._name
+            
     class Action():
 
         def __init__(self, player):
@@ -48,6 +52,23 @@ class Player:
 
             self.clocked_actions = []
             self.next_clocked_pulse = -1
+
+        # using property decorator 
+        # a getter function 
+        @property
+        def external_arguments_rulers(self):
+            return self._external_arguments_rulers
+    
+        # a setter function (requires previous @property decorator)
+        @external_arguments_rulers.setter 
+        def external_arguments_rulers(self, rulers):
+            self._external_arguments_rulers = rulers
+
+        # a deleter function (requires previous @property decorator)
+        @external_arguments_rulers.deleter 
+        def external_arguments_rulers(self):
+            #del self._external_arguments_rulers
+            self._external_arguments_rulers = self._rulers.empty()
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
@@ -125,23 +146,6 @@ class Player:
 
             return self
         
-        # using property decorator 
-        # a getter function 
-        @property
-        def external_arguments_rulers(self):
-            return self._external_arguments_rulers
-    
-        # a setter function (requires previous @property decorator)
-        @external_arguments_rulers.setter 
-        def external_arguments_rulers(self, rulers):
-            self._external_arguments_rulers = rulers
-
-        # a deleter function (requires previous @property decorator)
-        @external_arguments_rulers.deleter 
-        def external_arguments_rulers(self):
-            #del self._external_arguments_rulers
-            self._external_arguments_rulers = self._rulers.empty()
-
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
