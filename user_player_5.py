@@ -66,10 +66,10 @@ for player_dictionnaire in players:
     if player_dictionnaire['name'] == "master":
         master = player_dictionnaire['player']
 
-master.rulers().print()
+master.rulers().print().print_lines()
 #master.staff().print()
 
 print(players)
 
-master.play()
+#master.play()
 
