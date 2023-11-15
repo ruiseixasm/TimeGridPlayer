@@ -36,7 +36,7 @@ master.rulers().add({'type': "actions", 'group': "note", 'position': [4, 4], 'li
 master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
-master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [60]})
+master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [8]})
 
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
@@ -47,7 +47,12 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'l
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
 master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(-2).print_lines(None, 8).print()
 
-#master.json_save("master_staff.json")
+# JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON
+master.staff().json_save("staff.json")
+master.staff().json_load("staff.json")
+
+master.rulers().print()
+master.staff().print()
 
 #trigger.play()
 print("\n\n\nNEXT ITERATION\n\n")

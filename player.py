@@ -63,8 +63,8 @@ class Player:
             self._finish_pulse = self._player.rangePulses()['finish']
             self._play_pulse = self._start_pulse
 
-            self.clocked_actions = []
-            self.next_clocked_pulse = -1
+            self._clocked_actions = []
+            self._next_clocked_pulse = -1
 
         # using property decorator 
         # a getter function 
@@ -87,13 +87,13 @@ class Player:
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
                 pulses_duration = clocked_action['duration'] * self._staff.signature()['pulses_per_step'] # Action pulses per step considered
                 clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
-                clocked_action['stack_id'] = len(self.clocked_actions)
-                self.clocked_actions.append(clocked_action)
+                clocked_action['stack_id'] = len(self._clocked_actions)
+                self._clocked_actions.append(clocked_action)
 
-                if (not self.next_clocked_pulse < tick['pulse']):
-                    self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
+                if (not self._next_clocked_pulse < tick['pulse']):
+                    self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
                 else:
-                    self.next_clocked_pulse = clocked_action['pulse']
+                    self._next_clocked_pulse = clocked_action['pulse']
 
             return self
 
@@ -103,22 +103,22 @@ class Player:
         def pulse(self, tick):
 
             # clock triggers staked to be called
-            if (self.next_clocked_pulse == tick['pulse']):
+            if (self._next_clocked_pulse == tick['pulse']):
                 clockedActions = [
-                    clockedAction for clockedAction in self.clocked_actions if clockedAction['pulse'] == tick['pulse']
+                    clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
                 ].copy() # To enable deletion of the original list while looping
 
                 for clockedAction in clockedActions:
                     action_object = clockedAction['action']
                     action_object.actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
                         
-                self.clocked_actions = [
-                    clockedAction for clockedAction in self.clocked_actions if clockedAction['pulse'] > tick['pulse']
+                self._clocked_actions = [
+                    clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] > tick['pulse']
                 ] # Cleans up pass actions
-                if (len(self.clocked_actions) > 0): # gets the next pulse to be triggered
-                    self.next_clocked_pulse = self.clocked_actions[0]['pulse']
-                    for clocked_action in self.clocked_actions:
-                        self.next_clocked_pulse = min(self.next_clocked_pulse, clocked_action['pulse'])
+                if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
+                    self._next_clocked_pulse = self._clocked_actions[0]['pulse']
+                    for clocked_action in self._clocked_actions:
+                        self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
 
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
@@ -155,7 +155,7 @@ class Player:
 
                 self._play_pulse += 1
 
-            elif len(self.clocked_actions) == 0:
+            elif len(self._clocked_actions) == 0:
                 self._play_mode = False
                 self._play_pulse = self._start_pulse
 
@@ -239,7 +239,7 @@ class Player:
 
     def getPlayablePlayers(self, name):
         return [
-            playable_player for playable_player in self.playable_players 
+            playable_player for playable_player in self._playable_players 
                 if playable_player['name'] == name and playable_player['player'] != self # can't trigger itself (infinite loop)
         ]
 
@@ -262,15 +262,15 @@ class Player:
                 self._actions.remove(action)
         return is_playing
 
-    def json_load(self, file_name, part=None):
+    def json_load(self, file_name):
 
-        self._staff.json_load(file_name, part)
+        self._staff.json_load(file_name)
 
         return self
 
-    def json_save(self, file_name, part=None):
+    def json_save(self, file_name):
 
-        self._staff.json_save(file_name, part)
+        self._staff.json_save(file_name)
 
         return self
 
@@ -281,11 +281,11 @@ class Player:
 
         staged_players = self._stage.players
 
-        self.playable_players = [
+        self._playable_players = [
             playable_player for playable_player in staged_players if playable_player['name'] in players_names
         ]
 
-        for player in self.playable_players:
+        for player in self._playable_players:
             player['player'].start()
         
         non_fast_forward_range = [None, None]
@@ -305,15 +305,14 @@ class Player:
         while still_playing:
             tick = self._clock.tick()
             still_playing = False
-            for player in self.playable_players:
+            for player in self._playable_players:
                 player['player'].tick(tick)
                 if player['player'].isPlaying():
                     still_playing = True
         
         self._clock.stop()
-        for player in self.playable_players:
+        for player in self._playable_players:
             player['player'].finish()
-        self._play_mode = False
 
         return self
 

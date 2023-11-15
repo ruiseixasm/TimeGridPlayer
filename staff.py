@@ -20,7 +20,7 @@ class Staff:
         self.total_pulses = 0
         self.string_top_lengths = {'measure': 0, 'beat': 0, 'step': 0, 'pulse': 0, 'arguments_enabled': 0, 'arguments_total': 0, 'actions_enabled': 0, 'actions_total': 0}
         self.string_top_length = 0
-        self.play_range = [[], []]
+        self._play_range = [[], []]
         self.setPlayRange(start=play_range[0], finish=play_range[1])
         self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
 
@@ -366,7 +366,7 @@ class Staff:
 
             for dictionnaire in json_object:
                 if dictionnaire['part'] == "rulers":
-                    self = self.Rulers(
+                    self = self._staff.Rulers(
                         staff=self._staff,
                         rulers_list=dictionnaire['root_self'],
                         root_self=dictionnaire['root_self'],
@@ -381,15 +381,16 @@ class Staff:
         def json_save(self, file_name):
 
             rulers = [
-                {'part': "rulers",
-                 'root_self': self.root().list(),
-                 'next_id': self.next_id()
+                {
+                    'part': "rulers",
+                    'root_self': self.root().list(),
+                    'next_id': self.next_id()
                 }
             ]
 
             # Writing to sample.json
             with open(file_name, "w") as outfile:
-                json.dump(rulers, outfile, indent=2)
+                json.dump(rulers, outfile)
 
             return self
 
@@ -1108,66 +1109,65 @@ class Staff:
     def getRulers(self):
         return self._rulers
 
-    def json_load(self, file_name, part=None):
+    def json_load(self, file_name):
         
         # Opening JSON file
         with open(file_name, 'r') as openfile:
             # Reading from json file
             json_object = json.load(openfile)
 
-        if part != "rulers":
-            for dictionnaire in json_object:
-                if dictionnaire['part'] == "staff":
+        for dictionnaire in json_object:
+            if dictionnaire['part'] == "staff":
+                size_measures = dictionnaire['size_measures']
+                beats_per_measure = dictionnaire['beats_per_measure']
+                steps_per_beat = dictionnaire['steps_per_beat']
+                pulses_per_quarter_note = dictionnaire['pulses_per_quarter_note']
+                play_range = dictionnaire['play_range']
+                
+                self.clear()
 
-                    size_measures = dictionnaire['size_measures']
-                    beats_per_measure = dictionnaire['beats_per_measure']
-                    steps_per_beat = dictionnaire['steps_per_beat']
-                    pulses_per_quarter_note = dictionnaire['pulses_per_quarter_note']
-                    play_range = dictionnaire['play_range']
+                self.setPlayRange(start=play_range[0], finish=play_range[1])
+                self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+            
+                for dictionnaire in json_object:
+                    if dictionnaire['part'] == "rulers":
+                        rulers = self.Rulers(
+                            staff=self,
+                            rulers_list=dictionnaire['root_self'],
+                            root_self=dictionnaire['root_self'],
+                            start_id=dictionnaire['next_id']
+                        )
+                        self._rulers = rulers
+                        self.clear()
+                        self._rulers.drop()
+                        break
 
-                    self.setPlayRange(start=play_range[0], finish=play_range[1])
-                    self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
-                    break
-        if part != "staff":
-            for dictionnaire in json_object:
-                if dictionnaire['part'] == "rulers":
-                    rulers = self.Rulers(
-                        staff=self,
-                        rulers_list=dictionnaire['root_self'],
-                        root_self=dictionnaire['root_self'],
-                        start_id=dictionnaire['next_id']
-                    )
-                    self._rulers = rulers
-                    self.clear()
-                    self._rulers.drop()
-                    break
+                break
 
         return self
 
-    def json_save(self, file_name, part=None):
-        staff = []
-        rulers = []
-        if part != "rulers":
-            staff = [
-                {'part': "staff",
-                 'size_measures': self.size_total_measures,
-                 'beats_per_measure': self.beats_per_measure,
-                 'steps_per_beat': self.steps_per_beat,
-                 'pulses_per_quarter_note': self.pulses_per_quarter_note,
-                 'play_range': self.play_range
-                }
-            ]
-        if part != "staff":
-            rulers = [
-                {'part': "rulers",
-                 'root_self': self._rulers.root().list(),
-                 'next_id': self._rulers.next_id()
-                }
-            ]
+    def json_save(self, file_name):
+        staff = [
+            {
+                'part': "staff",
+                'size_measures': self.size_total_measures,
+                'beats_per_measure': self.beats_per_measure,
+                'steps_per_beat': self.steps_per_beat,
+                'pulses_per_quarter_note': self.pulses_per_quarter_note,
+                'play_range': self._play_range
+            }
+        ]
+        rulers = [
+            {
+                'part': "rulers",
+                'root_self': self._rulers.root().list(),
+                'next_id': self._rulers.next_id()
+            }
+        ]
             
         # Writing to sample.json
         with open(file_name, "w") as outfile:
-            json.dump(staff + rulers, outfile, indent=2)
+            json.dump(staff + rulers, outfile)
 
         return self
 
@@ -1181,11 +1181,11 @@ class Staff:
         return self._staff
     
     def playRange(self):
-        return self.play_range
+        return self._play_range
 
     def playRange_pulses(self, play_range=[[], []]):
         if play_range == [[], []]:
-            return [self.pulses(self.play_range[0]), self.pulses(self.play_range[1])]
+            return [self.pulses(self._play_range[0]), self.pulses(self._play_range[1])]
         return [self.pulses(play_range[0]), self.pulses(play_range[1])]
 
     def position(self, steps=None, pulses=None):
@@ -1302,25 +1302,25 @@ class Staff:
 
     def setPlayRange(self, start=[], finish=[]):
         if self.total_pulses > 0:
-            if start == [] or self.play_range[0] == []:
-                self.play_range[0] = [0, 0]
-            elif start == None and self.play_range[0] != []:
-                start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range[0]))
-                self.play_range[0] = self.position(pulses=start_pulses)
+            if start == [] or self._play_range[0] == []:
+                self._play_range[0] = [0, 0]
+            elif start == None and self._play_range[0] != []:
+                start_pulses = min(self.total_pulses, self.pulses(self._play_range[0]))
+                self._play_range[0] = self.position(pulses=start_pulses)
             elif start != None:
-                start_pulses = min(self.total_pulses - 1, self.pulses(start))
-                self.play_range[0] = self.position(pulses=start_pulses)
+                start_pulses = min(self.total_pulses, self.pulses(start))
+                self._play_range[0] = self.position(pulses=start_pulses)
 
-            if finish == [] or self.play_range[1] == []:
-                finish_pulses = self.total_pulses - 1
-                self.play_range[1] = self.position(pulses=finish_pulses)
-            elif finish == None and self.play_range[1] != []:
-                start_pulses = min(self.total_pulses - 1, self.pulses(self.play_range[1]))
-                self.play_range[1] = self.position(pulses=start_pulses)
+            if finish == [] or self._play_range[1] == []:
+                finish_pulses = self.total_pulses
+                self._play_range[1] = self.position(pulses=finish_pulses)
+            elif finish == None and self._play_range[1] != []:
+                start_pulses = min(self.total_pulses, self.pulses(self._play_range[1]))
+                self._play_range[1] = self.position(pulses=start_pulses)
             elif finish != None:
-                start_pulses = self.pulses(self.play_range[0])
-                finish_pulses = max(start_pulses, min(self.total_pulses - 1, self.pulses(start)))
-                self.play_range[1] = self.position(pulses=finish_pulses)
+                start_pulses = self.pulses(self._play_range[0])
+                finish_pulses = max(start_pulses, min(self.total_pulses, self.pulses(finish)))
+                self._play_range[1] = self.position(pulses=finish_pulses)
 
         return self
     
