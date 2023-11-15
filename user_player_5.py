@@ -10,18 +10,15 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import stage as Stage
+import stage_extended as StageExtended
 import player as Player
 import player_midi as MIDI
-import midi_tools
 
 trigger = Player.Trigger("trigger")
 # trigger.useInternalClock(True)
 
-
-midi_synth = midi_tools.Instrument()
-midi_synth.connect(name="loop")
 master = Player.Player("master")
-note = MIDI.Note("note", midi_synth, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
+note = MIDI.Note("note", None, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
 #note.useInternalClock(True)
 
 print("\n\n")
@@ -48,22 +45,21 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'l
 master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(-2).print_lines(None, 8).print()
 
 # JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON
-master.staff().json_save("staff.json")
-master.staff().json_load("staff.json")
+master.json_save("player.json")
+master.json_load("player.json")
 
-master.rulers().print()
-master.staff().print()
+# master.rulers().print()
+# master.staff().print()
 
 #trigger.play()
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
 
-stage = Stage.Stage()
+stage = StageExtended.StageExtended()
 stage.add(master)
 stage.add(note)
 
+stage.json_save("stage.json")
 
 master.play()
 
-
-midi_synth.disconnect()

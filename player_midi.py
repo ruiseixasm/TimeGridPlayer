@@ -18,15 +18,26 @@ class Master(Player.Player):
 
 class Note(Player.Player):
     
-    def __init__(self, name, midi_synth, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
+    def __init__(self, name, midi_synth=None, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
         super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
         self._midi_synth = midi_synth
 
+    @property
+    def midi_synth(self):
+        return self._midi_synth
+            
+    @midi_synth.setter
+    def midi_synth(self, midi_synth):
+        self._midi_synth = midi_synth
+            
+    @midi_synth.deleter
+    def midi_synth(self):
+        self._midi_synth = None
+            
     class Action(Player.Player.Action):
         
-        def __init__(self, player, midi_synth):
+        def __init__(self, player):
             super().__init__(player) # not self init
-            self._midi_synth = midi_synth
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1, 'duration': 4}
 
         def getArgument(self, merged_staff_arguments, note_argument):
@@ -49,7 +60,9 @@ class Note(Player.Player):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
             if staff == None: # CLOCKED TRIGGER
                 print(f"note OFF:\t{self._note}")
-                self._midi_synth.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+
+                self._player.midi_synth.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
 
@@ -75,7 +88,7 @@ class Note(Player.Player):
 
                         print(f"note ON:\t{self._note}")
                     
-                        self._midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                        self._player.midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         # needs to convert steps duration accordingly to callers time signature
                         duration_converter = staff.signature()['steps_per_beat'] / self._staff.signature()['steps_per_beat']
@@ -84,9 +97,4 @@ class Note(Player.Player):
                              'duration': self._note['duration'] * duration_converter, 'action': self},
                             tick
                         )
-
-    ### PLAYER ACTIONS ###
-
-    def actionFactoryMethod(self):
-        return self.Action(self, self._midi_synth)
     

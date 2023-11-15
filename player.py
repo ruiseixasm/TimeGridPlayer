@@ -10,6 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import time
+import json
 import staff as Staff
 
 class Player:
@@ -167,7 +168,7 @@ class Player:
                 pass
 
     class Clock():
-        def __init__(self, player, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
+        def __init__(self, player, beats_per_minute=120, steps_per_beat=4, pulses_per_quarter_note = 24):
             """create an empty observer list"""
             self._player = player
             self.setClock(beats_per_minute, pulses_per_quarter_note, steps_per_beat)
@@ -178,7 +179,46 @@ class Player:
         def getPulseDuration(self, beats_per_minute, pulses_per_beat): # in seconds
             return 60.0 / (pulses_per_beat * beats_per_minute)
         
-        def setClock(self, beats_per_minute=120, pulses_per_quarter_note = 24, steps_per_beat=4):
+        def json_dictionnaire(self):
+            return {
+                    'part': "clock",
+                    'class': self.__class__.__name__,
+                    'beats_per_minute': self._tempo['beats_per_minute'],
+                    'steps_per_beat': self._tempo['steps_per_beat'],
+                    'pulses_per_quarter_note': self._tempo['pulses_per_quarter_note']
+                }
+     
+        def json_load(self, file_name, json_object=None):
+
+            if json_object == None:
+                # Opening JSON file
+                with open(file_name, 'r') as openfile:
+                    # Reading from json file
+                    json_object = json.load(openfile)
+
+            for dictionnaire in json_object:
+                if dictionnaire['part'] == "clock":
+
+                    self.setClock(
+                        dictionnaire['beats_per_minute'],
+                        dictionnaire['steps_per_beat'],
+                        dictionnaire['pulses_per_quarter_note']
+                    )
+                    break
+
+            return self
+
+        def json_save(self, file_name):
+
+            clock = [ self.json_dictionnaire() ]
+
+            # Writing to sample.json
+            with open(file_name, "w") as outfile:
+                json.dump(clock, outfile)
+
+            return self
+
+        def setClock(self, beats_per_minute=120, steps_per_beat=4, pulses_per_quarter_note = 24):
             pulses_per_beat = steps_per_beat * round(converter_PPQN_PPB(pulses_per_quarter_note) / steps_per_beat)
 
             self._tempo = {'beats_per_minute': beats_per_minute, 'steps_per_beat': steps_per_beat, 'pulses_per_quarter_note': pulses_per_quarter_note, \
@@ -262,15 +302,42 @@ class Player:
                 self._actions.remove(action)
         return is_playing
 
-    def json_load(self, file_name):
+    def json_dictionnaire(self):
+        return {
+                'part': "player",
+                'class': self.__class__.__name__,
+                'name': self._name,
+                'internal_clock': self._internal_clock,
+                'clock': [ self._clock.json_dictionnaire() ],
+                'staff': [ self._staff.json_dictionnaire() ]
+            }
 
-        self._staff.json_load(file_name)
+    def json_load(self, file_name, json_object=None):
+
+        if json_object == None:
+            # Opening JSON file
+            with open(file_name, 'r') as openfile:
+                # Reading from json file
+                json_object = json.load(openfile)
+
+        for dictionnaire in json_object:
+            if dictionnaire['part'] == "player":
+                self._name = dictionnaire['name']
+                self._internal_clock = dictionnaire['internal_clock']
+
+                self._clock.json_load(file_name, dictionnaire['clock'])
+                self._staff.json_load(file_name, dictionnaire['staff'])
+
+                break
 
         return self
 
     def json_save(self, file_name):
-
-        self._staff.json_save(file_name)
+        player = [ self.json_dictionnaire() ]
+            
+        # Writing to sample.json
+        with open(file_name, "w") as outfile:
+            json.dump(player, outfile)
 
         return self
 

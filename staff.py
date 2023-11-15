@@ -356,13 +356,22 @@ class Staff:
                     ruler['lines'] = new_lines
 
             return self
-            
-        def json_load(self, file_name):
+       
+        def json_dictionnaire(self):
+            return {
+                    'part': "rulers",
+                    'class': self.__class__.__name__,
+                    'root_self': self.root().list(),
+                    'next_id': self.next_id()
+                }
+     
+        def json_load(self, file_name, json_object=None):
 
-            # Opening JSON file
-            with open(file_name, 'r') as openfile:
-                # Reading from json file
-                json_object = json.load(openfile)
+            if json_object == None:
+                # Opening JSON file
+                with open(file_name, 'r') as openfile:
+                    # Reading from json file
+                    json_object = json.load(openfile)
 
             for dictionnaire in json_object:
                 if dictionnaire['part'] == "rulers":
@@ -380,13 +389,7 @@ class Staff:
 
         def json_save(self, file_name):
 
-            rulers = [
-                {
-                    'part': "rulers",
-                    'root_self': self.root().list(),
-                    'next_id': self.next_id()
-                }
-            ]
+            rulers = [ self.json_dictionnaire() ]
 
             # Writing to sample.json
             with open(file_name, "w") as outfile:
@@ -1109,12 +1112,25 @@ class Staff:
     def getRulers(self):
         return self._rulers
 
-    def json_load(self, file_name):
+    def json_dictionnaire(self):
+        return {
+                'part': "staff",
+                'class': self.__class__.__name__,
+                'size_measures': self.size_total_measures,
+                'beats_per_measure': self.beats_per_measure,
+                'steps_per_beat': self.steps_per_beat,
+                'pulses_per_quarter_note': self.pulses_per_quarter_note,
+                'play_range': self._play_range,
+                'rulers': [ self._rulers.json_dictionnaire() ]
+            }
+
+    def json_load(self, file_name, json_object=None):
         
-        # Opening JSON file
-        with open(file_name, 'r') as openfile:
-            # Reading from json file
-            json_object = json.load(openfile)
+        if json_object == None:
+            # Opening JSON file
+            with open(file_name, 'r') as openfile:
+                # Reading from json file
+                json_object = json.load(openfile)
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "staff":
@@ -1129,45 +1145,18 @@ class Staff:
                 self.setPlayRange(start=play_range[0], finish=play_range[1])
                 self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
             
-                for dictionnaire in json_object:
-                    if dictionnaire['part'] == "rulers":
-                        rulers = self.Rulers(
-                            staff=self,
-                            rulers_list=dictionnaire['root_self'],
-                            root_self=dictionnaire['root_self'],
-                            start_id=dictionnaire['next_id']
-                        )
-                        self._rulers = rulers
-                        self.clear()
-                        self._rulers.drop()
-                        break
+                self._rulers.json_load(file_name, dictionnaire['rulers'])
 
                 break
 
         return self
 
     def json_save(self, file_name):
-        staff = [
-            {
-                'part': "staff",
-                'size_measures': self.size_total_measures,
-                'beats_per_measure': self.beats_per_measure,
-                'steps_per_beat': self.steps_per_beat,
-                'pulses_per_quarter_note': self.pulses_per_quarter_note,
-                'play_range': self._play_range
-            }
-        ]
-        rulers = [
-            {
-                'part': "rulers",
-                'root_self': self._rulers.root().list(),
-                'next_id': self._rulers.next_id()
-            }
-        ]
+        staff = [ self.json_dictionnaire() ]
             
         # Writing to sample.json
         with open(file_name, "w") as outfile:
-            json.dump(staff + rulers, outfile)
+            json.dump(staff, outfile)
 
         return self
 
