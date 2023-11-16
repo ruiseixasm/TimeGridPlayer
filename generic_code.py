@@ -94,3 +94,13 @@ print (list_a)
 # print (f"{int_number} {float_number:.6f} {another_float_number:.0f}")
 
 print ("  `  ´  .  -  _  ")
+
+
+one_list_1 = ["A"]
+one_list_2 = one_list_1
+
+one_list_1.clear()
+print(one_list_2)
+one_list_1.append("B")
+
+print(one_list_2)

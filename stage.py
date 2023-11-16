@@ -54,6 +54,11 @@ class Stage:
 
         return self
 
+    def disabled(self):
+        if len(self._players_list) > 0:
+            return not self._players_list[0]['enabled']
+        return None
+    
     def enable(self):
         for player in self._players_list:
             player['enabled'] = True
@@ -63,11 +68,6 @@ class Stage:
     def enabled(self):
         if len(self._players_list) > 0:
             return self._players_list[0]['enabled']
-        return None
-    
-    def disabled(self):
-        if len(self._players_list) > 0:
-            return not self._players_list[0]['enabled']
         return None
     
     def filter(self, ids = [], classes = [], names = [], player = None, enabled = None):
@@ -120,7 +120,7 @@ class Stage:
                 # Reading from json file
                 json_object = json.load(openfile)
 
-        self._root_players_list = []
+        self._root_players_list.clear()
 
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
@@ -140,8 +140,6 @@ class Stage:
                         player.stage = self
                 break
 
-        self._players_list = self._root_players_list
-            
         return self
 
     def json_save(self, file_name="stage.json"):
@@ -231,6 +229,6 @@ class Stage:
             del player.stage
             self._root_players_list.remove(player_data)
             break
-        self._players_list = []
+        self._players_list.clear()
 
         return self

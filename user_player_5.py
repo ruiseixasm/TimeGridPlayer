@@ -59,7 +59,7 @@ stage.add(note)
 
 #master.play()
 
-stage.json_save("stage.json")
+# stage.json_save("stage.json")
 stage.json_load("stage.json")
 
 #master.rulers().print().print_lines()

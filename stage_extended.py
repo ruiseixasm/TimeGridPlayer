@@ -16,7 +16,7 @@ import midi_tools
 class StageExtended(Stage.Stage):
 
     def __init__(self, start_id=0):
-        super().__init__(start_id)
+        super().__init__(start_id=start_id)
         
         self._midi_synth = midi_tools.Instrument()
         self._midi_synth.connect(name="loop")
