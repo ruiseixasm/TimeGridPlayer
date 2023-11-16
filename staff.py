@@ -13,27 +13,28 @@ import json
 
 class Staff:
 
-    def __init__(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note = 24, play_range=[[], []]):
+    def __init__(self):
 
-        self._rulers = self.Rulers(self, [], None)
+        self._rulers = self.Rulers(self)
         self._staff = []
-        self.total_pulses = 0
+        self._time_signature = {}
+        self._total_pulses = 0
         self.string_top_lengths = {'measure': 0, 'beat': 0, 'step': 0, 'pulse': 0, 'arguments_enabled': 0, 'arguments_total': 0, 'actions_enabled': 0, 'actions_total': 0}
         self.string_top_length = 0
         self._play_range = [[], []]
-        self.setPlayRange(start=play_range[0], finish=play_range[1])
-        self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+        self.set_range([], [])
+        self.set()
 
     class Rulers():
 
-        def __init__(self, staff, rulers_list, root_self, start_id=0):
+        def __init__(self, staff, rulers_list=[], root_self=None, start_id=0):
 
             self._staff = staff
 
             self._rulers_list = rulers_list
-            self.root_self = self
-            if root_self != None:
-                self.root_self = root_self # type Rulers
+            self._root_self = root_self # type Rulers
+            if root_self == None:
+                self._root_self = self
 
             self._next_id = start_id
     
@@ -43,7 +44,7 @@ class Staff:
             self_rulers_list = self.list()
             other_rulers_list = other.list()
 
-            return self._staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self)
         
         def __sub__(self, other):
             '''Works as exclusion'''
@@ -52,7 +53,7 @@ class Staff:
 
             exclusion_list = [ ruler for ruler in self_rulers_list if ruler not in other_rulers_list ]
 
-            return self._staff.Rulers(self._staff, exclusion_list, self.root_self)
+            return self._staff.Rulers(self._staff, exclusion_list, self._root_self)
         
         def __mul__(self, other):
             '''Works as intersection'''
@@ -61,7 +62,7 @@ class Staff:
             
             intersection_list = [ ruler for ruler in self_rulers_list if ruler in other_rulers_list ]
 
-            return self._staff.Rulers(self._staff, intersection_list, self.root_self)
+            return self._staff.Rulers(self._staff, intersection_list, self._root_self)
         
         def __div__(self, other):
             '''Works as divergence'''
@@ -106,8 +107,8 @@ class Staff:
                     structured_ruler['enabled'] = ruler['enabled']
 
                 self._rulers_list.append(structured_ruler)
-                if (self != self.root_self):
-                    self.root_self._rulers_list.append(structured_ruler)
+                if (self != self._root_self):
+                    self._root_self._rulers_list.append(structured_ruler)
                 if structured_ruler['on_staff']:
                     self._staff.add([structured_ruler])
 
@@ -148,7 +149,7 @@ class Staff:
         
         def empty(self):
             empty_rulers_list = []
-            return self._staff.Rulers(self._staff, empty_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, empty_rulers_list, self._root_self)
         
         def empty_lines(self):
             for ruler in self._rulers_list:
@@ -245,7 +246,7 @@ class Staff:
         
         def even(self):
             even_rulers_list = self._rulers_list[::2]
-            return self._staff.Rulers(self._staff, even_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, even_rulers_list, self._root_self)
         
         def exclude(self, index=0):
             if (self.len() > index):
@@ -321,14 +322,14 @@ class Staff:
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
                 ]
-            return self._staff.Rulers(self._staff, filtered_rulers, self.root_self)
+            return self._staff.Rulers(self._staff, filtered_rulers, self._root_self)
         
         def group(self, group):
             return self.filter(groups=[group])
 
         def head(self, elements=1):
             head_rulers_list = self._rulers_list[:elements]
-            return self._staff.Rulers(self._staff, head_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, head_rulers_list, self._root_self)
         
         def insert_lines(self, line, lines=[None], id=None):
             target_rulers = self
@@ -476,7 +477,7 @@ class Staff:
 
                 merged_rulers.append(merged_ruler)
 
-            return self._staff.Rulers(self._staff, merged_rulers, self.root_self)
+            return self._staff.Rulers(self._staff, merged_rulers, self._root_self)
         
         def move_lines(self, increments=1):
             for ruler in self._rulers_list:
@@ -515,7 +516,7 @@ class Staff:
 
         def odd(self):
             odd_rulers_list = self._rulers_list[1::2]
-            return self._staff.Rulers(self._staff, odd_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, odd_rulers_list, self._root_self)
         
         def print(self):
             
@@ -761,7 +762,7 @@ class Staff:
             return self
 
         def remove(self):
-            self.root_self._rulers_list = [ ruler for ruler in self.root_self._rulers_list if ruler not in self._rulers_list ]
+            self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
             if self._staff != None:
                 unique_rulers_list = self.unique().list()
                 self._staff.remove(unique_rulers_list)
@@ -796,18 +797,19 @@ class Staff:
         
         def reroot(self):
             if self._staff != None:
-                extra_root_rulers = (self.root_self - self).unique()
+                extra_root_rulers = (self._root_self - self).unique()
                 self._staff.remove(extra_root_rulers.list())
             
-            self.root_self = self
+            self._root_self = self
+            self._staff.setRuler(self) # avoids broken links
             return self
         
-        def resetStaff(self):
+        def reset(self):
             if self._staff != None:
                 self._staff.clear()
-                for staff_ruler in self.root_self.list():
+                for staff_ruler in self._root_self.list():
                     staff_ruler['on_staff'] = True
-                unique_rulers_list = self.root_self.unique().list()
+                unique_rulers_list = self._root_self.unique().list()
                 self._staff.add(unique_rulers_list)
 
             return self
@@ -850,7 +852,7 @@ class Staff:
             return self
 
         def root(self):
-            return self.root_self
+            return self._root_self
                 
         def rotate(self, increments=1):
             rulers_size = self.len()
@@ -903,7 +905,7 @@ class Staff:
         def single(self, index=0):
             if (self.len() > index):
                 ruler_list = [ self._rulers_list[index] ]
-                return self._staff.Rulers(self._staff, ruler_list, self.root_self)
+                return self._staff.Rulers(self._staff, ruler_list, self._root_self)
             return self
 
         def slide_position(self, distance_steps=4):
@@ -981,7 +983,7 @@ class Staff:
 
         def tail(self, elements=1):
             tail_rulers_list = self._rulers_list[-elements:]
-            return self._staff.Rulers(self._staff, tail_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, tail_rulers_list, self._root_self)
 
         def type(self, type="arguments"):
             return self.filter(type=type)
@@ -992,7 +994,7 @@ class Staff:
                 if ruler not in unique_rulers_list:
                     unique_rulers_list.append(ruler)
 
-            return self._staff.Rulers(self._staff, unique_rulers_list, self.root_self)
+            return self._staff.Rulers(self._staff, unique_rulers_list, self._root_self)
         
 # Staff METHODS ###############################################################################################################################
 
@@ -1121,10 +1123,8 @@ class Staff:
         return {
                 'part': "staff",
                 'class': self.__class__.__name__,
-                'size_measures': self.size_total_measures,
-                'beats_per_measure': self.beats_per_measure,
-                'steps_per_beat': self.steps_per_beat,
-                'pulses_per_quarter_note': self.pulses_per_quarter_note,
+                'time_signature': self._time_signature,
+                'total_pulses': self._total_pulses,
                 'play_range': self._play_range,
                 'rulers': [ self._rulers.json_dictionnaire() ]
             }
@@ -1139,16 +1139,16 @@ class Staff:
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "staff":
-                size_measures = dictionnaire['size_measures']
-                beats_per_measure = dictionnaire['beats_per_measure']
-                steps_per_beat = dictionnaire['steps_per_beat']
-                pulses_per_quarter_note = dictionnaire['pulses_per_quarter_note']
+                size_measures = dictionnaire['time_signature']['size_measures']
+                beats_per_measure = dictionnaire['time_signature']['beats_per_measure']
+                steps_per_beat = dictionnaire['time_signature']['steps_per_beat']
+                pulses_per_quarter_note = dictionnaire['time_signature']['pulses_per_quarter_note']
                 play_range = dictionnaire['play_range']
                 
                 self.clear()
 
-                self.setPlayRange(start=play_range[0], finish=play_range[1])
-                self.setStaff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+                self.set_range(start=play_range[0], finish=play_range[1])
+                self.set(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
             
                 self._rulers = self._rulers.json_load(file_name, dictionnaire['rulers'])
 
@@ -1166,10 +1166,10 @@ class Staff:
         return self
 
     def len(self):
-        return self.total_pulses
+        return self._total_pulses
     
     def len_steps(self):
-        return self.total_pulses * self.steps_per_beat / self.pulses_per_beat
+        return self._total_pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat']
     
     def list(self):
         return self._staff
@@ -1184,15 +1184,17 @@ class Staff:
 
     def position(self, steps=None, pulses=None):
         if (steps != None):
-            measures = int(steps / (self.steps_per_beat * self.beats_per_measure))
-            steps = steps % (self.steps_per_beat * self.beats_per_measure)
+            measures = int(steps / (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
+            steps = steps % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])
             if steps < 0:
-                steps = -(-steps % (self.steps_per_beat * self.beats_per_measure))
+                steps = -(-steps % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
         elif (pulses != None):
-            measures = int(pulses / (self.pulses_per_beat * self.beats_per_measure))
-            steps = pulses * self.steps_per_beat / self.pulses_per_beat % (self.steps_per_beat * self.beats_per_measure)
+            measures = int(pulses / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']))
+            steps = pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat'] % \
+                (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])
             if pulses < 0:
-                steps = -(-pulses * self.steps_per_beat / self.pulses_per_beat % (self.steps_per_beat * self.beats_per_measure))
+                steps = -(-pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat'] % \
+                          (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
         return [measures, steps]
     
     def print(self):
@@ -1249,9 +1251,9 @@ class Staff:
 
     def pulseRemainders(self, pulse=0):
         return {
-            'measure': pulse % (self.pulses_per_beat * self.beats_per_measure),
-            'beat': pulse % self.pulses_per_beat,
-            'step': pulse % (self.pulses_per_beat / self.steps_per_beat),
+            'measure': pulse % (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']),
+            'beat': pulse % self._time_signature['pulses_per_beat'],
+            'step': pulse % (self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat']),
             'pulse': 0 # by definition is pulse % pulse = 0
         }
     
@@ -1286,7 +1288,8 @@ class Staff:
         return pulse_sums
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
-        return position[0] * self.beats_per_measure * self.pulses_per_beat + round(position[1] * self.pulses_per_beat / self.steps_per_beat)
+        return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat'] + \
+            round(position[1] * self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -1294,77 +1297,98 @@ class Staff:
     def rulers(self):
         return self._rulers
 
-    def setPlayRange(self, start=[], finish=[]):
-        if self.total_pulses > 0:
-            if start == [] or self._play_range[0] == []:
-                self._play_range[0] = [0, 0]
-            elif start == None and self._play_range[0] != []:
-                start_pulses = min(self.total_pulses, self.pulses(self._play_range[0]))
-                self._play_range[0] = self.position(pulses=start_pulses)
-            elif start != None:
-                start_pulses = min(self.total_pulses, self.pulses(start))
-                self._play_range[0] = self.position(pulses=start_pulses)
+    def set(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
 
-            if finish == [] or self._play_range[1] == []:
-                finish_pulses = self.total_pulses
-                self._play_range[1] = self.position(pulses=finish_pulses)
-            elif finish == None and self._play_range[1] != []:
-                start_pulses = min(self.total_pulses, self.pulses(self._play_range[1]))
-                self._play_range[1] = self.position(pulses=start_pulses)
-            elif finish != None:
-                start_pulses = self.pulses(self._play_range[0])
-                finish_pulses = max(start_pulses, min(self.total_pulses, self.pulses(finish)))
-                self._play_range[1] = self.position(pulses=finish_pulses)
+        if self._time_signature == {}:
+            self._time_signature['size_measures'] = size_measures
+            if size_measures == None:
+                self._time_signature['size_measures'] = 8
+            self._time_signature['beats_per_measure'] = beats_per_measure
+            if beats_per_measure == None:
+                self._time_signature['beats_per_measure'] = 4
+            self._time_signature['steps_per_beat'] = steps_per_beat
+            if steps_per_beat == None:
+                self._time_signature['steps_per_beat'] = 4
+            self._time_signature['pulses_per_quarter_note'] = pulses_per_quarter_note
+            if pulses_per_quarter_note == None:
+                self._time_signature['pulses_per_quarter_note'] = 24
+        else:
+            if size_measures != None:
+                self._time_signature['size_measures'] = int(max(1, size_measures))                      # staff total size
+            if beats_per_measure != None:
+                self._time_signature['beats_per_measure'] = int(max(1, beats_per_measure))              # beats in each measure
+            if steps_per_beat != None:
+                self._time_signature['steps_per_beat'] = 1 if steps_per_beat == 0 else steps_per_beat   # how many steps take each beat
+            if pulses_per_quarter_note != None:
+                self._time_signature['pulses_per_quarter_note'] = pulses_per_quarter_note               # sets de resolution of clock pulses
 
-        return self
-    
-    def setStaff(self, size_measures = 8, beats_per_measure = 4, steps_per_beat = 4, pulses_per_quarter_note  = 24):
+        self._time_signature['pulses_per_beat'] = self._time_signature['steps_per_beat'] * \
+            round(converter_PPQN_PPB(self._time_signature['pulses_per_quarter_note']) / self._time_signature['steps_per_beat'])
 
-        self.size_total_measures = int(max(1, size_measures))                           # staff total size
-        self.beats_per_measure = int(max(1, beats_per_measure))                         # beats in each measure
-        self.steps_per_beat = 1 if steps_per_beat == 0 else steps_per_beat              # how many steps take each beat
-        self.pulses_per_quarter_note = pulses_per_quarter_note                          # sets de resolution of clock pulses
-
-        self.pulses_per_beat = self.steps_per_beat * round(converter_PPQN_PPB(pulses_per_quarter_note) / self.steps_per_beat)
-
-        self.total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
+        self._total_pulses = self._time_signature['size_measures'] * \
+            self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
 
         old_staff = self._staff[:]
         self._staff = []
-        for pulse in range(self.total_pulses):
+        for pulse in range(self._total_pulses):
             staff_pulse = {
-                'measure': int(pulse / (self.pulses_per_beat * self.beats_per_measure)),
-                'beat': int(pulse / self.pulses_per_beat) % self.beats_per_measure,
-                'step': int(pulse * self.steps_per_beat / self.pulses_per_beat) % (self.steps_per_beat * self.beats_per_measure),
+                'measure': int(pulse / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure'])),
+                'beat': int(pulse / self._time_signature['pulses_per_beat']) % self._time_signature['beats_per_measure'],
+                'step': int(pulse * self._time_signature['steps_per_beat'] / \
+                            self._time_signature['pulses_per_beat']) % \
+                                (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']),
                 'pulse': pulse,
                 'arguments': {'enabled': 0, 'total': 0},
                 'actions': {'enabled': 0, 'total': 0}
             }
             self._staff.append(staff_pulse)
 
-        if self.total_pulses > 0:
+        if self._total_pulses > 0:
             for staff_pulse in old_staff:
                 for ruler_type in ['arguments', 'actions']:
                     if staff_pulse[ruler_type]['total'] > 0:
                         position_pulses = self.pulses([staff_pulse['measure'], staff_pulse['step']])
-                        size_total_pulses = self.size_total_measures * self.beats_per_measure * self.pulses_per_beat
+                        size_total_pulses = self._time_signature['size_measures'] * \
+                            self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
                         if not position_pulses < 0 and position_pulses < size_total_pulses:
                             self._staff[position_pulses][ruler_type]['enabled'] = staff_pulse[ruler_type]['enabled']
                             self._staff[position_pulses][ruler_type]['total'] = staff_pulse[ruler_type]['total']
 
-        return self.setPlayRange(start=None, finish=None)._setTopLengths()
+        return self.set_range()._setTopLengths()
     
-    def signature(self):
-        return {
-            'beats_per_measure': self.beats_per_measure,
-            'steps_per_beat': self.steps_per_beat,
-            'pulses_per_quarter_note': self.pulses_per_quarter_note,
-            'pulses_per_beat': self.pulses_per_beat,
-            'pulses_per_step': self.pulses_per_beat / self.steps_per_beat
-        }
+    def set_range(self, start=None, finish=None):
+        if self._total_pulses > 0:
+            if start == [] or self._play_range[0] == []:
+                self._play_range[0] = [0, 0]
+            elif start == None and self._play_range[0] != []:
+                start_pulses = min(self._total_pulses, self.pulses(self._play_range[0]))
+                self._play_range[0] = self.position(pulses=start_pulses)
+            elif start != None:
+                start_pulses = min(self._total_pulses, self.pulses(start))
+                self._play_range[0] = self.position(pulses=start_pulses)
+
+            if finish == [] or self._play_range[1] == []:
+                finish_pulses = self._total_pulses
+                self._play_range[1] = self.position(pulses=finish_pulses)
+            elif finish == None and self._play_range[1] != []:
+                start_pulses = min(self._total_pulses, self.pulses(self._play_range[1]))
+                self._play_range[1] = self.position(pulses=start_pulses)
+            elif finish != None:
+                start_pulses = self.pulses(self._play_range[0])
+                finish_pulses = max(start_pulses, min(self._total_pulses, self.pulses(finish)))
+                self._play_range[1] = self.position(pulses=finish_pulses)
+
+        return self
+    
+    def setRulers(self, rulers):
+        self._rulers = rulers
+        return self
+
+    def get_time_signature(self):
+        return self._time_signature
 
     def steps(self, position=[0, 0]): # position: [measure, step]
-        return position[0] * self.beats_per_measure * self.steps_per_beat + position[1]
+        return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['steps_per_beat'] + position[1]
 
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))

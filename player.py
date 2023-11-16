@@ -15,16 +15,14 @@ import staff as Staff
 
 class Player:
 
-    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24,
-                 play_range=[[], []], staff=None):
+    def __init__(self, name, description="A Player of actions based on arguments"):
 
         self._stage = None
         self._name = name
-        self._staff = staff
-        if self._staff == None:
-            self._staff = Staff.Staff(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range)
+        self._description = description
+        self._staff = Staff.Staff()
 
-        self._clock = self.Clock(self, beats_per_minute, pulses_per_quarter_note, steps_per_beat)
+        self._clock = self.Clock(self)
         self._internal_clock = False
 
         self._actions = []
@@ -54,9 +52,8 @@ class Player:
                 self._player = Player()
             self._staff = self._player.getStaff()
 
-            self._rulers = self._player.rulers()
-            self._internal_arguments_rulers = self._rulers.empty()
-            self._external_arguments_rulers = self._rulers.empty()
+            self._internal_arguments_rulers = self._player.rulers().empty()
+            self._external_arguments_rulers = self._player.rulers().empty()
 
             self._play_mode = True # By default whenever a new Action is created is considered in play mode
             self._start_pulse = self._player.rangePulses()['start']
@@ -81,11 +78,12 @@ class Player:
         @external_arguments_rulers.deleter 
         def external_arguments_rulers(self):
             #del self._external_arguments_rulers
-            self._external_arguments_rulers = self._rulers.empty()
+            self._external_arguments_rulers = self._player.rulers().empty()
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
-                pulses_duration = clocked_action['duration'] * self._staff.signature()['pulses_per_step'] # Action pulses per step considered
+                time_signature = self._staff.get_time_signature()
+                pulses_duration = clocked_action['duration'] * time_signature['pulses_per_beat'] / time_signature['steps_per_beat'] # Action pulses per step considered
                 clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
                 clocked_action['stack_id'] = len(self._clocked_actions)
                 self._clocked_actions.append(clocked_action)
@@ -131,12 +129,12 @@ class Player:
 
                 if (enabled_arguments_rulers > 0):
                     
-                    pulse_arguments_rulers = self._rulers.filter(type='arguments', positions=[position], enabled=True)
+                    pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
                     self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge()
 
                 if (enabled_actions_rulers > 0):
                     
-                    pulse_actions_rulers = self._rulers.filter(type='actions', positions=[position], enabled=True)
+                    pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
                     merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
 
                     for triggered_action in pulse_actions_rulers.list(): # single ruler actions
@@ -167,10 +165,10 @@ class Player:
                 pass
 
     class Clock():
-        def __init__(self, player, beats_per_minute=120, steps_per_beat=4, pulses_per_quarter_note = 24):
-            """create an empty observer list"""
+        def __init__(self, player):
             self._player = player
-            self.setClock(beats_per_minute, pulses_per_quarter_note, steps_per_beat)
+            self._tempo = {}
+            self.set()
 
         def getClockTempo(self):
             return self._tempo
@@ -182,9 +180,8 @@ class Player:
             return {
                     'part': "clock",
                     'class': self.__class__.__name__,
-                    'beats_per_minute': self._tempo['beats_per_minute'],
-                    'steps_per_beat': self._tempo['steps_per_beat'],
-                    'pulses_per_quarter_note': self._tempo['pulses_per_quarter_note']
+                    'tempo': self._tempo,
+                    'pulse_duration': self._pulse_duration
                 }
      
         def json_load(self, file_name="clock.json", json_object=None):
@@ -197,12 +194,8 @@ class Player:
 
             for dictionnaire in json_object:
                 if dictionnaire['part'] == "clock":
-
-                    self.setClock(
-                        dictionnaire['beats_per_minute'],
-                        dictionnaire['steps_per_beat'],
-                        dictionnaire['pulses_per_quarter_note']
-                    )
+                    self._tempo = dictionnaire['tempo']
+                    self._pulse_duration = dictionnaire['pulse_duration']
                     break
 
             return self
@@ -217,12 +210,30 @@ class Player:
 
             return self
 
-        def setClock(self, beats_per_minute=120, steps_per_beat=4, pulses_per_quarter_note = 24):
-            pulses_per_beat = steps_per_beat * round(converter_PPQN_PPB(pulses_per_quarter_note) / steps_per_beat)
+        def set(self, beats_per_minute=None, steps_per_beat=None, pulses_per_quarter_note=None):
 
-            self._tempo = {'beats_per_minute': beats_per_minute, 'steps_per_beat': steps_per_beat, 'pulses_per_quarter_note': pulses_per_quarter_note, \
-                        'pulses_per_beat': pulses_per_beat}
-            self._pulse_duration = self.getPulseDuration(beats_per_minute, pulses_per_beat) # in seconds
+            if self._tempo == {}:
+                self._tempo['beats_per_minute'] = beats_per_minute
+                if beats_per_minute == None:
+                    self._tempo['beats_per_minute'] = 120
+                self._tempo['steps_per_beat'] = steps_per_beat
+                if steps_per_beat == None:
+                    self._tempo['steps_per_beat'] = 4
+                self._tempo['pulses_per_quarter_note'] = pulses_per_quarter_note
+                if pulses_per_quarter_note == None:
+                    self._tempo['pulses_per_quarter_note'] = 24
+            else:
+                if beats_per_minute != None:
+                    self._tempo['beats_per_minute'] = beats_per_minute
+                if steps_per_beat != None:
+                    self._tempo['steps_per_beat'] = steps_per_beat
+                if pulses_per_quarter_note != None:
+                    self._tempo['pulses_per_quarter_note'] = pulses_per_quarter_note
+
+            pulses_per_beat = self._tempo['steps_per_beat'] * round(converter_PPQN_PPB(self._tempo['pulses_per_quarter_note']) / self._tempo['steps_per_beat'])
+            self._tempo['pulses_per_beat'] = pulses_per_beat
+            
+            self._pulse_duration = self.getPulseDuration(self._tempo['beats_per_minute'], self._tempo['pulses_per_beat']) # in seconds
 
         def start(self, non_fast_forward_range_pulses = []): # Where a non fast forward range is set
 
@@ -303,6 +314,7 @@ class Player:
                 'part': "player",
                 'class': self.__class__.__name__,
                 'name': self._name,
+                'description': self._description,
                 'internal_clock': self._internal_clock,
                 'clock': [ self._clock.json_dictionnaire() ],
                 'staff': [ self._staff.json_dictionnaire() ]
@@ -319,6 +331,7 @@ class Player:
         for dictionnaire in json_object:
             if dictionnaire['part'] == "player":
                 self._name = dictionnaire['name']
+                self._description = dictionnaire['description']
                 self._internal_clock = dictionnaire['internal_clock']
 
                 self._clock.json_load(file_name, dictionnaire['clock'])
@@ -388,18 +401,31 @@ class Player:
     def rulers(self):
         return self._staff.rulers()
 
-    def SetPlayer(self, name, staff=None):
+    def set(self, name=None, description=None, staff=None):
 
-        self._name = name
+        if name != None:
+            self._name = name
+            if self._stage != None: # needs to update the stage with the new name
+                for players_names in self._stage.players_list():
+                    if players_names['player'] == self:
+                        players_names['name'] = self._name
+        if description != None:
+            self._description = description
         if staff != None:
             self._staff = staff
 
-        if self._stage != None:
-            for players_names in self._stage.players_list():
-                if players_names['player'] == self:
-                    players_names['name'] = self._name
-
         return self
+    
+    def set_tempo(self, tempo=120):
+        self._clock.set(beats_per_minute=tempo)
+        return self
+
+    def set_bpm(self, bpm=120):
+        return self.set_tempo(bpm)
+
+    def set_time_signature(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+        self._clock.set(beats_per_minute=None, steps_per_beat=steps_per_beat, pulses_per_quarter_note=pulses_per_quarter_note)
+        self._staff.set(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
 
     def staff(self):
         return self._staff
@@ -444,8 +470,8 @@ class Player:
 
 class Trigger(Player):
     
-    def __init__(self, name):
-        super().__init__(name, beats_per_minute=120, size_measures=4) # not self init
+    def __init__(self, name, description="A simple trigger action"):
+        super().__init__(name, description) # not self init
         
     class Action(Player.Action):
         

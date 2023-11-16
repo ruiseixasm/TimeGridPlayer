@@ -12,13 +12,14 @@ Lesser General Public License for more details.'''
 import stage as Stage
 import stage_extended as StageExtended
 import player as Player
-import player_midi as MIDI
+import player_midi as PlayerMIDI
 
 trigger = Player.Trigger("trigger")
 # trigger.useInternalClock(True)
 
 master = Player.Player("master")
-note = MIDI.Note("note", None, 440, 1, 4, 4, play_range=[[0, 0], [1, 0]])
+note = PlayerMIDI.Note("note")
+note.staff().set(size_measures=1)
 #note.useInternalClock(True)
 
 print("\n\n")
@@ -71,5 +72,5 @@ master.rulers().print().print_lines()
 
 print(players)
 
-#master.play()
+master.play()
 

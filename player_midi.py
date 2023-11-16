@@ -13,13 +13,13 @@ import player as Player
 
 class Master(Player.Player):
     
-    def __init__(self, name, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
-        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
+    def __init__(self, name, description="A conductor of multiple Players"):
+        super().__init__(name, description) # not self init
 
 class Note(Player.Player):
     
-    def __init__(self, name, midi_synth=None, beats_per_minute=120, size_measures=8, beats_per_measure=4, steps_per_beat=4, pulses_per_quarter_note=24, play_range=[[], []]):
-        super().__init__(name, beats_per_minute, size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note, play_range) # not self init
+    def __init__(self, name, description="Plays notes on a given Synth", midi_synth=None):
+        super().__init__(name, description) # not self init
         self._midi_synth = midi_synth
 
     @property
@@ -91,7 +91,7 @@ class Note(Player.Player):
                         self._player.midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         # needs to convert steps duration accordingly to callers time signature
-                        duration_converter = staff.signature()['steps_per_beat'] / self._staff.signature()['steps_per_beat']
+                        duration_converter = staff.get_time_signature()['steps_per_beat'] / self._staff.get_time_signature()['steps_per_beat']
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
                              'duration': self._note['duration'] * duration_converter, 'action': self},

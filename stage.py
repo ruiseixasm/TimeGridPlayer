@@ -14,19 +14,22 @@ import player as Player
 
 class Stage:
 
-    def __init__(self):
+    def __init__(self, start_id=0):
 
         self._players = []
+        self._next_id = start_id
 
     def players_list(self):
         return self._players
             
     def add(self, player):
         player_data = {
+            'id': self._next_id,
             'class': player.__class__.__name__,
             'name': player.name,
             'player': player
         }
+        self._next_id += 1
         self._players.append(player_data)
         player.stage = self
         return self
@@ -46,7 +49,9 @@ class Stage:
     def json_dictionnaire(self):
         stage = {
                 'part': "stage",
+                'id': self._next_id,
                 'class': self.__class__.__name__,
+                'next_id': self._next_id,
                 'players': []
             }
         
@@ -67,6 +72,7 @@ class Stage:
 
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
+                self._next_id = stage_dictionnaire['next_id']
                 for player_dictionnaire in stage_dictionnaire['players']:
                     player = self.playerFactoryMethod(player_dictionnaire)
                     if player != None:
@@ -82,6 +88,10 @@ class Stage:
         # Writing to sample.json
         with open(file_name, "w") as outfile:
             json.dump(stage, outfile)
+
+        return self
+
+    def print(self):
 
         return self
 
