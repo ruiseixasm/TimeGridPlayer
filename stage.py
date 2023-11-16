@@ -14,49 +14,101 @@ import player as Player
 
 class Stage:
 
-    def __init__(self, start_id=0):
+    def __init__(self, players_list=None, root_players_list=None, start_id=0):
 
-        self._players = []
+        self._root_players_list = []
+        self._players_list = self._root_players_list
+        if players_list != None:
+            self._players_list = players_list
+        if root_players_list != None:
+            self._root_players_list = root_players_list
+
         self._next_id = start_id
 
-    def players_list(self):
-        return self._players
-            
+    def _playerFactoryMethod(self, player_dictionnaire):
+        player = None
+        match player_dictionnaire['class']:
+            case "Player" | "Trigger":
+                player = Player.Player(player_dictionnaire['name'], player_dictionnaire['description'])
+
+        return player
+
     def add(self, player):
         player_data = {
             'id': self._next_id,
             'class': player.__class__.__name__,
             'name': player.name,
-            'player': player
+            'player': player,
+            'enabled': True
         }
         self._next_id += 1
-        self._players.append(player_data)
+        self._root_players_list.append(player_data)
+        if player.stage != None:
+            player.stage.filter(player=player).remove() # remove from other stage first
         player.stage = self
         return self
     
-    def playerFactoryMethod(self, player_dictionnaire):
-        return self.GetPlayer(player_dictionnaire['class'], player_dictionnaire['name'])
+    def disable(self):
+        for player in self._players_list:
+            player['enabled'] = False
 
-    def GetPlayer(self, player_class="Player", player_name="player"):
-        player = None
-        match player_class:
-            case "Player":
-                player = Player.Player(player_name)
-                self.add(player)
+        return self
 
-        return player
+    def enable(self):
+        for player in self._players_list:
+            player['enabled'] = True
+
+        return self
+
+    def enabled(self):
+        if len(self._players_list) > 0:
+            return self._players_list[0]['enabled']
+        return None
     
+    def disabled(self):
+        if len(self._players_list) > 0:
+            return not self._players_list[0]['enabled']
+        return None
+    
+    def filter(self, ids = [], classes = [], names = [], player = None, enabled = None):
+
+        filtered_players = self._players_list.copy()
+
+        if (len(ids) > 0 and ids != [None]):
+            filtered_players = [
+                filtered_player for filtered_player in filtered_players if filtered_player['id'] in ids
+            ]
+        if (len(classes) > 0 and classes != [None]):
+            filtered_players = [
+                filtered_player for filtered_player in filtered_players if filtered_player['id'] in classes
+            ]
+        if (len(names) > 0 and names != [None]):
+            filtered_players = [
+                filtered_player for filtered_player in filtered_players if filtered_player['id'] in names
+            ]
+        if (player != None):
+            filtered_players = [
+                filtered_player for filtered_player in filtered_players if filtered_player['player'] == player
+            ]
+        if (enabled != None):
+            filtered_players = [
+                filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
+            ]
+
+        return Stage(filtered_players, self._root_players_list)
+
     def json_dictionnaire(self):
         stage = {
                 'part': "stage",
-                'id': self._next_id,
-                'class': self.__class__.__name__,
                 'next_id': self._next_id,
                 'players': []
             }
         
-        for player_dictionnaire in self._players:
-            stage['players'].append( player_dictionnaire['player'].json_dictionnaire() )
+        for player_dictionnaire in self._root_players_list:
+            player_json = player_dictionnaire['player'].json_dictionnaire()
+            player_json['id'] = player_dictionnaire['id']
+            player_json['enabled'] = player_dictionnaire['enabled']
+            stage['players'].append( player_json )
 
         return stage
     
@@ -68,17 +120,28 @@ class Stage:
                 # Reading from json file
                 json_object = json.load(openfile)
 
-        self._players = []
+        self._root_players_list = []
 
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
                 self._next_id = stage_dictionnaire['next_id']
                 for player_dictionnaire in stage_dictionnaire['players']:
-                    player = self.playerFactoryMethod(player_dictionnaire)
+                    player = self._playerFactoryMethod(player_dictionnaire)
                     if player != None:
                         player.json_load(file_name, [ player_dictionnaire ])
+                        player_data = {
+                            'id': player_dictionnaire['id'],
+                            'class': player.__class__.__name__,
+                            'name': player.name,
+                            'player': player,
+                            'enabled': player_dictionnaire['enabled']
+                        }
+                        self._root_players_list.append(player_data)
+                        player.stage = self
                 break
 
+        self._players_list = self._root_players_list
+            
         return self
 
     def json_save(self, file_name="stage.json"):
@@ -91,14 +154,83 @@ class Stage:
 
         return self
 
+    def len(self):
+        return len(self._players_list)
+            
+    def list(self):
+        return self._players_list
+            
+    def player(self):
+        if len(self._players_list) > 0:
+            return self._players_list[0]['player']
+        return None
+
     def print(self):
 
+        if len(self._players_list) > 0:
+            string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'enabled': 0}
+            sequence_index = 0
+            for player in self._players_list: # get maximum sizes
+                
+                for key, value in string_top_length.items():
+                    if key == 'sequence':
+                        key_value_length = len(f"{sequence_index}")
+                        sequence_index += 1
+                    elif key == 'class':
+                        key_value_length = len(f"{player['player'].__class__.__name__}")
+                    elif key == 'description':
+                        key_value_length = len(f"{player['player'].description}")
+                    else:
+                        key_value_length = len(f"{player[key]}")
+
+                    string_top_length[key] = max(string_top_length[key], key_value_length)
+
+            full_string_top_length = 0
+            for value in string_top_length.values():
+                full_string_top_length += value
+
+            spaces_between = 4
+
+            print("=" * (full_string_top_length + 61))
+            sequence_index = 0
+            for player in self._players_list:
+
+                player_str = ""
+                for key, value in string_top_length.items():
+                    if key == 'sequence':
+                        key_value_str = f"{sequence_index}"
+                        key_value_str = (" " * (string_top_length[key] - len(key_value_str))) + key_value_str + ": { "
+                        sequence_index += 1
+                    else:
+                        key_value_str = ""
+                        if key == 'class':
+                            key_value_str = f"{player['player'].__class__.__name__}"
+                        elif key == 'description':
+                            key_value_str = f"{player['player'].description}"
+                        else:
+                            key_value_str = f"{player[key]}"
+
+                        key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
+
+                        if key != 'enabled':
+                            key_value_str += " " * spaces_between
+
+                    player_str +=  key_value_str
+                player_str += " }"
+                print(player_str)
+            print("=" * (full_string_top_length + 61))
+
+        else:
+            print("=" * 7)
+            print("[EMPTY]")
+            print("=" * 7)
         return self
 
     def remove(self, player):
-        players = self._players[:]
-        for player_data in players:
-            if player_data['player'] == player:
-                del player.stage
-                self._players.remove(player_data)
-                break
+        for player_data in self._players_list[:]:
+            del player.stage
+            self._root_players_list.remove(player_data)
+            break
+        self._players_list = []
+
+        return self

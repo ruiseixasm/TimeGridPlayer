@@ -10,7 +10,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import stage as Stage
-import stage_extended as StageExtended
 import player as Player
 import player_midi as PlayerMIDI
 
@@ -53,6 +52,7 @@ master.rulers().type("arguments").sort().group("key").print().print_lines(None, 
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
 
+import stage_extended as StageExtended
 stage = StageExtended.StageExtended()
 stage.add(master)
 stage.add(note)
@@ -61,16 +61,9 @@ stage.add(note)
 
 stage.json_save("stage.json")
 stage.json_load("stage.json")
-players = stage.players_list()
 
-for player_dictionnaire in players:
-    if player_dictionnaire['name'] == "master":
-        master = player_dictionnaire['player']
-
-master.rulers().print().print_lines()
+#master.rulers().print().print_lines()
 #master.staff().print()
 
-print(players)
-
-master.play()
+stage.print().player().rulers().print().print_lines().player().play()
 

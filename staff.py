@@ -13,8 +13,9 @@ import json
 
 class Staff:
 
-    def __init__(self):
+    def __init__(self, player=None):
 
+        self._player = player
         self._rulers = self.Rulers(self)
         self._staff = []
         self._time_signature = {}
@@ -44,7 +45,7 @@ class Staff:
             self_rulers_list = self.list()
             other_rulers_list = other.list()
 
-            return self._staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self)
         
         def __sub__(self, other):
             '''Works as exclusion'''
@@ -53,7 +54,7 @@ class Staff:
 
             exclusion_list = [ ruler for ruler in self_rulers_list if ruler not in other_rulers_list ]
 
-            return self._staff.Rulers(self._staff, exclusion_list, self._root_self)
+            return Staff.Rulers(self._staff, exclusion_list, self._root_self)
         
         def __mul__(self, other):
             '''Works as intersection'''
@@ -62,7 +63,7 @@ class Staff:
             
             intersection_list = [ ruler for ruler in self_rulers_list if ruler in other_rulers_list ]
 
-            return self._staff.Rulers(self._staff, intersection_list, self._root_self)
+            return Staff.Rulers(self._staff, intersection_list, self._root_self)
         
         def __div__(self, other):
             '''Works as divergence'''
@@ -149,7 +150,7 @@ class Staff:
         
         def empty(self):
             empty_rulers_list = []
-            return self._staff.Rulers(self._staff, empty_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self)
         
         def empty_lines(self):
             for ruler in self._rulers_list:
@@ -246,7 +247,7 @@ class Staff:
         
         def even(self):
             even_rulers_list = self._rulers_list[::2]
-            return self._staff.Rulers(self._staff, even_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, even_rulers_list, self._root_self)
         
         def exclude(self, index=0):
             if (self.len() > index):
@@ -322,14 +323,14 @@ class Staff:
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
                 ]
-            return self._staff.Rulers(self._staff, filtered_rulers, self._root_self)
+            return Staff.Rulers(self._staff, filtered_rulers, self._root_self)
         
         def group(self, group):
             return self.filter(groups=[group])
 
         def head(self, elements=1):
             head_rulers_list = self._rulers_list[:elements]
-            return self._staff.Rulers(self._staff, head_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, head_rulers_list, self._root_self)
         
         def insert_lines(self, line, lines=[None], id=None):
             target_rulers = self
@@ -376,7 +377,7 @@ class Staff:
 
             for dictionnaire in json_object:
                 if dictionnaire['part'] == "rulers":
-                    self = self._staff.Rulers(
+                    self = Staff.Rulers(
                         staff=self._staff,
                         rulers_list=dictionnaire['root_self'],
                         root_self=dictionnaire['root_self'],
@@ -477,7 +478,7 @@ class Staff:
 
                 merged_rulers.append(merged_ruler)
 
-            return self._staff.Rulers(self._staff, merged_rulers, self._root_self)
+            return Staff.Rulers(self._staff, merged_rulers, self._root_self)
         
         def move_lines(self, increments=1):
             for ruler in self._rulers_list:
@@ -516,15 +517,17 @@ class Staff:
 
         def odd(self):
             odd_rulers_list = self._rulers_list[1::2]
-            return self._staff.Rulers(self._staff, odd_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, odd_rulers_list, self._root_self)
         
+        def player(self):
+            return self._staff.player()
+
         def print(self):
             
             if len(self._rulers_list) > 0:
                 string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'group': 0, 'position': 0, 'lines': 0, 'offset': 0, 'enabled': 0, 'on_staff': 0}
                 sequence_index = 0
                 for ruler in self._rulers_list: # get maximum sizes
-                    full_string_length = 0
                     
                     for key, value in string_top_length.items():
                         if key == 'sequence':
@@ -541,7 +544,6 @@ class Staff:
 
                             key_value_length = len(f"{ruler_value}")
 
-                        full_string_length += key_value_length
                         string_top_length[key] = max(string_top_length[key], key_value_length)
 
                 full_string_top_length = 0
@@ -554,7 +556,7 @@ class Staff:
                 sequence_index = 0
                 for ruler in self._rulers_list:
 
-                    rule_str = ""
+                    ruler_str = ""
                     for key, value in string_top_length.items():
                         if key == 'sequence':
                             key_value_str = f"{sequence_index}"
@@ -582,9 +584,9 @@ class Staff:
                             if key != 'on_staff':
                                 key_value_str += " " * spaces_between
 
-                        rule_str +=  key_value_str
-                    rule_str += " }"
-                    print(rule_str)
+                        ruler_str +=  key_value_str
+                    ruler_str += " }"
+                    print(ruler_str)
                 print("'" * (full_string_top_length + 95))
 
             else:
@@ -905,7 +907,7 @@ class Staff:
         def single(self, index=0):
             if (self.len() > index):
                 ruler_list = [ self._rulers_list[index] ]
-                return self._staff.Rulers(self._staff, ruler_list, self._root_self)
+                return Staff.Rulers(self._staff, ruler_list, self._root_self)
             return self
 
         def slide_position(self, distance_steps=4):
@@ -983,7 +985,7 @@ class Staff:
 
         def tail(self, elements=1):
             tail_rulers_list = self._rulers_list[-elements:]
-            return self._staff.Rulers(self._staff, tail_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, tail_rulers_list, self._root_self)
 
         def type(self, type="arguments"):
             return self.filter(type=type)
@@ -994,7 +996,7 @@ class Staff:
                 if ruler not in unique_rulers_list:
                     unique_rulers_list.append(ruler)
 
-            return self._staff.Rulers(self._staff, unique_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, unique_rulers_list, self._root_self)
         
 # Staff METHODS ###############################################################################################################################
 
@@ -1174,6 +1176,9 @@ class Staff:
     def list(self):
         return self._staff
     
+    def player(self):
+        return self._player
+
     def playRange(self):
         return self._play_range
 
@@ -1200,13 +1205,13 @@ class Staff:
     def print(self):
         if len(self._staff) > 0:
             if len(self._staff) > 1:
-                print("$" * (self.string_top_length + 128))
+                print("§" * (self.string_top_length + 128))
 
             for staff_pulse in self._staff:
                 self.printSinglePulse(staff_pulse['pulse'])
 
             if len(self._staff) > 1:
-                print("$" * (self.string_top_length + 128))
+                print("§" * (self.string_top_length + 128))
         else:
             print("[EMPTY]")
         return self

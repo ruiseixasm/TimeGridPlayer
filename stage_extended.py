@@ -10,7 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import stage as Stage
-import player_midi as MIDI
+import player_midi as PlayerMIDI
 import midi_tools
 
 class StageExtended(Stage.Stage):
@@ -26,16 +26,16 @@ class StageExtended(Stage.Stage):
 
     def add(self, player):
         super().add(player)
-        if player.__class__.__name__ == "Note":
+        if player.__class__.__name__ == "Note": # checks condition
             player.midi_synth = self._midi_synth
         return self
     
-    def GetPlayer(self, player_class="Note", player_name="note"):
-        player = super().GetPlayer(player_class, player_name)
-        match player_class:
+    def _playerFactoryMethod(self, player_dictionnaire):
+        player = super()._playerFactoryMethod(player_dictionnaire)
+        match player_dictionnaire['class']:
+            case "Master":
+                player = PlayerMIDI.Note(player_dictionnaire['name'], player_dictionnaire['description'])
             case "Note":
-                player = MIDI.Note(player_name, self._midi_synth)
-                self.add(player)
+                player = PlayerMIDI.Note(player_dictionnaire['name'], player_dictionnaire['description'], self._midi_synth)
 
         return player
-    

@@ -20,7 +20,7 @@ class Player:
         self._stage = None
         self._name = name
         self._description = description
-        self._staff = Staff.Staff()
+        self._staff = Staff.Staff(self)
 
         self._clock = self.Clock(self)
         self._internal_clock = False
@@ -30,6 +30,10 @@ class Player:
     @property
     def name(self):
         return self._name
+    
+    @property
+    def description(self):
+        return self._description
     
     @property
     def stage(self):
@@ -352,43 +356,49 @@ class Player:
 
     def play(self, start=None, finish=None):
 
-        players_names = [self.name] # Actions are refered by their players name
-        players_names = self.rulers().list_actions_names(enabled=True, actions_names_list=players_names)
+        if self._stage != None:
 
-        staged_players = self._stage.players_list()
+            player_self = self._stage.filter(player=self)
 
-        self._playable_players = [
-            playable_player for playable_player in staged_players if playable_player['name'] in players_names
-        ]
+            if player_self.len() > 0 and player_self.enabled():
 
-        for player in self._playable_players:
-            player['player'].start()
-        
-        non_fast_forward_range = [None, None]
-        if start != None:
-            non_fast_forward_range[0] = self._staff.pulses(start)
-        if finish != None:
-            non_fast_forward_range[1] = self._staff.pulses(finish)
+                players_names = [self.name] # Actions are refered by their players name
+                players_names = self.rulers().list_actions_names(enabled=True, actions_names_list=players_names)
 
-        # At least one Action needs to be externally triggered
-        self._clock.start(non_fast_forward_range)
-        tick = self._clock.tick()
-        self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
+                staged_players = self._stage.filter(enabled=True).list()
 
-        self._clock.start(non_fast_forward_range)
+                self._playable_players = [
+                    playable_player for playable_player in staged_players if playable_player['name'] in players_names
+                ]
 
-        still_playing = True
-        while still_playing:
-            tick = self._clock.tick()
-            still_playing = False
-            for player in self._playable_players:
-                player['player'].tick(tick)
-                if player['player'].isPlaying():
-                    still_playing = True
-        
-        self._clock.stop()
-        for player in self._playable_players:
-            player['player'].finish()
+                for player in self._playable_players:
+                    player['player'].start()
+                
+                non_fast_forward_range = [None, None]
+                if start != None:
+                    non_fast_forward_range[0] = self._staff.pulses(start)
+                if finish != None:
+                    non_fast_forward_range[1] = self._staff.pulses(finish)
+
+                # At least one Action needs to be externally triggered
+                self._clock.start(non_fast_forward_range)
+                tick = self._clock.tick()
+                self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
+
+                self._clock.start(non_fast_forward_range)
+
+                still_playing = True
+                while still_playing:
+                    tick = self._clock.tick()
+                    still_playing = False
+                    for player in self._playable_players:
+                        player['player'].tick(tick)
+                        if player['player'].isPlaying():
+                            still_playing = True
+                
+                self._clock.stop()
+                for player in self._playable_players:
+                    player['player'].finish()
 
         return self
 
