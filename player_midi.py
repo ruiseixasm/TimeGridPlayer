@@ -91,7 +91,7 @@ class Note(Player.Player):
                         self._player.midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         # needs to convert steps duration accordingly to callers time signature
-                        duration_converter = staff.get_time_signature()['steps_per_beat'] / self._staff.get_time_signature()['steps_per_beat']
+                        duration_converter = staff.time_signature()['steps_per_beat'] / self._staff.time_signature()['steps_per_beat']
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
                              'duration': self._note['duration'] * duration_converter, 'action': self},

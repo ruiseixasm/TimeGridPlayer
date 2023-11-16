@@ -86,7 +86,7 @@ class Player:
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
-                time_signature = self._staff.get_time_signature()
+                time_signature = self._staff.time_signature()
                 pulses_duration = clocked_action['duration'] * time_signature['pulses_per_beat'] / time_signature['steps_per_beat'] # Action pulses per step considered
                 clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
                 clocked_action['stack_id'] = len(self._clocked_actions)
@@ -432,6 +432,13 @@ class Player:
 
     def set_bpm(self, bpm=120):
         return self.set_tempo(bpm)
+
+    def set_staff(self, staff):
+        self._staff = staff
+        time_signature = self._staff.time_signature()
+        self._clock.set(beats_per_minute=None, steps_per_beat=time_signature['steps_per_beat'], pulses_per_quarter_note=time_signature['pulses_per_quarter_note'])
+
+        return self
 
     def set_time_signature(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
         self._clock.set(beats_per_minute=None, steps_per_beat=steps_per_beat, pulses_per_quarter_note=pulses_per_quarter_note)

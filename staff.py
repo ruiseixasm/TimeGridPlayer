@@ -904,6 +904,10 @@ class Staff:
 
             return self
         
+        def set_staff(self, staff):
+            self._staff = staff
+            return self
+
         def single(self, index=0):
             if (self.len() > index):
                 ruler_list = [ self._rulers_list[index] ]
@@ -1389,14 +1393,14 @@ class Staff:
         self._rulers = rulers
         return self
 
-    def get_time_signature(self):
-        return self._time_signature
-
     def steps(self, position=[0, 0]): # position: [measure, step]
         return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['steps_per_beat'] + position[1]
 
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))
+
+    def time_signature(self):
+        return self._time_signature
 
 # GLOBAL CLASS METHODS
 
