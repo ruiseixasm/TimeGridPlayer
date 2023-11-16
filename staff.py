@@ -285,7 +285,7 @@ class Staff:
                 self._staff.remove(self.unique().list())
             return self
         
-        def filter(self, ids = [], type = "arguments", groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
+        def filter(self, ids = [], type = None, groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
 
             filtered_rulers = self._rulers_list.copy()
 
@@ -639,13 +639,10 @@ class Staff:
                         else:
                             lines_value = ""
                             if key == 'lines':
-                                for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
+                                for line_index in range(head_offset, head_offset + total_lines):
                                     if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
                                         key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
-
-                                        # if line_index != ruler['offset'] + len(ruler['lines']) - 1:
-                                        #     key_value_str += "  "
 
                                         key_value_length = len(key_value_str)
 
@@ -670,39 +667,28 @@ class Staff:
 
                 # OUTPUT PRINT -----------------------------------------------------------------------------------------------------------------------
 
+                spaces_between = 4
+
                 lines_str_header = " " * (string_top_length['sequence'] + 1) + "lines:" + " " * (string_top_length['id'] + 4)
                 lines_str_tail = ""
 
-                for line_index in range(head_offset, head_offset + len(string_top_length['lines'])):
+                for line_index in range(head_offset, head_offset + total_lines):
 
                     key_value_str = f"{line_index}"
 
                     key_value_length = len(key_value_str)
                     key_value_str += (" " * (string_top_length['lines'][line_index - head_offset] - key_value_length))
 
-                    if line_index != head_offset + len(string_top_length['lines']) - 1:
-                        key_value_str += "  "
-
-                    # TOTALS AGNOSTIC FOR "[" and "]"
-                    if True:
-                        key_value_str = " " + key_value_str + " "
-                    else:
-                        if line_index == head_offset == head_offset + len(string_top_length['lines']) - 1:
-                            key_value_str = "[" + key_value_str + "]"
-                        elif line_index == head_offset:
-                            key_value_str = "[" + key_value_str + " "
-                        elif line_index == head_offset + len(string_top_length['lines']) - 1:
-                            key_value_str = " " + key_value_str + "]"
-                        else:
-                            key_value_str = " " + key_value_str + " "
+                    if line_index != head_offset + total_lines - 1:
+                        key_value_str += " " * spaces_between
 
                     lines_str_tail += key_value_str
 
-                print("-" * (full_string_top_length - 1) + "----" * (total_lines + 3))
+                print("-" * (full_string_top_length - 3) + "----" * (total_lines + 3))
 
                 print(lines_str_header + lines_str_tail)
 
-                print("-" * (full_string_top_length - 1) + "----" * (total_lines + 3))
+                print("-" * (full_string_top_length - 3) + "----" * (total_lines + 3))
 
                 sequence_index = 0
                 for ruler in self._rulers_list:
@@ -717,7 +703,7 @@ class Staff:
                             lines_str += (" " * (string_top_length[key] - key_value_length)) + key_value_str +  ": { "
                         else:
                             if key == 'lines':
-                                for line_index in range(head_offset, head_offset + len(string_top_length[key])):
+                                for line_index in range(head_offset, head_offset + total_lines):
                                     if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
                                         key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
@@ -725,26 +711,15 @@ class Staff:
                                         key_value_length = len(key_value_str)
                                         key_value_str += (" " * (string_top_length['lines'][line_index - head_offset] - key_value_length))
 
-                                        if line_index != ruler['offset'] + len(ruler['lines']) - 1:
-                                            key_value_str += "  "
-
-                                        # TOTALS AGNOSTIC FOR "[" and "]"
-                                        if True:
-                                            key_value_str = " " + key_value_str + " "
-                                        else:
-                                            if line_index == ruler['offset'] == ruler['offset'] + len(ruler['lines']) - 1:
-                                                key_value_str = "[" + key_value_str + "]"
-                                            elif line_index == ruler['offset']:
-                                                key_value_str = "[" + key_value_str + " "
-                                            elif line_index == ruler['offset'] + len(ruler['lines']) - 1:
-                                                key_value_str = " " + key_value_str + "]"
-                                            else:
-                                                key_value_str = " " + key_value_str + " "
+                                        if line_index != head_offset + total_lines - 1:
+                                            key_value_str += " " * spaces_between
 
                                         lines_str += key_value_str
 
-                                    else:
+                                    elif line_index != head_offset + total_lines - 1:
                                         lines_str += " " * (string_top_length['lines'][line_index - head_offset] + 4)
+                                    else:
+                                        lines_str += " " * (string_top_length['lines'][line_index - head_offset] + 0)
                             else: # id
                                 lines_value = ruler[key]
                                 key_value_str = f"{key}: {lines_value}   "
@@ -755,7 +730,7 @@ class Staff:
 
                     print(lines_str)
 
-                print("-" * (full_string_top_length - 1) + "----" * (total_lines + 3))
+                print("-" * (full_string_top_length - 3) + "----" * (total_lines + 3))
 
             else:
                 print("-" * 7)
@@ -857,6 +832,7 @@ class Staff:
             return self._root_self
                 
         def rotate(self, increments=1):
+            """Rotates the placement of the print listing without changing any data"""
             rulers_size = self.len()
             original_rulers_list = self._rulers_list[:]
             for ruler_index in range(rulers_size):
@@ -876,6 +852,7 @@ class Staff:
             return self
         
         def rotate_position(self, increments=1):
+            """Rotates the position of the rolers by changing the position data"""
             original_positions = []
             rulers_size = self.len()
             for original_ruler in self._rulers_list:

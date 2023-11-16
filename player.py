@@ -430,9 +430,6 @@ class Player:
         self._clock.set(beats_per_minute=tempo)
         return self
 
-    def set_bpm(self, bpm=120):
-        return self.set_tempo(bpm)
-
     def set_staff(self, staff):
         self._staff = staff
         time_signature = self._staff.time_signature()
@@ -452,6 +449,9 @@ class Player:
             self._clock.start()
         return self
 
+    def tempo(self):
+        return self._clock.getClockTempo()['beats_per_minute']
+
     def tick(self, tick):
         if self._internal_clock:
             tick = self._clock.tick()
@@ -460,6 +460,9 @@ class Player:
                 action.pulse(tick)
 
         return self        
+
+    def time_signature(self):
+        return self._staff.time_signature()
 
     def useInternalClock(self, internal_clock=False):
         self._internal_clock = internal_clock

@@ -157,6 +157,11 @@ class Stage:
             
     def list(self):
         return self._players_list
+    
+    def play(self, start=None, finish=None):
+        if len(self._players_list) > 0:
+            return self._players_list[0]['player'].play(start, finish)
+        return self
             
     def player(self):
         if len(self._players_list) > 0:

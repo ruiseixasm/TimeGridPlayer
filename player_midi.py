@@ -44,7 +44,9 @@ class Note(Player.Player):
             note_key = None
 
             argument_ruler = merged_staff_arguments.group(note_argument)
-            if argument_ruler.len() > 0 and argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']] != None:
+            if argument_ruler.len() > 0 and argument_ruler.list()[0]['line'] != None and \
+                    argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']] != None:
+                
                 note_key = argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']]
 
             else:
