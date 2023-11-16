@@ -102,6 +102,22 @@ class Player:
         def isPlaying(self):
             return self._play_mode
 
+        def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_name):
+            line_argument_value = None
+
+            line_argument_ruler = merged_staff_arguments.group(argument_name)
+            if line_argument_ruler.len() > 0 and line_argument_ruler.list()[0]['line'] != None and \
+                    line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']] != None:
+                
+                line_argument_value = line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']]
+
+            else:
+                line_argument_ruler = merged_staff_arguments.group("staff_" + argument_name)
+                if line_argument_ruler.len() > 0:
+                    line_argument_value = line_argument_ruler.list()[0]['lines'][0]
+
+            return line_argument_value
+
         def pulse(self, tick):
 
             # clock triggers staked to be called

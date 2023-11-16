@@ -34,7 +34,7 @@ master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
-master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [8]})
+master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [6]})
 
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
@@ -42,7 +42,7 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 0], 'l
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines().print_lines(None, 8).print()
+master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(0).print_lines(None, 8).print()
 
 # JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON
 # master.json_save("player.json")
@@ -56,11 +56,12 @@ import stage_extended as StageExtended
 stage = StageExtended.StageExtended()
 stage.add(master)
 stage.add(note)
+master.set_tempo(240)
 
-for _ in range(5):
+for _ in range(20):
     stage.play([2, 0], [4, 0])
-    stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-10, 5)
-    stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-10, 5)
+    stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-5, 10)
+    stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-5, 10)
 
 #master.play()
 

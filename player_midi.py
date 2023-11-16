@@ -40,22 +40,6 @@ class Note(Player.Player):
             super().__init__(player) # not self init
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1, 'duration': 4}
 
-        def getArgument(self, merged_staff_arguments, note_argument):
-            note_key = None
-
-            argument_ruler = merged_staff_arguments.group(note_argument)
-            if argument_ruler.len() > 0 and argument_ruler.list()[0]['line'] != None and \
-                    argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']] != None:
-                
-                note_key = argument_ruler.list()[0]['lines'][argument_ruler.list()[0]['line']]
-
-            else:
-                argument_ruler = merged_staff_arguments.group("staff_" + note_argument)
-                if argument_ruler.len() > 0:
-                    note_key = argument_ruler.list()[0]['lines'][0]
-
-            return note_key
-
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
@@ -68,23 +52,23 @@ class Note(Player.Player):
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
 
-                    note_channel = self.getArgument(merged_staff_arguments, "channel")
+                    note_channel = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "channel")
                     if (note_channel != None):
                         self._note['channel'] = note_channel
 
-                    note_velocity = self.getArgument(merged_staff_arguments, "velocity")
+                    note_velocity = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "velocity")
                     if (note_velocity != None):
                         self._note['velocity'] = note_velocity
 
-                    note_duration = self.getArgument(merged_staff_arguments, "duration")
+                    note_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
                     if (note_duration != None):
                         self._note['duration'] = note_duration
 
-                    note_octave = self.getArgument(merged_staff_arguments, "octave")
+                    note_octave = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "octave")
                     if (note_octave != None):
                         self._note['octave'] = note_octave
 
-                    note_key = self.getArgument(merged_staff_arguments, "key")
+                    note_key = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "key")
                     if (note_key != None):
                         self._note['key'] = note_key
 
