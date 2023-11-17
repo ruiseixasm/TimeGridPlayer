@@ -49,7 +49,7 @@ class Scales(LINES.Lines):
         bin_scale = get_scale(name)
         local_scale_keys = scale_keys(bin_scale)
         block_size = len(local_scale_keys)
-        offset_blocks = int(size / 2)
+        offset_blocks = int((size - 1) / 2)
         self._lines['offset'] = -(block_size * offset_blocks)
         self._lines['lines'] = local_scale_keys * size
 

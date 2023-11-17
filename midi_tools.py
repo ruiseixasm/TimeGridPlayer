@@ -165,7 +165,7 @@ class Instrument():
     
 def getMidiNote(note={'key': "C", 'octave': 4}): # middle C by default
     """Octaves range from -1 to 9"""
-    key_str = note['key'].upper()
+    key_str = note['key'].strip().upper()
     midi_key = 0
     # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']

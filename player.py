@@ -12,6 +12,7 @@ Lesser General Public License for more details.'''
 import time
 import json
 import staff as STAFF
+import stage as STAGE
 
 class Player:
 
@@ -19,7 +20,7 @@ class Player:
 
         self._none = False
 
-        self._stage = None
+        self._stage = STAGE.StageNone()
         self._name = name
         self._description = description
         self._staff = STAFF.Staff(self)
@@ -50,7 +51,7 @@ class Player:
 
     @stage.deleter
     def stage(self):
-        self._stage = None  
+        self._stage = STAGE.StageNone()  
             
     class Action():
 
@@ -338,6 +339,7 @@ class Player:
         return {
                 'part': "player",
                 'class': self.__class__.__name__,
+                'is_none': self._none,
                 'name': self._name,
                 'description': self._description,
                 'internal_clock': self._internal_clock,
@@ -355,6 +357,7 @@ class Player:
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "player":
+                self._none = dictionnaire['is_none']
                 self._name = dictionnaire['name']
                 self._description = dictionnaire['description']
                 self._internal_clock = dictionnaire['internal_clock']
@@ -377,7 +380,7 @@ class Player:
 
     def play(self, start=None, finish=None):
 
-        if self._stage != None:
+        if not self._stage._is_none():
 
             player_self = self._stage.filter(player=self)
 
@@ -436,7 +439,7 @@ class Player:
 
         if name != None:
             self._name = name
-            if self._stage != None: # needs to update the stage with the new name
+            if not self._stage._is_none(): # needs to update the stage with the new name
                 for players_names in self._stage.players_list():
                     if players_names['player'] == self:
                         players_names['name'] = self._name

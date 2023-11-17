@@ -70,7 +70,7 @@ for _ in range(1):
 
 #master.play()
 
-# stage.json_save("stage.json")
+stage.json_save("stage_2.json")
 #stage.json_load("stage.json")
 
 #master.rulers().print().print_lines()

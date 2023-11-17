@@ -16,6 +16,9 @@ class Stage:
 
     def __init__(self, players_list=None, root_players_list=None, start_id=0):
 
+        self._none = False
+
+        self._player = None # avoids infinite recursion! (also, it saves space)
         self._root_players_list = []
         self._players_list = self._root_players_list
         if players_list != None:
@@ -24,6 +27,9 @@ class Stage:
             self._root_players_list = root_players_list
 
         self._next_id = start_id
+
+    def _is_none(self):
+        return self._none
 
     def _playerFactoryMethod(self, player_dictionnaire):
         player = None
@@ -34,7 +40,7 @@ class Stage:
         return player
 
     def add(self, player):
-        if not player._is_none():
+        if not self._none and not player._is_none():
             player_data = {
                 'id': self._next_id,
                 'class': player.__class__.__name__,
@@ -44,7 +50,7 @@ class Stage:
             }
             self._next_id += 1
             self._root_players_list.append(player_data)
-            if player.stage != None:
+            if not player.stage._is_none():
                 player.stage.filter(player=player).remove() # remove from other stage first
             player.stage = self
         return self
@@ -101,6 +107,8 @@ class Stage:
     def json_dictionnaire(self):
         stage = {
                 'part': "stage",
+                'class': self.__class__.__name__,
+                'is_none': self._none,
                 'next_id': self._next_id,
                 'players': []
             }
@@ -125,6 +133,7 @@ class Stage:
 
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
+                self._none = stage_dictionnaire['is_none']
                 self._next_id = stage_dictionnaire['next_id']
                 for player_dictionnaire in stage_dictionnaire['players']:
                     player = self._playerFactoryMethod(player_dictionnaire)
@@ -160,8 +169,10 @@ class Stage:
         return self._players_list
     
     def play(self, start=None, finish=None):
-        if len(self._players_list) > 0:
-            return self._players_list[0]['player'].play(start, finish)
+        if self._player != None:
+            self._player.play(start, finish)
+        elif len(self._players_list) > 0:
+            self._players_list[0]['player'].play(start, finish)
         return self
             
     def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
@@ -238,6 +249,13 @@ class Stage:
         self._players_list.clear()
 
         return self
+
+class StageNone(Stage):
+
+    def __init__(self):
+        super().__init__()
+
+        self._none = True
 
 # GLOBAL CLASS METHODS
 

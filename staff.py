@@ -18,7 +18,7 @@ class Staff:
         self._none = False
 
         self._player = player
-        self._rulers = self.Rulers(self)
+        self._rulers = Staff.Rulers(self)
         self._staff = []
         self._time_signature = {}
         self._total_pulses = 0
@@ -94,7 +94,7 @@ class Staff:
             if not self._none and ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
 
                 structured_ruler = {
-                    'id': self._next_id,
+                    'id': self._root_self._next_id,
                     'type': ruler['type'],
                     'group': "main",
                     'position': [0, 0],
@@ -103,7 +103,7 @@ class Staff:
                     'enabled': True,
                     'on_staff': self._staff != None
                 }
-                self._next_id += 1
+                self._root_self._next_id += 1
 
                 if 'group' in ruler and ruler['group'] != None:
                     structured_ruler['group'] = ruler['group']
@@ -379,6 +379,7 @@ class Staff:
             return {
                     'part': "rulers",
                     'class': self.__class__.__name__,
+                    'is_none': self._none,
                     'root_self': self.root().list(),
                     'next_id': self.next_id()
                 }
@@ -393,6 +394,7 @@ class Staff:
 
             for dictionnaire in json_object:
                 if dictionnaire['part'] == "rulers":
+                    self._none = dictionnaire['is_none']
                     self = Staff.Rulers(
                         staff=self._staff,
                         rulers_list=dictionnaire['root_self'],
@@ -1152,6 +1154,7 @@ class Staff:
         return {
                 'part': "staff",
                 'class': self.__class__.__name__,
+                'is_none': self._none,
                 'time_signature': self._time_signature,
                 'total_pulses': self._total_pulses,
                 'play_range': self._play_range,
@@ -1168,6 +1171,7 @@ class Staff:
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "staff":
+                self._none = dictionnaire['is_none']
                 size_measures = dictionnaire['time_signature']['size_measures']
                 beats_per_measure = dictionnaire['time_signature']['beats_per_measure']
                 steps_per_beat = dictionnaire['time_signature']['steps_per_beat']
