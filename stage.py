@@ -10,7 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import json
-import player as Player
+import player as PLAYER
 
 class Stage:
 
@@ -29,23 +29,24 @@ class Stage:
         player = None
         match player_dictionnaire['class']:
             case "Player" | "Trigger":
-                player = Player.Player(player_dictionnaire['name'], player_dictionnaire['description'])
+                player = PLAYER.Player(player_dictionnaire['name'], player_dictionnaire['description'])
 
         return player
 
     def add(self, player):
-        player_data = {
-            'id': self._next_id,
-            'class': player.__class__.__name__,
-            'name': player.name,
-            'player': player,
-            'enabled': True
-        }
-        self._next_id += 1
-        self._root_players_list.append(player_data)
-        if player.stage != None:
-            player.stage.filter(player=player).remove() # remove from other stage first
-        player.stage = self
+        if not player._is_none():
+            player_data = {
+                'id': self._next_id,
+                'class': player.__class__.__name__,
+                'name': player.name,
+                'player': player,
+                'enabled': True
+            }
+            self._next_id += 1
+            self._root_players_list.append(player_data)
+            if player.stage != None:
+                player.stage.filter(player=player).remove() # remove from other stage first
+            player.stage = self
         return self
     
     def disable(self):
@@ -57,7 +58,7 @@ class Stage:
     def disabled(self):
         if len(self._players_list) > 0:
             return not self._players_list[0]['enabled']
-        return None
+        return False
     
     def enable(self):
         for player in self._players_list:
@@ -68,7 +69,7 @@ class Stage:
     def enabled(self):
         if len(self._players_list) > 0:
             return self._players_list[0]['enabled']
-        return None
+        return False
     
     def filter(self, ids = [], classes = [], names = [], player = None, enabled = None):
 
@@ -163,10 +164,10 @@ class Stage:
             return self._players_list[0]['player'].play(start, finish)
         return self
             
-    def player(self):
+    def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
         if len(self._players_list) > 0:
             return self._players_list[0]['player']
-        return None
+        return PLAYER.PlayerNone()
 
     def print(self):
 

@@ -11,21 +11,26 @@ Lesser General Public License for more details.'''
 
 import time
 import json
-import staff as Staff
+import staff as STAFF
 
 class Player:
 
     def __init__(self, name, description="A Player of actions based on arguments"):
 
+        self._none = False
+
         self._stage = None
         self._name = name
         self._description = description
-        self._staff = Staff.Staff(self)
+        self._staff = STAFF.Staff(self)
 
-        self._clock = self.Clock(self)
+        self._clock = Player.Clock(self)
         self._internal_clock = False
 
         self._actions = []
+
+    def _is_none(self):
+        return self._none
 
     @property
     def name(self):
@@ -52,8 +57,6 @@ class Player:
         def __init__(self, player):
 
             self._player = player
-            if self._player == None:
-                self._player = Player()
             self._staff = self._player.getStaff()
 
             self._internal_arguments_rulers = self._player.rulers().empty()
@@ -490,7 +493,7 @@ class Player:
     ### PLAYER ACTIONS ###
 
     def actionFactoryMethod(self):
-        return self.Action(self)
+        return self.Action(self) # self. and not Player. because it may be the Action of derived Player classes (Extended ones) !! (DYNAMIC)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
         player_action = self.actionFactoryMethod()
@@ -528,6 +531,15 @@ class Trigger(Player):
                     {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 16, 'action': self},
                     tick
                 )
+
+class PlayerNone(Player):
+
+    def __init__(self):
+        super().__init__("None", "Player considered as None!")
+
+        self._none = True
+
+        self._staff = STAFF.StaffNone(self)
 
 def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''

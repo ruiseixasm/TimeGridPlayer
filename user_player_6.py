@@ -9,15 +9,15 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import stage as Stage
-import player as Player
-import player_midi as PlayerMIDI
+import stage as STAGE
+import player as PLAYER
+import player_midi as PL_MIDI
 
-trigger = Player.Trigger("trigger")
+trigger = PLAYER.Trigger("trigger")
 # trigger.useInternalClock(True)
 
-master = Player.Player("master")
-note = PlayerMIDI.Note("note")
+master = PLAYER.Player("master")
+note = PL_MIDI.Note("note")
 note.staff().set(size_measures=1)
 #note.useInternalClock(True)
 
@@ -52,8 +52,8 @@ master.rulers().type("arguments").sort().group("key").print().print_lines(None, 
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
 
-import stage_extended as StageExtended
-stage = StageExtended.StageExtended()
+import stage_extended as STAGE_EXT
+stage = STAGE_EXT.StageExtended()
 stage.add(master)
 stage.add(note)
 master.set_tempo(240)

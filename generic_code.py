@@ -107,17 +107,31 @@ Lesser General Public License for more details.'''
 
 
 
-def trimString(full_string):
-    string_maxum_size = 16
-    long_string_termination = "…"
-    trimmed_string = full_string
-    if len(full_string) > string_maxum_size:
-        trimmed_string = full_string[:string_maxum_size] + long_string_termination
+# def trimString(full_string):
+#     string_maxum_size = 16
+#     long_string_termination = "…"
+#     trimmed_string = full_string
+#     if len(full_string) > string_maxum_size:
+#         trimmed_string = full_string[:string_maxum_size] + long_string_termination
 
-    return trimmed_string
+#     return trimmed_string
 
-string_1 = "small"
-string_2 = "very big string again it's true"
+# string_1 = "small"
+# string_2 = "very big string again it's true"
 
-print (trimString(string_1))
-print (trimString(string_2))
+# print (trimString(string_1))
+# print (trimString(string_2))
+
+
+# some_list = {}
+
+# print(type(some_list))
+# print(type(some_list) == type({}))
+
+some_list = [1]
+
+print(len(some_list))
+
+print(len(some_list*0))
+
+print (True if None else False)

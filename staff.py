@@ -13,7 +13,9 @@ import json
 
 class Staff:
 
-    def __init__(self, player=None):
+    def __init__(self, player):
+
+        self._none = False
 
         self._player = player
         self._rulers = self.Rulers(self)
@@ -26,12 +28,16 @@ class Staff:
         self.set_range([], [])
         self.set()
 
+    def _is_none(self):
+        return self._none
+
     class Rulers():
 
         def __init__(self, staff, rulers_list=[], root_self=None, start_id=0):
 
-            self._staff = staff
+            self._none = False
 
+            self._staff = staff
             self._rulers_list = rulers_list
             self._root_self = root_self # type Rulers
             if root_self == None:
@@ -39,6 +45,9 @@ class Staff:
 
             self._next_id = start_id
     
+        def _is_none(self):
+            return self._none
+
         # + Operator Overloading in Python
         def __add__(self, other):
             '''Works as Union'''
@@ -82,7 +91,7 @@ class Staff:
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
-            if ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
+            if not self._none and ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
 
                 structured_ruler = {
                     'id': self._next_id,
@@ -90,7 +99,7 @@ class Staff:
                     'group': "main",
                     'position': [0, 0],
                     'lines': [],
-                    'offset': 0,
+                    'offset': None,
                     'enabled': True,
                     'on_staff': self._staff != None
                 }
@@ -101,11 +110,18 @@ class Staff:
                 if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
                     structured_ruler['position'] = ruler['position']
                 if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
-                    structured_ruler['lines'] = ruler['lines']
-                if ('offset' in ruler and ruler['offset'] != None):
+                    if type(ruler['lines']) == type({}):
+                        structured_ruler['lines'] = ruler['lines']['lines']
+                        structured_ruler['offset'] = ruler['lines']['offset']
+                    else:
+                        structured_ruler['lines'] = ruler['lines']
+                if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
                     structured_ruler['offset'] = ruler['offset']
+                if (structured_ruler['offset'] == None):
+                    structured_ruler['offset'] = 0
                 if ('enabled' in ruler and ruler['enabled'] != None):
                     structured_ruler['enabled'] = ruler['enabled']
+
 
                 self._rulers_list.append(structured_ruler)
                 if (self != self._root_self):
@@ -431,10 +447,11 @@ class Staff:
         
         def lines(self, index=0):
             single_ruler = self.single(index)
+            lines = {}
             if single_ruler.len() > 0:
-                return self.single(index).list()[0]['lines']
-            else:
-                return []
+                lines['lines'] = single_ruler.list()[0]['lines']
+                lines['offset'] = single_ruler.list()[0]['offset']
+            return lines
 
         def merge(self):
 
@@ -876,9 +893,15 @@ class Staff:
 
             return self.rotate(increments)
         
-        def set_lines(self, lines):
+        def set_lines(self, lines, offset=0):
+
+            if type(lines) == type({}):
+                offset = lines['offset']
+                lines = lines['lines']
+
             for ruler in self._rulers_list:
                 ruler['lines'] = lines
+                ruler['offset'] = offset
 
             return self
 
@@ -995,6 +1018,13 @@ class Staff:
 
             return Staff.Rulers(self._staff, unique_rulers_list, self._root_self)
         
+    class RulersNone(Rulers):
+
+        def __init__(self, staff):
+            super().__init__(staff)
+
+            self._none = True
+
 # Staff METHODS ###############################################################################################################################
 
     def _getStaffSums(self, staff_list): # outputs single staff pulse
@@ -1394,6 +1424,15 @@ class Staff:
 
     def time_signature(self):
         return self._time_signature
+
+class StaffNone(Staff):
+
+    def __init__(self, player):
+        super().__init__(player)
+
+        self._none = True
+
+        self._rulers = self.RulersNone(self)
 
 # GLOBAL CLASS METHODS
 

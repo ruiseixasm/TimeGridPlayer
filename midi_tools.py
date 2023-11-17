@@ -56,7 +56,7 @@ class Instrument():
     def getPortName(self):
         if self.isConnected():
             return self.output_port.get_port_name(self.port_index)
-        return None
+        return "None"
 
     def print(self):
         if self.isConnected():

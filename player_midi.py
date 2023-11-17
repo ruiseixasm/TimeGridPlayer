@@ -9,14 +9,14 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import player as Player
+import player as PLAYER
 
-class Master(Player.Player):
+class Master(PLAYER.Player):
     
     def __init__(self, name, description="A conductor of multiple Players"):
         super().__init__(name, description) # not self init
 
-class Note(Player.Player):
+class Note(PLAYER.Player):
     
     def __init__(self, name, description="Plays notes on a given Synth", midi_synth=None):
         super().__init__(name, description) # not self init
@@ -34,7 +34,7 @@ class Note(Player.Player):
     def midi_synth(self):
         self._midi_synth = None
             
-    class Action(Player.Player.Action):
+    class Action(PLAYER.Player.Action):
         
         def __init__(self, player):
             super().__init__(player) # not self init
