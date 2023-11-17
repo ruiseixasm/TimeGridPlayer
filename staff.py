@@ -33,15 +33,17 @@ class Staff:
 
     class Rulers():
 
-        def __init__(self, staff, rulers_list=[], root_self=None, start_id=0):
+        def __init__(self, staff, rulers_list=None, root_self=None, start_id=0):
 
             self._none = False
 
             self._staff = staff
-            self._rulers_list = rulers_list
-            self._root_self = root_self # type Rulers
-            if root_self == None:
-                self._root_self = self
+            self._rulers_list = []
+            if rulers_list != None:
+                self._rulers_list = rulers_list
+            self._root_self = self
+            if root_self != None:
+                self._root_self = root_self # type Rulers
 
             self._next_id = start_id
     
@@ -54,7 +56,7 @@ class Staff:
             self_rulers_list = self.list()
             other_rulers_list = other.list()
 
-            return Staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self, self._next_id)
         
         def __sub__(self, other):
             '''Works as exclusion'''
@@ -63,7 +65,7 @@ class Staff:
 
             exclusion_list = [ ruler for ruler in self_rulers_list if ruler not in other_rulers_list ]
 
-            return Staff.Rulers(self._staff, exclusion_list, self._root_self)
+            return Staff.Rulers(self._staff, exclusion_list, self._root_self, self._next_id)
         
         def __mul__(self, other):
             '''Works as intersection'''
@@ -72,7 +74,7 @@ class Staff:
             
             intersection_list = [ ruler for ruler in self_rulers_list if ruler in other_rulers_list ]
 
-            return Staff.Rulers(self._staff, intersection_list, self._root_self)
+            return Staff.Rulers(self._staff, intersection_list, self._root_self, self._next_id)
         
         def __div__(self, other):
             '''Works as divergence'''
@@ -123,9 +125,10 @@ class Staff:
                     structured_ruler['enabled'] = ruler['enabled']
 
 
-                self._rulers_list.append(structured_ruler)
+                self._root_self._rulers_list.append(structured_ruler)
                 if (self != self._root_self):
-                    self._root_self._rulers_list.append(structured_ruler)
+                    self._rulers_list.append(structured_ruler)
+                    self._next_id = self._root_self._next_id
                 if structured_ruler['on_staff']:
                     self._staff.add([structured_ruler])
 
@@ -166,7 +169,7 @@ class Staff:
         
         def empty(self):
             empty_rulers_list = []
-            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self, self._next_id)
         
         def empty_lines(self):
             for ruler in self._rulers_list:
@@ -263,7 +266,7 @@ class Staff:
         
         def even(self):
             even_rulers_list = self._rulers_list[::2]
-            return Staff.Rulers(self._staff, even_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id)
         
         def exclude(self, index=0):
             if (self.len() > index):
@@ -339,14 +342,14 @@ class Staff:
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
                 ]
-            return Staff.Rulers(self._staff, filtered_rulers, self._root_self)
+            return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id)
         
         def group(self, group):
             return self.filter(groups=[group])
 
         def head(self, elements=1):
             head_rulers_list = self._rulers_list[:elements]
-            return Staff.Rulers(self._staff, head_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, head_rulers_list, self._root_self, self._next_id)
         
         def insert_lines(self, line, lines=[None], id=None):
             target_rulers = self
@@ -497,7 +500,7 @@ class Staff:
 
                 merged_rulers.append(merged_ruler)
 
-            return Staff.Rulers(self._staff, merged_rulers, self._root_self)
+            return Staff.Rulers(self._staff, merged_rulers, self._root_self, self._next_id)
         
         def move_lines(self, offset=0):
             for ruler in self._rulers_list:
@@ -542,7 +545,7 @@ class Staff:
 
         def odd(self):
             odd_rulers_list = self._rulers_list[1::2]
-            return Staff.Rulers(self._staff, odd_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, odd_rulers_list, self._root_self, self._next_id)
         
         def player(self):
             return self._staff.player()
@@ -923,7 +926,7 @@ class Staff:
         def single(self, index=0):
             if (self.len() > index):
                 ruler_list = [ self._rulers_list[index] ]
-                return Staff.Rulers(self._staff, ruler_list, self._root_self)
+                return Staff.Rulers(self._staff, ruler_list, self._root_self, self._next_id)
             return self
 
         def slide_lines(self, increments=1):
@@ -1007,7 +1010,7 @@ class Staff:
 
         def tail(self, elements=1):
             tail_rulers_list = self._rulers_list[-elements:]
-            return Staff.Rulers(self._staff, tail_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, tail_rulers_list, self._root_self, self._next_id)
 
         def type(self, type="arguments"):
             return self.filter(type=type)
@@ -1018,7 +1021,7 @@ class Staff:
                 if ruler not in unique_rulers_list:
                     unique_rulers_list.append(ruler)
 
-            return Staff.Rulers(self._staff, unique_rulers_list, self._root_self)
+            return Staff.Rulers(self._staff, unique_rulers_list, self._root_self, self._next_id)
         
     class RulersNone(Rulers):
 
