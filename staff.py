@@ -383,7 +383,7 @@ class Staff:
                     'part': "rulers",
                     'class': self.__class__.__name__,
                     'is_none': self._none,
-                    'root_self': self.root().list(),
+                    'rulers_list': self.root().list(),
                     'next_id': self.next_id()
                 }
      
@@ -397,13 +397,13 @@ class Staff:
 
             for dictionnaire in json_object:
                 if dictionnaire['part'] == "rulers":
-                    self._none = dictionnaire['is_none']
                     self = Staff.Rulers(
                         staff=self._staff,
-                        rulers_list=dictionnaire['root_self'],
-                        root_self=dictionnaire['root_self'],
+                        rulers_list=dictionnaire['rulers_list'],
+                        root_self=None,
                         start_id=dictionnaire['next_id']
                     )
+                    self._none = dictionnaire['is_none']
                     self._staff.clear()
                     self.drop()
                     break

@@ -28,13 +28,13 @@ scales = [ #                              C     D     E  F     G     A     B
 ]
 
 diatonic_rotations = [
-    {'name': "major", 'mode': "C", 'rotation': 0},
-    {'name': "dorian", 'mode': "D", 'rotation': -2},
-    {'name': "phrygian", 'mode': "E", 'rotation': -4},
-    {'name': "lydian", 'mode': "F", 'rotation': -5},
-    {'name': "mixolydian", 'mode': "G", 'rotation': -7},
-    {'name': "minor", 'mode': "A", 'rotation': -9},
-    {'name': "locrian", 'mode': "B", 'rotation': -11}
+    {'name': "major",       'mode': "C",    'rotation':   0},
+    {'name': "dorian",      'mode': "D",    'rotation':  -2},
+    {'name': "phrygian",    'mode': "E",    'rotation':  -4},
+    {'name': "lydian",      'mode': "F",    'rotation':  -5},
+    {'name': "mixolydian",  'mode': "G",    'rotation':  -7},
+    {'name': "minor",       'mode': "A",    'rotation':  -9},
+    {'name': "locrian",     'mode': "B",    'rotation': -11}
 ]
 
 class Scales(LINES.Lines):
