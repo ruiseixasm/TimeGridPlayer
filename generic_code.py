@@ -146,24 +146,25 @@ Lesser General Public License for more details.'''
 # print(rotation_1)
 # print(rotation_2)
 
-import lines_chords as L_CHORDS
+import lines_scales as L_SCALES
 
-bin_scale = L_CHORDS.get_scale("melodic")
-keys_scale = L_CHORDS.scale_keys(bin_scale)
+bin_scale = L_SCALES.get_scale("melodic")
+keys_scale = L_SCALES.scale_keys(bin_scale)
 print (bin_scale)
 print(keys_scale)
 
-bin_scale = L_CHORDS.get_scale("minor")
-keys_scale = L_CHORDS.scale_keys(bin_scale)
+bin_scale = L_SCALES.get_scale("minor")
+keys_scale = L_SCALES.scale_keys(bin_scale)
 print (bin_scale)
 print(keys_scale)
 
-bin_scale = L_CHORDS.get_scale("major")
-keys_scale = L_CHORDS.scale_keys(bin_scale)
+bin_scale = L_SCALES.get_scale("major")
+keys_scale = L_SCALES.scale_keys(bin_scale)
 print (bin_scale)
 print(keys_scale)
 
-bin_scale = L_CHORDS.get_scale("Locrian ")
-keys_scale = L_CHORDS.scale_keys(bin_scale)
+bin_scale = L_SCALES.get_scale("Locrian ")
+keys_scale = L_SCALES.scale_keys(bin_scale)
 print (bin_scale)
 print(keys_scale)
+print(keys_scale * 2)

@@ -37,6 +37,26 @@ diatonic_rotations = [
     {'name': "locrian", 'mode': "B", 'rotation': -11}
 ]
 
+class Scales(LINES.Lines):
+
+    def __init__(self):
+        super().__init__()
+
+    def chromatic(self, size):
+        return self.scale("chromatic", size)
+    
+    def scale(self, name, size):
+        bin_scale = get_scale(name)
+        local_scale_keys = scale_keys(bin_scale)
+        block_size = len(local_scale_keys)
+        offset_blocks = int(size / 2)
+        self._lines['offset'] = -(block_size * offset_blocks)
+        self._lines['lines'] = local_scale_keys * size
+
+        return self
+    
+# GLOBAL CLASS METHODS
+
 def get_scale(name):
     name = name.strip().lower()
     rotation = None
@@ -58,18 +78,9 @@ def get_scale(name):
 def rotate(scale, amount):
     return scale[-amount:12] + scale[0:-amount] # from left to right
 
-def scale_keys(scale):
+def scale_keys(bin_scale):
     keys = []
     for key in range(12):
-        if scale[key] == 1:
+        if bin_scale[key] == 1:
             keys.append(chromatic_keys[key])
     return keys
-
-class Chords(LINES.Lines):
-
-    def __init__(self):
-        super().__init__()
-
-
-    def chromatic(self, size):
-        ...

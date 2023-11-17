@@ -12,6 +12,7 @@ Lesser General Public License for more details.'''
 import stage as STAGE
 import player as PLAYER
 import player_midi as PL_MIDI
+import lines_scales as L_SCALES
 
 trigger = PLAYER.Trigger("trigger")
 # trigger.useInternalClock(True)
@@ -36,13 +37,16 @@ master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': 
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [2]})
 
-master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': [None, 'c#', None, None, 'e', None]})
+scales = L_SCALES.Scales()
+scales.scale("major", 5)
+lines_major_scale = scales.lines()
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': lines_major_scale})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 0], 'lines': ['d', 'c#', 'd', 'd#', 'e', None], 'offset': -1})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-master.rulers().type("arguments").sort().group("key").print().print_lines(None, 8).spread_lines(0).print_lines(None, 8).print()
+master.rulers().type("arguments").sort().group("key").print().print_lines().spread_lines(0).print_lines().print()
 
 # JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON JSON
 # master.json_save("player.json")
@@ -58,11 +62,11 @@ stage.add(master)
 stage.add(note)
 master.set_tempo(240)
 
-for _ in range(10):
-    stage.print()
+for _ in range(1):
+    stage.print().player().rulers().group("key").sort(reverse=True).print().print_lines(-7, 13)
     stage.play([2, 0], [4, 0])
-    stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-5, 10)
-    stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-5, 10)
+    stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-7, 13)
+    stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
 
 #master.play()
 
