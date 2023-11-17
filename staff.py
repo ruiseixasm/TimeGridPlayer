@@ -480,9 +480,9 @@ class Staff:
 
             return Staff.Rulers(self._staff, merged_rulers, self._root_self)
         
-        def move_lines(self, increments=1):
+        def move_lines(self, offset=0):
             for ruler in self._rulers_list:
-                ruler['offset'] += increments
+                ruler['offset'] = offset
 
             return self
         
@@ -514,6 +514,12 @@ class Staff:
         
         def next_id(self):
             return self._next_id
+
+        def offset_lines(self, offset=0):
+            for ruler in self._rulers_list:
+                ruler['offset'] = offset
+
+            return self
 
         def odd(self):
             odd_rulers_list = self._rulers_list[1::2]
@@ -893,6 +899,12 @@ class Staff:
             if (self.len() > index):
                 ruler_list = [ self._rulers_list[index] ]
                 return Staff.Rulers(self._staff, ruler_list, self._root_self)
+            return self
+
+        def slide_lines(self, increments=1):
+            for ruler in self._rulers_list:
+                ruler['offset'] += increments
+
             return self
 
         def slide_position(self, distance_steps=4):

@@ -18,6 +18,7 @@ class Instrument():
         self.output_port = rtmidi.MidiOut()
         self.instrument_port = None
         self.port_index = None
+        self.pressed_keys = [False] * 128
 
     def list(self):
         return self.output_port.get_ports()
@@ -104,13 +105,17 @@ class Instrument():
         parameter_1 = getMidiNote(note)
         parameter_2 = note['velocity']
         message = [command, parameter_1, parameter_2]
-        return self.sendMessage(message)
+        if not self.pressed_keys[parameter_1]:
+            self.pressed_keys[parameter_1] = True
+            return self.sendMessage(message)
+        return self
 
     def releaseNote(self, note={'key': "C", 'octave': 4}, channel=1):
         command = 0x80 | max(0, channel - 1)
         parameter_1 = getMidiNote(note)
         parameter_2 = 64
         message = [command, parameter_1, parameter_2]
+        self.pressed_keys[parameter_1] = False
         return self.sendMessage(message)
         
     def releaseAllNotes(self, channel=1):
@@ -120,6 +125,7 @@ class Instrument():
         for parameter_1 in range(128):
             message = [command, parameter_1, parameter_2]
             self.sendMessage(message)
+            self.pressed_keys[parameter_1] = False
             time.sleep(sleep_time)
         return self
         
