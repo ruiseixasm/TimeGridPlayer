@@ -20,7 +20,6 @@ class Player:
 
         self._none = False
 
-        self._stage = STAGE.StageNone()
         self._name = name
         self._description = description
         self._staff = STAFF.Staff(self)
@@ -28,6 +27,9 @@ class Player:
         self._clock = Player.Clock(self)
         self._internal_clock = False
 
+        self._stage = STAGE.Stage()
+        self._stage.add(self)
+        
         self._actions = []
 
     def _is_none(self):

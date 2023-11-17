@@ -244,9 +244,9 @@ class Stage:
             print("=" * 7)
         return self
 
-    def remove(self, player):
+    def remove(self):
         for player_data in self._players_list[:]:
-            del player.stage
+            del player_data['player'].stage
             self._root_self._players_list.remove(player_data)
             break
         self._players_list.clear()

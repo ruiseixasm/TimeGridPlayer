@@ -10,6 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import player as PLAYER
+import stage_extended as STAGE_EXT
 
 class Master(PLAYER.Player):
     
