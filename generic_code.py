@@ -128,10 +128,42 @@ Lesser General Public License for more details.'''
 # print(type(some_list))
 # print(type(some_list) == type({}))
 
-some_list = [1]
+# some_list = [1]
 
-print(len(some_list))
+# print(len(some_list))
 
-print(len(some_list*0))
+# print(len(some_list*0))
 
-print (True if None else False)
+# print (True if None else False)
+
+
+# scale = [1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0]
+
+# rotation_1 = scale[1:12] + scale[0:1]
+# rotation_2 = scale[-1:12] + scale[0:-1]
+
+# print(scale)
+# print(rotation_1)
+# print(rotation_2)
+
+import lines_chords as L_CHORDS
+
+bin_scale = L_CHORDS.get_scale("melodic")
+keys_scale = L_CHORDS.scale_keys(bin_scale)
+print (bin_scale)
+print(keys_scale)
+
+bin_scale = L_CHORDS.get_scale("minor")
+keys_scale = L_CHORDS.scale_keys(bin_scale)
+print (bin_scale)
+print(keys_scale)
+
+bin_scale = L_CHORDS.get_scale("major")
+keys_scale = L_CHORDS.scale_keys(bin_scale)
+print (bin_scale)
+print(keys_scale)
+
+bin_scale = L_CHORDS.get_scale("Locrian ")
+keys_scale = L_CHORDS.scale_keys(bin_scale)
+print (bin_scale)
+print(keys_scale)

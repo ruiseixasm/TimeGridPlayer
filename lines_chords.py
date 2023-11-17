@@ -11,6 +11,60 @@ Lesser General Public License for more details.'''
 
 import lines as LINES
 
+chromatic_keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+#                                            C#    D#       F#    G#    A#
+scales = [ #                              C     D     E  F     G     A     B
+    {'name': "chromatic",       'scale': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]},
+    {'name': "major",           'scale': [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1]},
+    {'name': "harmonic",        'scale': [1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1]},
+    {'name': "melodic",         'scale': [1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1]},
+    {'name': "octatonic_hw",    'scale': [1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0]},
+    {'name': "octatonic_wh",    'scale': [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1]},
+    {'name': "pentatonic_maj",  'scale': [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0]},
+    {'name': "pentatonic_min",  'scale': [1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0]},
+    {'name': "diminished",      'scale': [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1]},
+    {'name': "augmented",       'scale': [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1]},
+    {'name': "blues",           'scale': [1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0]}
+]
+
+diatonic_rotations = [
+    {'name': "major", 'mode': "C", 'rotation': 0},
+    {'name': "dorian", 'mode': "D", 'rotation': -2},
+    {'name': "phrygian", 'mode': "E", 'rotation': -4},
+    {'name': "lydian", 'mode': "F", 'rotation': -5},
+    {'name': "mixolydian", 'mode': "G", 'rotation': -7},
+    {'name': "minor", 'mode': "A", 'rotation': -9},
+    {'name': "locrian", 'mode': "B", 'rotation': -11}
+]
+
+def get_scale(name):
+    name = name.strip().lower()
+    rotation = None
+    for diatonic_rotation in diatonic_rotations:
+        if diatonic_rotation['name'] == name:
+            rotation = diatonic_rotation['rotation']
+            break
+    if rotation != None:
+        name = "major"
+    bin_scale = scales[0]['scale'] # chromatic scale by default
+    for scale in scales:
+        if scale['name'] == name:
+            bin_scale = scale['scale']
+            break
+    if rotation != None:
+        bin_scale = rotate(bin_scale, rotation)
+    return bin_scale # chromatic scale by default
+
+def rotate(scale, amount):
+    return scale[-amount:12] + scale[0:-amount] # from left to right
+
+def scale_keys(scale):
+    keys = []
+    for key in range(12):
+        if scale[key] == 1:
+            keys.append(chromatic_keys[key])
+    return keys
+
 class Chords(LINES.Lines):
 
     def __init__(self):

@@ -493,7 +493,7 @@ class Player:
     ### PLAYER ACTIONS ###
 
     def actionFactoryMethod(self):
-        return self.Action(self) # self. and not Player. because it may be the Action of derived Player classes (Extended ones) !! (DYNAMIC)
+        return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
         player_action = self.actionFactoryMethod()
