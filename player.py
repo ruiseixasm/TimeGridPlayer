@@ -268,7 +268,7 @@ class Player:
             self._tick = {'tempo': self._tempo, 'pulse': None, 'clock': self, 'player': self._player, 'fast_forward': False, 'tick_pulse': 0}
             
         def stop(self, FORCE_STOP = False):
-            ...
+            pass
 
         def tick(self):
 
@@ -282,13 +282,15 @@ class Player:
                     and (self._non_fast_forward_range_pulses[0] != None and self._next_pulse < self._non_fast_forward_range_pulses[0] \
                     or self._non_fast_forward_range_pulses[1] != None and not self._next_pulse < self._non_fast_forward_range_pulses[1])
             
-                if not self._tick['fast_forward']:
-                    self._next_pulse_time += self._pulse_duration
-                else:
+                if self._tick['fast_forward']:
                     self._next_pulse_time = time.time()
+                elif self._next_pulse_time + self._pulse_duration < time.time(): # It has to happen inside pulse duration time window
+                    self._next_pulse_time = time.time() + self._pulse_duration
+                else:
+                    self._next_pulse_time += self._pulse_duration
                     
-                self._tick_pulse = 0
                 self._next_pulse += 1
+                self._tick_pulse = 0
 
             else:
                 self._tick['pulse'] = None

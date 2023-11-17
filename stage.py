@@ -209,7 +209,7 @@ class Stage:
                         if key == 'class':
                             key_value_str = f"{player['player'].__class__.__name__}"
                         elif key == 'description':
-                            key_value_str = f"{player['player'].description}"
+                            key_value_str = trimString(f"{player['player'].description}")
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -237,3 +237,13 @@ class Stage:
         self._players_list.clear()
 
         return self
+
+# GLOBAL CLASS METHODS
+
+def trimString(full_string):
+    string_maxum_size = 60
+    long_string_termination = "…"
+    trimmed_string = full_string
+    if len(full_string) > string_maxum_size:
+        trimmed_string = full_string[:string_maxum_size] + long_string_termination
+    return trimmed_string

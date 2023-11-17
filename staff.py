@@ -644,6 +644,8 @@ class Staff:
 
                                         key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
 
+                                        key_value_str = trimString(key_value_str)
+
                                         key_value_length = len(key_value_str)
 
                                         string_top_length['lines'][line_index - head_offset] = max(string_top_length['lines'][line_index - head_offset], key_value_length)
@@ -707,6 +709,8 @@ class Staff:
                                     if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
                                         key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
+
+                                        key_value_str = trimString(key_value_str)
 
                                         key_value_length = len(key_value_str)
                                         key_value_str += (" " * (string_top_length['lines'][line_index - head_offset] - key_value_length))
@@ -1380,6 +1384,14 @@ class Staff:
         return self._time_signature
 
 # GLOBAL CLASS METHODS
+
+def trimString(full_string):
+    string_maxum_size = 16
+    long_string_termination = "…"
+    trimmed_string = full_string
+    if len(full_string) > string_maxum_size:
+        trimmed_string = full_string[:string_maxum_size] + long_string_termination
+    return trimmed_string
 
 def position_gt(left_position, right_position):
     if len(left_position) == 2 and len(right_position) == 2:

@@ -9,62 +9,62 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-list_1 = [1, 2, 3, 4]
-list_2 = [1, 2]
+# list_1 = [1, 2, 3, 4]
+# list_2 = [1, 2]
 
 # list_3 = list_1 - list_2
 
 # print(list_3)
 
 
-list_empty = []
+# list_empty = []
 
-sliced_list = list_empty[:2]
-print (sliced_list)
+# sliced_list = list_empty[:2]
+# print (sliced_list)
 
-my_list = [1, 2, 3, 4, 5]
-last_element = my_list[-3:]
-print(last_element)
-last_element = my_list[::2]
-print(last_element)
-last_element = my_list[1::2]
-print(last_element)
+# my_list = [1, 2, 3, 4, 5]
+# last_element = my_list[-3:]
+# print(last_element)
+# last_element = my_list[::2]
+# print(last_element)
+# last_element = my_list[1::2]
+# print(last_element)
 
-def position(sequence):
-    steps = int(sequence / 4)
-    frames = sequence % 4
-    if sequence < 0:
-        frames = -(-sequence % 4)
-    return [steps, frames]
+# def position(sequence):
+#     steps = int(sequence / 4)
+#     frames = sequence % 4
+#     if sequence < 0:
+#         frames = -(-sequence % 4)
+#     return [steps, frames]
 
-sequence = -13
-print (position(sequence))
+# sequence = -13
+# print (position(sequence))
 
-sequence = 13
-print (position(sequence))
-
-
-dict_1 = {'value': 10, 'value2': 11, 'value3': 12, 'value4': 13, 'value5': 14, 'list1': [1, 2, 3, "a"]}
-dict_2 = {'value': 10, 'value2': 11, 'value3': 12, 'value4': 13, 'value5': 14, 'list1': [1, 2, 3, "a"]}
-dic_list = []
-dic_list.append(dict_1)
-print (dic_list)
-print (dict_1 == dict_2)
-print (dict_2 in dic_list)
-
-list_1 = [1, 5]
-list_2 = [1, 5]
-big_list = []
-big_list.append(list_1)
-print (big_list)
-print (list_1 == list_2)
-print (list_2 in big_list)
+# sequence = 13
+# print (position(sequence))
 
 
-list_a = ["A"]
-list_b = list_a
-list_b[0] = "B"
-print (list_a)
+# dict_1 = {'value': 10, 'value2': 11, 'value3': 12, 'value4': 13, 'value5': 14, 'list1': [1, 2, 3, "a"]}
+# dict_2 = {'value': 10, 'value2': 11, 'value3': 12, 'value4': 13, 'value5': 14, 'list1': [1, 2, 3, "a"]}
+# dic_list = []
+# dic_list.append(dict_1)
+# print (dic_list)
+# print (dict_1 == dict_2)
+# print (dict_2 in dic_list)
+
+# list_1 = [1, 5]
+# list_2 = [1, 5]
+# big_list = []
+# big_list.append(list_1)
+# print (big_list)
+# print (list_1 == list_2)
+# print (list_2 in big_list)
+
+
+# list_a = ["A"]
+# list_b = list_a
+# list_b[0] = "B"
+# print (list_a)
 
 # keys_1 = {'enabled': 1, 'total': 2}
 # keys_2 = {'enabled': 2, 'total': 3}
@@ -93,14 +93,31 @@ print (list_a)
 
 # print (f"{int_number} {float_number:.6f} {another_float_number:.0f}")
 
-print ("  `  ´  .  -  _  ")
+# print ("  `  ´  .  -  _  ")
 
 
-one_list_1 = ["A"]
-one_list_2 = one_list_1
+# one_list_1 = ["A"]
+# one_list_2 = one_list_1
 
-one_list_1.clear()
-print(one_list_2)
-one_list_1.append("B")
+# one_list_1.clear()
+# print(one_list_2)
+# one_list_1.append("B")
 
-print(one_list_2)
+# print(one_list_2)
+
+
+
+def trimString(full_string):
+    string_maxum_size = 16
+    long_string_termination = "…"
+    trimmed_string = full_string
+    if len(full_string) > string_maxum_size:
+        trimmed_string = full_string[:string_maxum_size] + long_string_termination
+
+    return trimmed_string
+
+string_1 = "small"
+string_2 = "very big string again it's true"
+
+print (trimString(string_1))
+print (trimString(string_2))

@@ -59,6 +59,7 @@ stage.add(note)
 master.set_tempo(240)
 
 for _ in range(20):
+    stage.print()
     stage.play([2, 0], [4, 0])
     stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-5, 10)
     stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-5, 10)
