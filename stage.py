@@ -14,17 +14,17 @@ import player as PLAYER
 
 class Stage:
 
-    def __init__(self, players_list=None, root_players_list=None, start_id=0):
+    def __init__(self, players_list=None, root_self=None, start_id=0):
 
         self._none = False
 
         self._player = None # avoids infinite recursion! (also, it saves space)
-        self._root_players_list = []
-        self._players_list = self._root_players_list
+        self._players_list = []
         if players_list != None:
             self._players_list = players_list
-        if root_players_list != None:
-            self._root_players_list = root_players_list
+        self._root_self = self
+        if root_self != None:
+            self._root_self = root_self # type Rulers
 
         self._next_id = start_id
 
@@ -48,11 +48,14 @@ class Stage:
                 'player': player,
                 'enabled': True
             }
-            self._next_id += 1
-            self._root_players_list.append(player_data)
+            self._root_self._next_id += 1
+            self._root_self._players_list.append(player_data)
+            if self != self._root_self:
+                self._players_list.append(player_data)
+                self._next_id = self._root_self._next_id
             if not player.stage._is_none():
                 player.stage.filter(player=player).remove() # remove from other stage first
-            player.stage = self
+            player.stage = self._root_self
         return self
     
     def disable(self):
@@ -102,18 +105,18 @@ class Stage:
                 filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
             ]
 
-        return Stage(filtered_players, self._root_players_list)
+        return Stage(filtered_players, self._root_self, self._next_id)
 
     def json_dictionnaire(self):
         stage = {
                 'part': "stage",
-                'class': self.__class__.__name__,
-                'is_none': self._none,
-                'next_id': self._next_id,
+                'class': self._root_self.__class__.__name__,
+                'is_none': self._root_self._none,
+                'next_id': self._root_self._next_id,
                 'players': []
             }
         
-        for player_dictionnaire in self._root_players_list:
+        for player_dictionnaire in self._root_self._players_list:
             player_json = player_dictionnaire['player'].json_dictionnaire()
             player_json['id'] = player_dictionnaire['id']
             player_json['enabled'] = player_dictionnaire['enabled']
@@ -129,14 +132,14 @@ class Stage:
                 # Reading from json file
                 json_object = json.load(openfile)
 
-        self._root_players_list.clear()
+        self._root_self._players_list.clear()
 
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
-                self._none = stage_dictionnaire['is_none']
-                self._next_id = stage_dictionnaire['next_id']
+                self._root_self._none = stage_dictionnaire['is_none']
+                self._root_self._next_id = stage_dictionnaire['next_id']
                 for player_dictionnaire in stage_dictionnaire['players']:
-                    player = self._playerFactoryMethod(player_dictionnaire)
+                    player = self._root_self._playerFactoryMethod(player_dictionnaire)
                     if player != None:
                         player.json_load(file_name, [ player_dictionnaire ])
                         player_data = {
@@ -146,8 +149,8 @@ class Stage:
                             'player': player,
                             'enabled': player_dictionnaire['enabled']
                         }
-                        self._root_players_list.append(player_data)
-                        player.stage = self
+                        self._root_self._players_list.append(player_data)
+                        player.stage = self._root_self
                 break
 
         return self
@@ -244,7 +247,7 @@ class Stage:
     def remove(self, player):
         for player_data in self._players_list[:]:
             del player.stage
-            self._root_players_list.remove(player_data)
+            self._root_self._players_list.remove(player_data)
             break
         self._players_list.clear()
 

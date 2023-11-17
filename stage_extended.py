@@ -22,12 +22,12 @@ class StageExtended(Stage.Stage):
         self._midi_synth.connect(name="loop")
 
     def __del__(self):
-        self._midi_synth.disconnect()
+        self._root_self._midi_synth.disconnect()
 
     def add(self, player):
         super().add(player)
         if player.__class__.__name__ == "Note": # checks condition
-            player.midi_synth = self._midi_synth
+            player.midi_synth = self._root_self._midi_synth
         return self
     
     def _playerFactoryMethod(self, player_dictionnaire):
