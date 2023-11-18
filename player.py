@@ -27,9 +27,10 @@ class Player:
         self._clock = Player.Clock(self)
         self._internal_clock = False
 
-        self._stage = STAGE.Stage()
-        self._stage.add(self)
-        
+        # Iterator & Composite patterns for managing aggregates
+        self._stage = STAGE.StageNone()
+        self._player_stage = STAGE.Stage()
+
         self._actions = []
 
     def _is_none(self):
@@ -54,6 +55,18 @@ class Player:
     @stage.deleter
     def stage(self):
         self._stage = STAGE.StageNone()  
+            
+    @property
+    def player_stage(self):
+        return self._player_stage
+            
+    @player_stage.setter
+    def player_stage(self, stage):
+        self._player_stage = stage
+
+    @player_stage.deleter
+    def player_stage(self):
+        self._player_stage = STAGE.StageNone()  
             
     class Action():
 
@@ -380,6 +393,13 @@ class Player:
 
         return self
 
+    def print(self):
+
+        print("{ class: " + f"{self.__class__.__name__}    name: {self._name}    " + \
+              f"description: {trimString(self.description)}    sub-playesrs: {self.player_stage.len()}" + " }")
+
+        return self
+
     def play(self, start=None, finish=None):
 
         if not self._stage._is_none():
@@ -545,9 +565,20 @@ class PlayerNone(Player):
         self._none = True
 
         self._staff = STAFF.StaffNone(self)
+        self._player_stage = STAGE.StageNone()
+
+# GLOBAL CLASS METHODS
 
 def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
     STEPS_PER_QUARTER_NOTE = 4
     pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
     return int(pulses_per_beat)
+
+def trimString(full_string):
+    string_maxum_size = 60
+    long_string_termination = "…"
+    trimmed_string = full_string
+    if len(full_string) > string_maxum_size:
+        trimmed_string = full_string[:string_maxum_size] + long_string_termination
+    return trimmed_string

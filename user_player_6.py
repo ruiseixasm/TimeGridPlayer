@@ -58,6 +58,7 @@ print("\n\n\nNEXT ITERATION\n\n")
 
 import stage_extended as STAGE_EXT
 stage = STAGE_EXT.StageExtended()
+stage2 = STAGE_EXT.StageExtended()
 stage.add(master)
 stage.add(note)
 master.set_tempo(240)
@@ -68,7 +69,7 @@ for _ in range(1):
     stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-7, 13)
     stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
 
-#master.play()
+master.print()
 
 stage.json_save("stage_2.json")
 stage.json_load("stage_2.json")

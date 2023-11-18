@@ -18,7 +18,6 @@ class Stage:
 
         self._none = False
 
-        self._player = None # avoids infinite recursion! (also, it saves space)
         self._players_list = []
         if players_list != None:
             self._players_list = players_list
@@ -172,9 +171,7 @@ class Stage:
         return self._players_list
     
     def play(self, start=None, finish=None):
-        if self._player != None:
-            self._player.play(start, finish)
-        elif len(self._players_list) > 0:
+        if len(self._players_list) > 0:
             self._players_list[0]['player'].play(start, finish)
         return self
             
@@ -186,7 +183,7 @@ class Stage:
     def print(self):
 
         if len(self._players_list) > 0:
-            string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'enabled': 0}
+            string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
             for player in self._players_list: # get maximum sizes
                 
@@ -198,6 +195,8 @@ class Stage:
                         key_value_length = len(f"{player['player'].__class__.__name__}")
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
+                    elif key == 'sub-players':
+                        key_value_length = len(f"{player['player'].player_stage.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -209,7 +208,7 @@ class Stage:
 
             spaces_between = 4
 
-            print("=" * (full_string_top_length + 61))
+            print("¤" * (full_string_top_length + 78))
             sequence_index = 0
             for player in self._players_list:
 
@@ -225,10 +224,15 @@ class Stage:
                             key_value_str = f"{player['player'].__class__.__name__}"
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
+                        elif key == 'sub-players':
+                            key_value_str = f"{player['player'].player_stage.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 
-                        key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
+                        if key == 'sub-players':
+                            key_value_str = f"{key}: " + (" " * (string_top_length[key] - len(key_value_str))) + key_value_str
+                        else:
+                            key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
 
                         if key != 'enabled':
                             key_value_str += " " * spaces_between
@@ -236,7 +240,7 @@ class Stage:
                     player_str +=  key_value_str
                 player_str += " }"
                 print(player_str)
-            print("=" * (full_string_top_length + 61))
+            print("¤" * (full_string_top_length + 78))
 
         else:
             print("=" * 7)

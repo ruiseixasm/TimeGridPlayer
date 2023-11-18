@@ -34,9 +34,17 @@ class Instrument():
             elif name != None:
                 for index in range(total_available_instruments):
                     if available_instrument_ports_list[index].find(name) != -1:
-                        self.instrument_port = self.output_port.open_port(index)
-                        self.port_index = index
-                        break
+                        try:
+                            self.instrument_port = self.output_port.open_port(index)
+                        except SystemError:
+                            print (f"The instrumment '{name}' is already connected!")
+                        except Exception as e:
+                            print (f"Something went wrong while trying to connect the instrument '{name}'!")
+                            print (e)
+                        else:
+                            self.port_index = index
+                        finally:
+                            break
 
         return self
     
