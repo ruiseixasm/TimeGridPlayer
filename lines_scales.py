@@ -11,6 +11,26 @@ Lesser General Public License for more details.'''
 
 import lines as LINES
 
+class Scales(LINES.Lines):
+
+    def __init__(self):
+        super().__init__()
+
+    def chromatic(self, size):
+        return self.scale("chromatic", size)
+    
+    def scale(self, name, size):
+        bin_scale = get_scale(name)
+        local_scale_keys = scale_keys(bin_scale)
+        block_size = len(local_scale_keys)
+        offset_blocks = int((size - 1) / 2)
+        self._lines['offset'] = -(block_size * offset_blocks)
+        self._lines['lines'] = local_scale_keys * size
+
+        return self
+    
+# GLOBAL CLASS METHODS
+
 chromatic_keys = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 #                                            C#    D#       F#    G#    A#
 scales = [ #                              C     D     E  F     G     A     B
@@ -36,26 +56,6 @@ diatonic_rotations = [
     {'name': "minor",       'mode': "A",    'rotation':  -9},
     {'name': "locrian",     'mode': "B",    'rotation': -11}
 ]
-
-class Scales(LINES.Lines):
-
-    def __init__(self):
-        super().__init__()
-
-    def chromatic(self, size):
-        return self.scale("chromatic", size)
-    
-    def scale(self, name, size):
-        bin_scale = get_scale(name)
-        local_scale_keys = scale_keys(bin_scale)
-        block_size = len(local_scale_keys)
-        offset_blocks = int((size - 1) / 2)
-        self._lines['offset'] = -(block_size * offset_blocks)
-        self._lines['lines'] = local_scale_keys * size
-
-        return self
-    
-# GLOBAL CLASS METHODS
 
 def get_scale(name):
     name = name.strip().lower()

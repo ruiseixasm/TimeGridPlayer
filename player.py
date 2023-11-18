@@ -396,7 +396,7 @@ class Player:
     def print(self):
 
         print("{ class: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-playesrs: {self.player_stage.len()}" + " }")
+              f"description: {trimString(self.description)}    sub-players: {self.player_stage.len()}" + " }")
 
         return self
 

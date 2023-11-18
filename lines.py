@@ -31,7 +31,7 @@ class Lines:
         return self._lines
 
     def print(self):
-        print("{ lines: " + f"{self._lines['lines']}" + "    offset: " + f"{self._lines['offset']}" + " }")
+        print(self)
 
         return self
 

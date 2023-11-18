@@ -9,3 +9,24 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+resource_types = ["multiple_unit", "single_unit"]
+
+class Resources:
+        
+    def __init__(self):
+
+        resource = {
+            'type': "single_unit",
+            'class': "",
+            'name': "",
+            'resource': None
+        }
+
+        self.resources = []
+
+    def _factoryResource(self, name):
+        ...
+
+    def get(self, name):
+        ...
+        
