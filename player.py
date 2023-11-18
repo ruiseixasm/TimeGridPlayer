@@ -176,11 +176,11 @@ class Player:
                     pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
                     merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
 
-                    for triggered_action in pulse_actions_rulers.list(): # single ruler actions
+                    for triggered_action in pulse_actions_rulers: # single ruler actions
                         for action_line in range(len(triggered_action['lines'])):
                             if (triggered_action['lines'][action_line] != None):
                                 triggered_action['line'] = action_line
-                                for arguments_ruler in merged_staff_arguments.list():
+                                for arguments_ruler in merged_staff_arguments:
                                     arguments_ruler['line'] = action_line + triggered_action['offset'] - arguments_ruler['offset']
                                     if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                         arguments_ruler['line'] = None # in case key line is out of range of the triggered action line

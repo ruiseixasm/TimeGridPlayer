@@ -27,6 +27,20 @@ class Stage:
 
         self._next_id = start_id
 
+        self.current_player = 0
+
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        if self.current_player < len(self._players_list):
+            result = self._players_list[self.current_player]
+            self.current_player += 1
+            return result
+        else:
+            self.current_player = 0  # Reset to 0 when limit is reached
+            raise StopIteration
+        
     def _is_none(self):
         return self._none
 
@@ -185,7 +199,7 @@ class Stage:
         if len(self._players_list) > 0:
             string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
-            for player in self._players_list: # get maximum sizes
+            for player in self: # get maximum sizes
                 
                 for key, value in string_top_length.items():
                     if key == 'sequence':

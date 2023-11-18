@@ -46,7 +46,21 @@ class Staff:
                 self._root_self = root_self # type Rulers
 
             self._next_id = start_id
-    
+
+            self.current_ruler = 0
+
+        def __iter__(self):
+            return self
+        
+        def __next__(self):
+            if self.current_ruler < len(self._rulers_list):
+                result = self._rulers_list[self.current_ruler]
+                self.current_ruler += 1
+                return result
+            else:
+                self.current_ruler = 0  # Reset to 0 when limit is reached
+                raise StopIteration
+        
         def _is_none(self):
             return self._none
 
@@ -139,7 +153,7 @@ class Staff:
             target_rulers = self
             if id != None:
                 target_rulers = self.filter(ids=[id])
-            for ruler in target_rulers.list():
+            for ruler in target_rulers:
 
                 lines_size = len(ruler['lines'])
                 first_line = ruler['offset']
@@ -248,7 +262,8 @@ class Staff:
             target_rulers = self
             if id != None:
                 target_rulers = self.filter(ids=[id])
-            for ruler in target_rulers.list():
+
+            for ruler in target_rulers:
 
                 lines_size = len(ruler['lines'])
                 first_line = ruler['offset']
@@ -355,7 +370,8 @@ class Staff:
             target_rulers = self
             if id != None:
                 target_rulers = self.filter(ids=[id])
-            for ruler in target_rulers.list():
+
+            for ruler in target_rulers:
 
                 lines_size = len(ruler['lines'])
                 first_line = ruler['offset']
@@ -428,7 +444,7 @@ class Staff:
                 actions_names_list = []
 
             actions_rulers = self.filter(type="actions", enabled=enabled, on_staff=True).sort(key='id')
-            for ruler in actions_rulers.list():
+            for ruler in actions_rulers:
                 for action_name in ruler['lines']:
                     if action_name != None and action_name not in actions_names_list:
                         actions_names_list.append(action_name)
@@ -782,7 +798,7 @@ class Staff:
             target_rulers = self
             if id != None:
                 target_rulers = self.filter(ids=[id])
-            for ruler in target_rulers.list():
+            for ruler in target_rulers:
 
                 lines_size = len(ruler['lines'])
                 first_line = ruler['offset']
@@ -816,7 +832,7 @@ class Staff:
         def reset(self):
             if self._staff != None:
                 self._staff.clear()
-                for staff_ruler in self._root_self.list():
+                for staff_ruler in self._root_self:
                     staff_ruler['on_staff'] = True
                 unique_rulers_list = self._root_self.unique().list()
                 self._staff.add(unique_rulers_list)
