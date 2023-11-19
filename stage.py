@@ -200,6 +200,7 @@ class Stage:
 
     def print(self):
 
+        header_char = "¤"
         if len(self._players_list) > 0:
             string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
@@ -225,8 +226,14 @@ class Stage:
                 full_string_top_length += value
 
             spaces_between = 4
+            header_char_length = full_string_top_length + 78
 
-            print("¤" * (full_string_top_length + 78))
+            header_class = "   " + self.__class__.__name__ + "   "
+            header_class_length = len(header_class)
+            header_left_half_length = int((header_char_length - header_class_length) / 2)
+            header_right_half_length = header_left_half_length + (header_char_length - header_class_length) % 2
+
+            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
             sequence_index = 0
             for player in self._players_list:
 
@@ -258,12 +265,14 @@ class Stage:
                     player_str +=  key_value_str
                 player_str += " }"
                 print(player_str)
-            print("¤" * (full_string_top_length + 78))
+            print(header_char * header_char_length)
 
         else:
-            print("¤" * 7)
-            print("[EMPTY]")
-            print("¤" * 7)
+            header_class = self.__class__.__name__
+            header_class_length = len(header_class)
+            print(header_char * (7 + 1 + header_class_length))
+            print(f"[EMPTY] {header_class}")
+            print(header_char * (7 + 1 + header_class_length))
         return self
 
     def remove(self):
