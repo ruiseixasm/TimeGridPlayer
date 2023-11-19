@@ -60,7 +60,7 @@ import stage_extended as STAGE_EXT
 stage = STAGE_EXT.StageExtended()
 #stage2 = STAGE_EXT.StageExtended()
 stage.add(master)
-stage.add(note)
+#stage.add(note)
 master.set_tempo(240)
 
 for _ in range(1):
@@ -73,12 +73,13 @@ for _ in range(1):
 master.print()
 master.print_stage()
 master.add(note)
+stage.play([2, 0], [4, 0])
 master.print()
 master.print_stage()
 stage.print()
 
-stage.json_save("stage_2.json")
-stage.json_load("stage_2.json")
+# stage.json_save("stage_3.json")
+# stage.json_load("stage_3.json")
 
 #master.rulers().print().print_lines()
 #master.staff().print()

@@ -57,15 +57,15 @@ class Player:
         self._main_stage = STAGE.StageNone()  
             
     @property
-    def player_stage(self):
+    def lower_stage(self):
         return self._lower_stage
             
-    @player_stage.setter
-    def player_stage(self, stage):
+    @lower_stage.setter
+    def lower_stage(self, stage):
         self._lower_stage = stage
 
-    @player_stage.deleter
-    def player_stage(self):
+    @lower_stage.deleter
+    def lower_stage(self):
         self._lower_stage = STAGE.StageNone()  
             
     class Action():
@@ -328,6 +328,17 @@ class Player:
         if self._internal_clock:
             self._clock.stop()
 
+    def get_all_lower_stages(self):
+        
+        lower_stage = self.lower_stage
+        all_lower_stages = lower_stage
+
+        if lower_stage.len() > 0:
+            for player in lower_stage:
+                all_lower_stages += player['player'].get_all_lower_stages() # + operator already does a copy
+
+        return all_lower_stages # Last LEAF stage is an empty stage
+
     def getClock(self):
         return self._clock
 
@@ -336,8 +347,7 @@ class Player:
 
     def getPlayablePlayers(self, name):
         return [
-            playable_player for playable_player in self._playable_players 
-                if playable_player['name'] == name and playable_player['player'] != self # can't trigger itself (infinite loop)
+            playable_player for playable_player in self._playable_sub_players if playable_player['name'] == name
         ]
 
     def getStaff(self):
@@ -402,7 +412,7 @@ class Player:
     def print(self):
 
         print("{ class: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-players: {self.player_stage.len()}" + " }")
+              f"description: {trimString(self.description)}    sub-players: {self.lower_stage.len()}" + " }")
 
         return self
 
@@ -411,52 +421,66 @@ class Player:
 
         return self
 
-    def play(self, start=None, finish=None, stage_players_list=None):
+    def play(self, start=None, finish=None, enabled_stage_players=None):
 
         if not self._main_stage._is_none():
 
-            player_self = self._main_stage.filter(player=self)
+            self._clocked_players = [
+                {'name': self._name, 'player': self}
+            ]
 
-            if player_self.len() > 0 and player_self.enabled():
+            all_enabled_players = self.get_all_lower_stages().filter(enabled=True)
+            if enabled_stage_players != None:
+                all_enabled_players += enabled_stage_players
+            
+            for enabled_player in all_enabled_players:
+                clockable_player = {
+                    'name': enabled_player['name'],
+                    'player': enabled_player['player']
+                }
+                if not clockable_player in self._clocked_players:
+                    self._clocked_players.append(clockable_player)
 
-                players_names = [self.name] # Actions are refered by their players name
-                players_names = self.rulers().list_actions_names(enabled=True, actions_names_list=players_names)
+            for clocked_player in self._clocked_players:
+                clocked_player['player']._playable_sub_players = []
+                playable_sub_players = clocked_player['player'].get_all_lower_stages().filter(enabled=True)
+                for playable_player in playable_sub_players:
+                    playable_player = {
+                        'name': playable_player['name'],
+                        'player': playable_player['player']
+                    }
+                    if not playable_player in clocked_player['player']._playable_sub_players:
+                        clocked_player['player']._playable_sub_players.append(playable_player)
 
-                if stage_players_list == None:
-                    stage_players_list = self._main_stage.filter(enabled=True).list() # NEEDS TO BE REVIEWED
+            
+            for player in self._clocked_players:
+                player['player'].start()
+            
+            non_fast_forward_range = [None, None]
+            if start != None:
+                non_fast_forward_range[0] = self._staff.pulses(start)
+            if finish != None:
+                non_fast_forward_range[1] = self._staff.pulses(finish)
 
-                self._playable_players = [
-                    playable_player for playable_player in stage_players_list if playable_player['name'] in players_names
-                ]
+            # At least one Action needs to be externally triggered
+            self._clock.start(non_fast_forward_range)
+            tick = self._clock.tick()
+            self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
 
-                for player in self._playable_players:
-                    player['player'].start()
-                
-                non_fast_forward_range = [None, None]
-                if start != None:
-                    non_fast_forward_range[0] = self._staff.pulses(start)
-                if finish != None:
-                    non_fast_forward_range[1] = self._staff.pulses(finish)
+            self._clock.start(non_fast_forward_range)
 
-                # At least one Action needs to be externally triggered
-                self._clock.start(non_fast_forward_range)
+            still_playing = True
+            while still_playing:
                 tick = self._clock.tick()
-                self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
-
-                self._clock.start(non_fast_forward_range)
-
-                still_playing = True
-                while still_playing:
-                    tick = self._clock.tick()
-                    still_playing = False
-                    for player in self._playable_players:
-                        player['player'].tick(tick)
-                        if player['player'].isPlaying():
-                            still_playing = True
-                
-                self._clock.stop()
-                for player in self._playable_players:
-                    player['player'].finish()
+                still_playing = False
+                for player in self._clocked_players:
+                    player['player'].tick(tick)
+                    if player['player'].isPlaying():
+                        still_playing = True
+            
+            self._clock.stop()
+            for player in self._clocked_players:
+                player['player'].finish()
 
         return self
 

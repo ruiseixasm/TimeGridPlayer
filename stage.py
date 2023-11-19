@@ -42,6 +42,14 @@ class Stage:
             self.current_player = 0  # Reset to 0 when limit is reached
             raise StopIteration
         
+    # + Operator Overloading in Python
+    def __add__(self, other):
+        '''Works as Union'''
+        self_players_list = self.list()
+        other_players_list = other.list()
+
+        return Stage(self_players_list + other_players_list, self._root_self, self._next_id, self._owner_player)
+        
     def _is_none(self):
         return self._none
 
@@ -186,11 +194,11 @@ class Stage:
     def play(self, start=None, finish=None, id=None):
         if len(self._players_list) > 0:
             if id != None:
-                stage_player = self.filter(ids = [id])
+                stage_player = self.filter(ids = [id], enabled=True)
                 if stage_player.len() > 0:
-                    stage_player.list()[0]['player'].play(start=start, finish=finish, stage_players_list=self.filter(enabled=True).list())
-            else:
-                self._players_list[0]['player'].play(start=start, finish=finish, stage_players_list=self.filter(enabled=True).list())
+                    stage_player.list()[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
+            elif self._players_list[0]['enabled']:
+                self._players_list[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
         return self
             
     def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
@@ -215,7 +223,7 @@ class Stage:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].player_stage.len()}")
+                        key_value_length = len(f"{player['player'].lower_stage.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -250,7 +258,7 @@ class Stage:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].player_stage.len()}"
+                            key_value_str = f"{player['player'].lower_stage.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -284,6 +292,14 @@ class Stage:
 
         return self
 
+    def unique(self):
+        unique_rulers_list = []
+        for player in self._players_list:
+            if player not in unique_rulers_list:
+                unique_rulers_list.append(player)
+
+        return Stage(unique_rulers_list, self._root_self, self._next_id, self._owner_player)
+        
 class StageNone(Stage):
 
     def __init__(self):

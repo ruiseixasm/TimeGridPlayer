@@ -21,6 +21,7 @@ class Note(PLAYER.Player):
     def __init__(self, name, description="Plays notes on a given Synth", synth_name=None):
         super().__init__(name, description) # not self init
         self._synth_name = synth_name
+        self._midi_synth = None
 
     @property
     def synth_name(self):
@@ -64,7 +65,8 @@ class Note(PLAYER.Player):
             if staff == None: # CLOCKED TRIGGER
                 print(f"note OFF:\t{self._note}")
 
-                self._player.midi_synth.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                if self._player.midi_synth != None:
+                    self._player.midi_synth.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
@@ -91,7 +93,8 @@ class Note(PLAYER.Player):
 
                         print(f"note ON:\t{self._note}")
                     
-                        self._player.midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                        if self._player.midi_synth != None:
+                            self._player.midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         # needs to convert steps duration accordingly to callers time signature
                         duration_converter = staff.time_signature()['steps_per_beat'] / self._staff.time_signature()['steps_per_beat']
