@@ -22,7 +22,7 @@ class StageExtended(STAGE.Stage):
 
     def add(self, player):
         super().add(player)
-        if player.__class__.__name__ == "Note": # checks condition
+        if self._owner_player == None and player.__class__.__name__ == "Note": # checks condition as Main Stage
             if player.synth_name != None:
                 player.midi_synth = self._midi_instruments.get(player.synth_name)
         return self
