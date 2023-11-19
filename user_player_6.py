@@ -71,6 +71,11 @@ for _ in range(1):
     stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
 
 master.print()
+master.print_stage()
+master.add(note)
+master.print()
+master.print_stage()
+stage.print()
 
 stage.json_save("stage_2.json")
 stage.json_load("stage_2.json")

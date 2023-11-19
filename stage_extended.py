@@ -9,11 +9,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import stage as Stage
+import stage as STAGE
 import player_midi as PlayerMIDI
 import resources_instruments as MIDI_INS
 
-class StageExtended(Stage.Stage):
+class StageExtended(STAGE.Stage):
 
     def __init__(self, start_id=0):
         super().__init__(start_id=start_id)

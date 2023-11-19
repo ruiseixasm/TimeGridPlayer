@@ -24,7 +24,7 @@ class Stage:
         self._root_self = self
         if root_self != None:
             self._root_self = root_self
-        self._owner_player = owner_player
+        self._owner_player = owner_player # When working as lower stage, None when main stage
 
         self._next_id = start_id
 
@@ -67,9 +67,7 @@ class Stage:
             if self != self._root_self:
                 self._players_list.append(player_data)
                 self._next_id = self._root_self._next_id
-            if not player.stage._is_none():
-                player.stage.filter(player=player).remove() # remove from other stage first
-            player.stage = self._root_self
+            player.main_stage = self._root_self
         return self
     
     def disable(self):
@@ -164,7 +162,7 @@ class Stage:
                             'enabled': player_dictionnaire['enabled']
                         }
                         self._root_self._players_list.append(player_data)
-                        player.stage = self._root_self
+                        player.main_stage = self._root_self
                 break
 
         return self
@@ -190,9 +188,9 @@ class Stage:
             if id != None:
                 stage_player = self.filter(ids = [id])
                 if stage_player.len() > 0:
-                    stage_player.list()[0]['player'].play(start=start, finish=finish)
+                    stage_player.list()[0]['player'].play(start=start, finish=finish, stage_players_list=self.filter(enabled=True).list())
             else:
-                self._players_list[0]['player'].play(start=start, finish=finish)
+                self._players_list[0]['player'].play(start=start, finish=finish, stage_players_list=self.filter(enabled=True).list())
         return self
             
     def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
@@ -263,14 +261,14 @@ class Stage:
             print("¤" * (full_string_top_length + 78))
 
         else:
-            print("=" * 7)
+            print("¤" * 7)
             print("[EMPTY]")
-            print("=" * 7)
+            print("¤" * 7)
         return self
 
     def remove(self):
         for player_data in self._players_list[:]:
-            del player_data['player'].stage
+            del player_data['player'].main_stage
             self._root_self._players_list.remove(player_data)
             break
         self._players_list.clear()

@@ -29,7 +29,7 @@ class Player:
 
         # Iterator & Composite patterns for managing aggregates
         self._main_stage = STAGE.StageNone()
-        self._own_stage = STAGE.Stage()
+        self._lower_stage = STAGE.Stage(owner_player=self)
 
         self._actions = []
 
@@ -45,28 +45,28 @@ class Player:
         return self._description
     
     @property
-    def stage(self):
+    def main_stage(self):
         return self._main_stage
             
-    @stage.setter
-    def stage(self, stage):
-        self._main_stage = stage
+    @main_stage.setter
+    def main_stage(self, main_stage):
+        self._main_stage = main_stage
 
-    @stage.deleter
-    def stage(self):
+    @main_stage.deleter
+    def main_stage(self):
         self._main_stage = STAGE.StageNone()  
             
     @property
     def player_stage(self):
-        return self._own_stage
+        return self._lower_stage
             
     @player_stage.setter
     def player_stage(self, stage):
-        self._own_stage = stage
+        self._lower_stage = stage
 
     @player_stage.deleter
     def player_stage(self):
-        self._own_stage = STAGE.StageNone()  
+        self._lower_stage = STAGE.StageNone()  
             
     class Action():
 
@@ -318,6 +318,12 @@ class Player:
 
 # Player METHODS ###############################################################################################################################
 
+    def add(self, player):
+
+        self._lower_stage.add(player)
+
+        return self
+
     def finish(self):
         if self._internal_clock:
             self._clock.stop()
@@ -400,7 +406,12 @@ class Player:
 
         return self
 
-    def play(self, start=None, finish=None, stage_players=None):
+    def print_stage(self):
+        self._lower_stage.print()
+
+        return self
+
+    def play(self, start=None, finish=None, stage_players_list=None):
 
         if not self._main_stage._is_none():
 
@@ -411,10 +422,11 @@ class Player:
                 players_names = [self.name] # Actions are refered by their players name
                 players_names = self.rulers().list_actions_names(enabled=True, actions_names_list=players_names)
 
-                staged_players = self._main_stage.filter(enabled=True).list()
+                if stage_players_list == None:
+                    stage_players_list = self._main_stage.filter(enabled=True).list() # NEEDS TO BE REVIEWED
 
                 self._playable_players = [
-                    playable_player for playable_player in staged_players if playable_player['name'] in players_names
+                    playable_player for playable_player in stage_players_list if playable_player['name'] in players_names
                 ]
 
                 for player in self._playable_players:
@@ -565,7 +577,7 @@ class PlayerNone(Player):
         self._none = True
 
         self._staff = STAFF.StaffNone(self)
-        self._own_stage = STAGE.StageNone()
+        self._lower_stage = STAGE.StageNone()
 
 # GLOBAL CLASS METHODS
 
