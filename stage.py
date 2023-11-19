@@ -30,6 +30,10 @@ class Stage:
 
         self.current_player = 0
 
+    @property
+    def owner(self):
+        return self._owner_player
+    
     def __iter__(self):
         return self
     
@@ -75,7 +79,11 @@ class Stage:
             if self != self._root_self:
                 self._players_list.append(player_data)
                 self._next_id = self._root_self._next_id
-            player.main_stage = self._root_self
+
+            if self._owner_player == None:
+                all_sub_players = player.get_all_lower_stages().unique()
+                for sub_player in all_sub_players:
+                    sub_player['player'].main_stage = self._root_self
         return self
     
     def disable(self):

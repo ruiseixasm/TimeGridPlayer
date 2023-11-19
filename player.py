@@ -320,7 +320,19 @@ class Player:
 
     def add(self, player):
 
-        self._lower_stage.add(player)
+        # get all sub-players of player | self can't be on them or a infinite loop happens!!
+        player_sub_players = player.get_all_lower_stages().unique()
+        not_present_self_player = True
+        for sub_player in player_sub_players:
+            if sub_player['player'] == self:
+                not_present_self_player = False
+                break
+
+        if not_present_self_player:
+            self._lower_stage.add(player)
+            player.main_stage = self.main_stage
+        else:
+            print (f"Player {self} already descendent of Player {player}!")
 
         return self
 
@@ -423,64 +435,61 @@ class Player:
 
     def play(self, start=None, finish=None, enabled_stage_players=None):
 
-        if not self._main_stage._is_none():
+        self._clocked_players = [
+            {'name': self._name, 'player': self}
+        ]
 
-            self._clocked_players = [
-                {'name': self._name, 'player': self}
-            ]
+        all_enabled_players = self.get_all_lower_stages().filter(enabled=True)
+        if enabled_stage_players != None:
+            all_enabled_players += enabled_stage_players
+        
+        for enabled_player in all_enabled_players:
+            clockable_player = {
+                'name': enabled_player['name'],
+                'player': enabled_player['player']
+            }
+            if not clockable_player in self._clocked_players:
+                self._clocked_players.append(clockable_player)
 
-            all_enabled_players = self.get_all_lower_stages().filter(enabled=True)
-            if enabled_stage_players != None:
-                all_enabled_players += enabled_stage_players
-            
-            for enabled_player in all_enabled_players:
-                clockable_player = {
-                    'name': enabled_player['name'],
-                    'player': enabled_player['player']
+        for clocked_player in self._clocked_players:
+            clocked_player['player']._playable_sub_players = []
+            playable_sub_players = clocked_player['player'].get_all_lower_stages().filter(enabled=True)
+            for playable_player in playable_sub_players:
+                playable_player = {
+                    'name': playable_player['name'],
+                    'player': playable_player['player']
                 }
-                if not clockable_player in self._clocked_players:
-                    self._clocked_players.append(clockable_player)
+                if not playable_player in clocked_player['player']._playable_sub_players:
+                    clocked_player['player']._playable_sub_players.append(playable_player)
 
-            for clocked_player in self._clocked_players:
-                clocked_player['player']._playable_sub_players = []
-                playable_sub_players = clocked_player['player'].get_all_lower_stages().filter(enabled=True)
-                for playable_player in playable_sub_players:
-                    playable_player = {
-                        'name': playable_player['name'],
-                        'player': playable_player['player']
-                    }
-                    if not playable_player in clocked_player['player']._playable_sub_players:
-                        clocked_player['player']._playable_sub_players.append(playable_player)
+        for player in self._clocked_players:
+            player['player'].start()
+        
+        non_fast_forward_range = [None, None]
+        if start != None:
+            non_fast_forward_range[0] = self._staff.pulses(start)
+        if finish != None:
+            non_fast_forward_range[1] = self._staff.pulses(finish)
 
-            
-            for player in self._clocked_players:
-                player['player'].start()
-            
-            non_fast_forward_range = [None, None]
-            if start != None:
-                non_fast_forward_range[0] = self._staff.pulses(start)
-            if finish != None:
-                non_fast_forward_range[1] = self._staff.pulses(finish)
+        # At least one Action needs to be externally triggered
+        self._clock.start(non_fast_forward_range)
+        tick = self._clock.tick()
+        self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
 
-            # At least one Action needs to be externally triggered
-            self._clock.start(non_fast_forward_range)
+        self._clock.start(non_fast_forward_range)
+
+        still_playing = True
+        while still_playing:
             tick = self._clock.tick()
-            self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
-
-            self._clock.start(non_fast_forward_range)
-
-            still_playing = True
-            while still_playing:
-                tick = self._clock.tick()
-                still_playing = False
-                for player in self._clocked_players:
-                    player['player'].tick(tick)
-                    if player['player'].isPlaying():
-                        still_playing = True
-            
-            self._clock.stop()
+            still_playing = False
             for player in self._clocked_players:
-                player['player'].finish()
+                player['player'].tick(tick)
+                if player['player'].isPlaying():
+                    still_playing = True
+        
+        self._clock.stop()
+        for player in self._clocked_players:
+            player['player'].finish()
 
         return self
 
@@ -567,7 +576,6 @@ class Player:
     ### CLASS ###
     
     def __str__(self):
-        # return self.__class__.__name__
         return self._name
 
 class Trigger(Player):
