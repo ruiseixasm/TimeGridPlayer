@@ -10,7 +10,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import player as PLAYER
-import stage_extended as STAGE_EXT
 
 class Master(PLAYER.Player):
     
@@ -19,10 +18,22 @@ class Master(PLAYER.Player):
 
 class Note(PLAYER.Player):
     
-    def __init__(self, name, description="Plays notes on a given Synth", midi_synth=None):
+    def __init__(self, name, description="Plays notes on a given Synth", synth_name=None):
         super().__init__(name, description) # not self init
-        self._midi_synth = midi_synth
+        self._synth_name = synth_name
 
+    @property
+    def synth_name(self):
+        return self._synth_name
+            
+    @synth_name.setter
+    def synth_name(self, synth_name):
+        self._synth_name = synth_name
+            
+    @synth_name.deleter
+    def synth_name(self):
+        self._synth_name = None
+            
     @property
     def midi_synth(self):
         return self._midi_synth
@@ -35,6 +46,11 @@ class Note(PLAYER.Player):
     def midi_synth(self):
         self._midi_synth = None
             
+    def json_dictionnaire(self):
+        dictionnaire = super().json_dictionnaire()
+        dictionnaire['synth_name'] = self._synth_name
+        return dictionnaire
+
     class Action(PLAYER.Player.Action):
         
         def __init__(self, player):

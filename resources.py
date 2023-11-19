@@ -24,9 +24,6 @@ class Resources:
 
         self.resources = []
 
-    def _factoryResource(self, name):
-        ...
-
     def get(self, name):
         ...
         

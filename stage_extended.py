@@ -11,23 +11,20 @@ Lesser General Public License for more details.'''
 
 import stage as Stage
 import player_midi as PlayerMIDI
-import midi_tools
+import resources_instruments as MIDI_INS
 
 class StageExtended(Stage.Stage):
 
     def __init__(self, start_id=0):
         super().__init__(start_id=start_id)
         
-        self._midi_synth = midi_tools.Instrument()
-        self._midi_synth.connect(name="loop")
-
-    def __del__(self):
-        self._root_self._midi_synth.disconnect()
+        self._midi_instruments = MIDI_INS.MidiIntruments()
 
     def add(self, player):
         super().add(player)
         if player.__class__.__name__ == "Note": # checks condition
-            player.midi_synth = self._root_self._midi_synth
+            if player.synth_name != None:
+                player.midi_synth = self._midi_instruments.get(player.synth_name)
         return self
     
     def _playerFactoryMethod(self, player_dictionnaire):
@@ -36,6 +33,6 @@ class StageExtended(Stage.Stage):
             case "Master":
                 player = PlayerMIDI.Note(player_dictionnaire['name'], player_dictionnaire['description'])
             case "Note":
-                player = PlayerMIDI.Note(player_dictionnaire['name'], player_dictionnaire['description'], self._midi_synth)
+                player = PlayerMIDI.Note(player_dictionnaire['name'], player_dictionnaire['description'], player_dictionnaire['synth_name'])
 
         return player

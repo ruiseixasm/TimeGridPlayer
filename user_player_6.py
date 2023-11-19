@@ -18,7 +18,7 @@ trigger = PLAYER.Trigger("trigger")
 # trigger.useInternalClock(True)
 
 master = PLAYER.Player("master")
-note = PL_MIDI.Note("note")
+note = PL_MIDI.Note("note", synth_name="loop")
 note.staff().set(size_measures=1)
 #note.useInternalClock(True)
 
@@ -58,7 +58,7 @@ print("\n\n\nNEXT ITERATION\n\n")
 
 import stage_extended as STAGE_EXT
 stage = STAGE_EXT.StageExtended()
-stage2 = STAGE_EXT.StageExtended()
+#stage2 = STAGE_EXT.StageExtended()
 stage.add(master)
 stage.add(note)
 master.set_tempo(240)

@@ -12,102 +12,94 @@ Lesser General Public License for more details.'''
 import rtmidi
 import time
 import resources as RESOURCES
-import midi_tools
 
 class MidiIntruments(RESOURCES.Resources):
         
     def __init__(self):
         super().__init__() # not self init
-        self.pressed_keys = [False] * 128
-        self.output_port = rtmidi.MidiOut()
-        self.available_instruments = []
+        self._output_port = rtmidi.MidiOut()
+        self._available_instruments = []
 
     def __del__(self):
-        self._midi_synth.disconnect()
-
-    def _instrument_index(self, name=None):
-
-        if name == None:
-            return 0
-        
-        total_available_instruments = self.output_port.get_port_count()
-        available_instrument_ports_list = self.output_port.get_ports()
-        for index in range(total_available_instruments):
-            if available_instrument_ports_list[index].find(name) != -1:
-                return index
-
-
-
-
-    def _factoryResource(self, name):
-        self._midi_synth.connect(name="loop")
-
+        for available_instrument in self._available_instruments:
+            available_instrument['instrument'].disconnect()
 
     def get(self, name=None):
+        if name == None:
+            return 0
+        total_available_instruments = self._output_port.get_port_count()
+        available_instrument_ports_list = self._output_port.get_ports()
+        instrument_index = -1
+        instrument_name = ""
+        for index in range(total_available_instruments):
+            if available_instrument_ports_list[index].find(name) != -1:
+                instrument_index = index
+                instrument_name = available_instrument_ports_list[index]
+            
+        if instrument_index > -1:
 
-        instrument_index = self._instrument_index(name)
-
-        for available_instrument in self.available_instruments:
-            if available_instrument['index'] == instrument_index:
-                ...
+            for available_instrument in self._available_instruments:
+                if available_instrument['index'] == instrument_index:
+                    return available_instrument['instrument']
+            new_instrument = {
+                'index': instrument_index,
+                'name': instrument_name,
+                'instrument': MidiIntruments.OutputInstrument(self._output_port, instrument_index)
+            }
+            self._available_instruments.append(new_instrument)
+            return new_instrument['instrument'].connect()
+        
+        return None
 
     class OutputInstrument():
         
-        def __init__(self, output_port):
-            self.pressed_keys = [False] * 128
-            self.output_port = output_port
-            self.instrument_port = None
-            self.port_index = None
+        def __init__(self, output_port, port_index):
+            self._pressed_keys = [False] * 128
+            self._output_port = output_port
+            self._port_index = port_index
+            self._active_port = None
 
         def list(self):
-            return self.output_port.get_ports()
+            return self._output_port.get_ports()
 
-        def connect(self, order = None, name = None):
-            available_instrument_ports_list = self.list()
-            total_available_instruments = self.output_port.get_port_count()
-            if (total_available_instruments > 0):
-                port_index = -1
-                if order == name == None:
-                    port_index = 0
-                elif name != None:
-                    for index in range(total_available_instruments):
-                        if available_instrument_ports_list[index].find(name) != -1:
-                            port_index = index
-
-                if port_index > -1:
-                    try:
-                        self.instrument_port = self.output_port.open_port(port_index)
-                    except SystemError:
-                        print (f"The instrumment '{name}' is already connected!")
-                    except Exception as e:
-                        print (f"Something went wrong while trying to connect the instrument '{name}'!")
-                        print (e)
-                    else:
-                        self.port_index = port_index
+        def connect(self):
+            try:
+                self._active_port = self._output_port.open_port(self._port_index)
+            except SystemError:
+                available_instrument_ports_list = self._output_port.get_ports()
+                instrument_name = available_instrument_ports_list[self._port_index]
+                print (f"The instrumment '{instrument_name}' is already connected!")
+                self._active_port = None
+            except Exception as e:
+                available_instrument_ports_list = self._output_port.get_ports()
+                instrument_name = available_instrument_ports_list[self._port_index]
+                print (f"Something went wrong while trying to connect the instrument '{instrument_name}'!")
+                print (e)
+                self._active_port = None
 
             return self
         
         def disconnect(self):
-            if self.instrument_port != None:
-                if self.instrument_port.is_port_open():
-                    self.instrument_port.close_port()
+            if self._active_port != None:
+                if self._active_port.is_port_open():
+                    self._active_port.close_port()
                     return True
             return False
         
         def isConnected(self):
-            if self.instrument_port != None:
-                if self.instrument_port.is_port_open():
+            if self._active_port != None:
+                if self._active_port.is_port_open():
                     return True
             return False
         
         def getPortName(self):
             if self.isConnected():
-                return self.output_port.get_port_name(self.port_index)
+                return self._output_port.get_port_name(self._port_index)
             return "None"
 
         def print(self):
             if self.isConnected():
-                print (self.output_port.get_port_name(self.port_index))
+                print (self._output_port.get_port_name(self._port_index))
             else:
                 print ("None")
             return self
@@ -121,7 +113,7 @@ class MidiIntruments(RESOURCES.Resources):
         
         def sendMessage(self, message=[0x80, 60, 100]):
             if self.isConnected():
-                self.instrument_port.send_message(message)
+                self._active_port.send_message(message)
             return self
 
         def panic(self):
@@ -152,8 +144,8 @@ class MidiIntruments(RESOURCES.Resources):
             parameter_1 = getMidiNote(note)
             parameter_2 = note['velocity']
             message = [command, parameter_1, parameter_2]
-            if not self.pressed_keys[parameter_1]:
-                self.pressed_keys[parameter_1] = True
+            if not self._pressed_keys[parameter_1]:
+                self._pressed_keys[parameter_1] = True
                 return self.sendMessage(message)
             return self
 
@@ -162,7 +154,7 @@ class MidiIntruments(RESOURCES.Resources):
             parameter_1 = getMidiNote(note)
             parameter_2 = 64
             message = [command, parameter_1, parameter_2]
-            self.pressed_keys[parameter_1] = False
+            self._pressed_keys[parameter_1] = False
             return self.sendMessage(message)
             
         def releaseAllNotes(self, channel=1):
@@ -172,7 +164,7 @@ class MidiIntruments(RESOURCES.Resources):
             for parameter_1 in range(128):
                 message = [command, parameter_1, parameter_2]
                 self.sendMessage(message)
-                self.pressed_keys[parameter_1] = False
+                self._pressed_keys[parameter_1] = False
                 time.sleep(sleep_time)
             return self
             

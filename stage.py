@@ -14,10 +14,13 @@ import player as PLAYER
 
 class Stage:
 
-    def __init__(self, players_list=None, root_self=None, start_id=0):
+    def __init__(self, players_list=None, root_self=None, start_id=0, owner_player=None):
 
         self._none = False
 
+        self._owner_player = None
+        if owner_player != None:
+            self._owner_player = owner_player
         self._players_list = []
         if players_list != None:
             self._players_list = players_list
@@ -118,7 +121,7 @@ class Stage:
                 filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
             ]
 
-        return Stage(filtered_players, self._root_self, self._next_id)
+        return Stage(filtered_players, self._root_self, self._next_id, self._owner_player)
 
     def json_dictionnaire(self):
         stage = {
