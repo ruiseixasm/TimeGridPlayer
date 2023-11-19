@@ -400,7 +400,7 @@ class Player:
 
         return self
 
-    def play(self, start=None, finish=None):
+    def play(self, start=None, finish=None, stage_players=None):
 
         if not self._main_stage._is_none():
 

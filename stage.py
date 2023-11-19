@@ -18,15 +18,13 @@ class Stage:
 
         self._none = False
 
-        self._owner_player = None
-        if owner_player != None:
-            self._owner_player = owner_player
         self._players_list = []
         if players_list != None:
             self._players_list = players_list
         self._root_self = self
         if root_self != None:
-            self._root_self = root_self # type Rulers
+            self._root_self = root_self
+        self._owner_player = owner_player
 
         self._next_id = start_id
 
@@ -187,9 +185,14 @@ class Stage:
     def list(self):
         return self._players_list
     
-    def play(self, start=None, finish=None):
+    def play(self, start=None, finish=None, id=None):
         if len(self._players_list) > 0:
-            self._players_list[0]['player'].play(start, finish)
+            if id != None:
+                stage_player = self.filter(ids = [id])
+                if stage_player.len() > 0:
+                    stage_player.list()[0]['player'].play(start=start, finish=finish)
+            else:
+                self._players_list[0]['player'].play(start=start, finish=finish)
         return self
             
     def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
