@@ -25,6 +25,9 @@ class Note(PLAYER.Player):
         self._instrument = None
         self._enabled_instrument = False
 
+    def __del__(self):
+        self.discard_resource()
+
     @property
     def instruments(self):
         return self._instruments

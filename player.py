@@ -33,6 +33,9 @@ class Player:
 
         self._actions = []
 
+    def __del__(self):
+        self.discard_resource()
+
     def _is_none(self):
         return self._none
 
