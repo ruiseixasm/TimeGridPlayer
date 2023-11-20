@@ -13,45 +13,89 @@ import rtmidi
 import time
 import resources as RESOURCES
 
-class MidiIntruments(RESOURCES.Resources):
+class Intruments(RESOURCES.Resources):
         
     def __init__(self):
         super().__init__() # not self init
         self._output_port = rtmidi.MidiOut()
-        self._available_instruments = []
+        self._available_resources = []
 
     def __del__(self):
-        for available_instrument in self._available_instruments:
-            available_instrument['instrument'].disconnect()
+        for available_resource in self._available_resources:
+            available_resource['resource'].disable()
 
-    def get(self, name=None):
+    def add(self, name=None):
+
         if name == None:
-            return 0
-        total_available_instruments = self._output_port.get_port_count()
+            name = "" # gets first available instrument
+        
+        # starts by making sure there is a suitable instrument
+        total_available_resources = self._output_port.get_port_count()
         available_instrument_ports_list = self._output_port.get_ports()
         instrument_index = -1
-        instrument_name = ""
-        for index in range(total_available_instruments):
+        for index in range(total_available_resources):
             if available_instrument_ports_list[index].find(name) != -1:
                 instrument_index = index
-                instrument_name = available_instrument_ports_list[index]
             
-        if instrument_index > -1:
+        if instrument_index > -1: # found an instrument, now gets its address
 
-            for available_instrument in self._available_instruments:
-                if available_instrument['index'] == instrument_index:
-                    return available_instrument['instrument']
+            for available_resource in self._available_resources:
+                if available_resource['index'] == instrument_index:
+                    available_resource['users'] += 1
+                    return available_resource['resource'] # IF EXISTENT
             new_instrument = {
+                'id': self._next_id,
                 'index': instrument_index,
-                'name': instrument_name,
-                'instrument': MidiIntruments.OutputInstrument(self._output_port, instrument_index)
+                'name': name,
+                'resource': Intruments.Resource(self._output_port, instrument_index),
+                'users': 1, # starts with the first user count
+                'enables': 0
             }
-            self._available_instruments.append(new_instrument)
-            return new_instrument['instrument'].connect()
+            self._next_id += 1
+            self._available_resources.append(new_instrument)
+            return new_instrument['resource'] # IF NON EXISTENT
         
         return None
-
-    class OutputInstrument():
+    
+    def disable(self, resource):
+        for available_resource in self._available_resources:
+            if available_resource['resource'] == resource:
+                available_resource['enables'] -= 1
+                if available_resource['enables'] == 0:
+                    available_resource['resource'].disable()
+                break
+        
+        return self
+        
+    def enable(self, resource):
+        for available_resource in self._available_resources:
+            if available_resource['resource'] == resource:
+                if available_resource['enables'] == 0:
+                    available_resource['resource'].enable()
+                available_resource['enables'] += 1
+                break
+        
+        return self
+        
+    def enabled(self, resource):
+        for available_resource in self._available_resources:
+            if available_resource['resource'] == resource:
+                if available_resource['enables'] > 0:
+                    return True
+                break
+        
+        return False
+            
+    def remove(self, resource, force=False):
+        for available_resource in self._available_resources[:]:
+            if available_resource['resource'] == resource:
+                available_resource['users'] -= 1
+                if force == True or available_resource['users'] == 0:
+                    available_resource['resource'].disable()
+                    self._available_resources.remove(available_resource)
+                break
+    
+    class Resource(RESOURCES.Resources.Resource):
         
         def __init__(self, output_port, port_index):
             self._pressed_keys = [False] * 128
@@ -62,7 +106,7 @@ class MidiIntruments(RESOURCES.Resources):
         def list(self):
             return self._output_port.get_ports()
 
-        def connect(self):
+        def enable(self):
             try:
                 self._active_port = self._output_port.open_port(self._port_index)
             except SystemError:
@@ -79,26 +123,26 @@ class MidiIntruments(RESOURCES.Resources):
 
             return self
         
-        def disconnect(self):
+        def disable(self):
             if self._active_port != None:
                 if self._active_port.is_port_open():
                     self._active_port.close_port()
                     return True
             return False
         
-        def isConnected(self):
+        def enabled(self):
             if self._active_port != None:
                 if self._active_port.is_port_open():
                     return True
             return False
         
         def getPortName(self):
-            if self.isConnected():
+            if self.enabled():
                 return self._output_port.get_port_name(self._port_index)
             return "None"
 
         def print(self):
-            if self.isConnected():
+            if self.enabled():
                 print (self._output_port.get_port_name(self._port_index))
             else:
                 print ("None")
@@ -112,7 +156,7 @@ class MidiIntruments(RESOURCES.Resources):
             return self
         
         def sendMessage(self, message=[0x80, 60, 100]):
-            if self.isConnected():
+            if self.enabled():
                 self._active_port.send_message(message)
             return self
 

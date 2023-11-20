@@ -9,21 +9,33 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-resource_types = ["multiple_unit", "single_unit"]
-
 class Resources:
         
     def __init__(self):
+        self._next_id = 0
 
-        resource = {
-            'type': "single_unit",
-            'class': "",
-            'name': "",
-            'resource': None
-        }
-
-        self.resources = []
-
-    def get(self, name):
-        ...
+    def add(self, name):
+        pass
         
+    def enable(self, resource):
+        pass
+
+    def enabled(self, resource):
+        pass
+
+    def disable(self, resource):
+        pass
+
+    def remove(self, resource):
+        pass
+
+    class Resource():
+        
+        def enable(self):
+            pass
+
+        def enabled(self):
+            pass
+
+        def disable(self):
+            pass

@@ -18,7 +18,7 @@ class StageExtended(STAGE.Stage):
     def __init__(self, start_id=0):
         super().__init__(start_id=start_id)
         
-        self._midi_instruments = MIDI_INS.MidiIntruments()
+        self._midi_instruments = MIDI_INS.Intruments()
 
     def add(self, player):
         super().add(player)

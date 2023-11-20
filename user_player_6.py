@@ -13,12 +13,13 @@ import stage as STAGE
 import player as PLAYER
 import player_midi as PL_MIDI
 import lines_scales as L_SCALES
+import resources_instruments as INSTRUMENTS
 
 trigger = PLAYER.Trigger("trigger")
 # trigger.useInternalClock(True)
 
 master = PLAYER.Player("master")
-note = PL_MIDI.Note("note", synth_name="loop")
+note = PL_MIDI.Note("note")
 note.staff().set(size_measures=1)
 #note.useInternalClock(True)
 
@@ -73,6 +74,11 @@ for _ in range(1):
 master.print()
 master.print_stage()
 master.add(note)
+
+note.instruments = INSTRUMENTS.Intruments()
+note.use_resource("loop")
+note.enable_resource()
+
 stage.play([2, 0], [4, 0])
 master.print()
 master.print_stage()

@@ -66,7 +66,7 @@ class Player:
 
     @lower_stage.deleter
     def lower_stage(self):
-        self._lower_stage = STAGE.StageNone()  
+        self._lower_stage = STAGE.StageNone()
             
     class Action():
 
@@ -334,6 +334,18 @@ class Player:
         else:
             print (f"Player {self} already descendent of Player {player}!")
 
+        return self
+    
+    def use_resource(self, name=None):
+        return self
+
+    def enable_resource(self):
+        return self
+
+    def disable_resource(self):
+        return self
+
+    def discard_resource(self):
         return self
 
     def finish(self):

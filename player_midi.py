@@ -10,6 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import player as PLAYER
+import resources_instruments as INSTRUMENTS
 
 class Master(PLAYER.Player):
     
@@ -18,38 +19,54 @@ class Master(PLAYER.Player):
 
 class Note(PLAYER.Player):
     
-    def __init__(self, name, description="Plays notes on a given Synth", synth_name=None):
+    def __init__(self, name, description="Plays notes on a given Synth", instruments=None):
         super().__init__(name, description) # not self init
-        self._synth_name = synth_name
-        self._midi_synth = None
+        self._instruments = instruments
+        self._instrument = None
+        self._enabled_instrument = False
 
     @property
-    def synth_name(self):
-        return self._synth_name
+    def instruments(self):
+        return self._instruments
             
-    @synth_name.setter
-    def synth_name(self, synth_name):
-        self._synth_name = synth_name
+    @instruments.setter
+    def instruments(self, instruments):
+        self._instruments = instruments
             
-    @synth_name.deleter
-    def synth_name(self):
-        self._synth_name = None
-            
+    @instruments.deleter
+    def instruments(self):
+        self._instruments = None
+
     @property
-    def midi_synth(self):
-        return self._midi_synth
+    def instrument(self):
+        return self._instrument
             
-    @midi_synth.setter
-    def midi_synth(self, midi_synth):
-        self._midi_synth = midi_synth
-            
-    @midi_synth.deleter
-    def midi_synth(self):
-        self._midi_synth = None
-            
+    def use_resource(self, name=None):
+        if self._instruments != None:
+            self._instrument = self._instruments.add(name)
+        return self
+
+    def enable_resource(self):
+        if self._instruments != None and self._instrument != None and not self._enabled_instrument:
+            self._instruments.enable(self._instrument)
+            self._enabled_instrument = True
+        return self
+
+    def disable_resource(self):
+        if self._instruments != None and self._instrument != None and self._enabled_instrument:
+            self._instruments.disable(self._instrument)
+            self._enabled_instrument = False
+        return self
+
+    def discard_resource(self):
+        if self._instruments != None and self._instrument != None:
+            self.disable_resource()
+            self._instruments.remove(self._instrument)
+        return self
+
     def json_dictionnaire(self):
         dictionnaire = super().json_dictionnaire()
-        dictionnaire['synth_name'] = self._synth_name
+        dictionnaire['resource_name'] = self._enabled_instrument['name']
         return dictionnaire
 
     class Action(PLAYER.Player.Action):
@@ -65,8 +82,8 @@ class Note(PLAYER.Player):
             if staff == None: # CLOCKED TRIGGER
                 print(f"note OFF:\t{self._note}")
 
-                if self._player.midi_synth != None:
-                    self._player.midi_synth.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                if self._player.instrument != None:
+                    self._player.instrument.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
@@ -93,8 +110,8 @@ class Note(PLAYER.Player):
 
                         print(f"note ON:\t{self._note}")
                     
-                        if self._player.midi_synth != None:
-                            self._player.midi_synth.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                        if self._player.instrument != None:
+                            self._player.instrument.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         # needs to convert steps duration accordingly to callers time signature
                         duration_converter = staff.time_signature()['steps_per_beat'] / self._staff.time_signature()['steps_per_beat']
