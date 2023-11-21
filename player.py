@@ -11,26 +11,33 @@ Lesser General Public License for more details.'''
 
 import time
 import json
+import resources as RESOURCES
 import staff as STAFF
 import stage as STAGE
 
 class Player:
 
-    def __init__(self, name, description="A Player of actions based on arguments"):
+    def __init__(self, name, description="A Player of actions based on arguments", resources=None):
 
         self._none = False
 
         self._name = name
         self._description = description
-        self._staff = STAFF.Staff(self)
 
+        self._resources = resources
+        if self._resources == None:
+            self._resources = RESOURCES.Resources()
+        self._resource = None
+        self._enabled_resource = False
+
+        self._staff = STAFF.Staff(self)
         self._clock = Player.Clock(self)
         self._internal_clock = False
 
         # Iterator & Composite patterns for managing aggregates
         self._main_stage = STAGE.StageNone()
         self._lower_stage = STAGE.Stage(owner_player=self)
-
+        
         self._actions = []
 
     def __del__(self):
@@ -38,6 +45,49 @@ class Player:
 
     def _is_none(self):
         return self._none
+    
+    @property
+    def resources(self):
+        return self._resources
+            
+    @resources.setter
+    def resources(self, resources):
+        self._resources = resources
+            
+    @resources.deleter
+    def resources(self):
+        self._resources = None
+
+    @property
+    def resource(self):
+        return self._resource
+            
+    def use_resource(self, name=None):
+        if self._resources != None:
+            self._resource = self._resources.add(name)
+        return self
+
+    def enable_resource(self):
+        if self._resources != None and self._resource != None and not self._enabled_resource:
+            self._resources.enable(self._resource)
+            self._enabled_resource = True
+        return self
+
+    def disable_resource(self):
+        if self._resources != None and self._resource != None and self._enabled_resource:
+            self._resources.disable(self._resource)
+            self._enabled_resource = False
+        return self
+
+    def discard_resource(self):
+        if self._resources != None and self._resource != None:
+            self.disable_resource()
+            self._resources.remove(self._resource)
+        return self
+
+    @property
+    def is_none(self):
+        return (self.__class__.__name__ == PlayerNone.__name__)
 
     @property
     def name(self):
@@ -339,18 +389,6 @@ class Player:
 
         return self
     
-    def use_resource(self, name=None):
-        return self
-
-    def enable_resource(self):
-        return self
-
-    def disable_resource(self):
-        return self
-
-    def discard_resource(self):
-        return self
-
     def finish(self):
         if self._internal_clock:
             self._clock.stop()
@@ -400,6 +438,7 @@ class Player:
                 'is_none': self._none,
                 'name': self._name,
                 'description': self._description,
+                'resource': None if self._resource == None else self._resource['name'],
                 'internal_clock': self._internal_clock,
                 'clock': [ self._clock.json_dictionnaire() ],
                 'staff': [ self._staff.json_dictionnaire() ]

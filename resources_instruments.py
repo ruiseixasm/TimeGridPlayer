@@ -13,7 +13,7 @@ import rtmidi
 import time
 import resources as RESOURCES
 
-class Intruments(RESOURCES.Resources):
+class Instruments(RESOURCES.Resources):
         
     def __init__(self):
         super().__init__() # not self init
@@ -47,7 +47,7 @@ class Intruments(RESOURCES.Resources):
                 'id': self._next_id,
                 'index': instrument_index,
                 'name': name,
-                'resource': Intruments.Resource(self._output_port, instrument_index),
+                'resource': Instruments.Resource(self._output_port, instrument_index),
                 'users': 1, # starts with the first user count
                 'enables': 0
             }

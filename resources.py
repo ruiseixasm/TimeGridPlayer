@@ -14,6 +14,10 @@ class Resources:
     def __init__(self):
         self._next_id = 0
 
+    @property
+    def is_none(self):
+        return (self.__class__.__name__ == ResourcesNone.__name__)
+
     def add(self, name):
         pass
         
@@ -39,3 +43,9 @@ class Resources:
 
         def disable(self):
             pass
+
+
+class ResourcesNone(Resources):
+
+    def __init__(self):
+        super().__init__()

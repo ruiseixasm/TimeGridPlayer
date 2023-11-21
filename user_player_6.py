@@ -64,18 +64,18 @@ stage.add(master)
 #stage.add(note)
 master.set_tempo(240)
 
-for _ in range(1):
-    stage.print().player().rulers().group("key").sort(reverse=True).print().print_lines(-7, 13)
-    stage.play([2, 0], [4, 0])
-    stage.play([2, 0], [4, 0], 1)
-    stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-7, 13)
-    stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
+# for _ in range(1):
+#     stage.print().player().rulers().group("key").sort(reverse=True).print().print_lines(-7, 13)
+#     stage.play([2, 0], [4, 0])
+#     stage.play([2, 0], [4, 0], 1)
+#     stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-7, 13)
+#     stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
 
 master.print()
 master.print_stage()
 master.add(note)
 
-note.instruments = INSTRUMENTS.Intruments()
+#note.resources = INSTRUMENTS.Instruments()
 note.use_resource("loop")
 note.enable_resource()
 

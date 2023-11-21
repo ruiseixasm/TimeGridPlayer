@@ -20,57 +20,10 @@ class Master(PLAYER.Player):
 class Note(PLAYER.Player):
     
     def __init__(self, name, description="Plays notes on a given Synth", instruments=None):
-        super().__init__(name, description) # not self init
-        self._instruments = instruments
-        self._instrument = None
-        self._enabled_instrument = False
+        super().__init__(name, description, resources=None) # not self init
 
-    def __del__(self):
-        self.discard_resource()
-
-    @property
-    def instruments(self):
-        return self._instruments
-            
-    @instruments.setter
-    def instruments(self, instruments):
-        self._instruments = instruments
-            
-    @instruments.deleter
-    def instruments(self):
-        self._instruments = None
-
-    @property
-    def instrument(self):
-        return self._instrument
-            
-    def use_resource(self, name=None):
-        if self._instruments != None:
-            self._instrument = self._instruments.add(name)
-        return self
-
-    def enable_resource(self):
-        if self._instruments != None and self._instrument != None and not self._enabled_instrument:
-            self._instruments.enable(self._instrument)
-            self._enabled_instrument = True
-        return self
-
-    def disable_resource(self):
-        if self._instruments != None and self._instrument != None and self._enabled_instrument:
-            self._instruments.disable(self._instrument)
-            self._enabled_instrument = False
-        return self
-
-    def discard_resource(self):
-        if self._instruments != None and self._instrument != None:
-            self.disable_resource()
-            self._instruments.remove(self._instrument)
-        return self
-
-    def json_dictionnaire(self):
-        dictionnaire = super().json_dictionnaire()
-        dictionnaire['resource_name'] = self._enabled_instrument['name']
-        return dictionnaire
+        if instruments == None:
+            self._resources = INSTRUMENTS.Instruments()
 
     class Action(PLAYER.Player.Action):
         
@@ -85,8 +38,8 @@ class Note(PLAYER.Player):
             if staff == None: # CLOCKED TRIGGER
                 print(f"note OFF:\t{self._note}")
 
-                if self._player.instrument != None:
-                    self._player.instrument.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                if self._player.resource != None:
+                    self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
             else: # EXTERNAL TRIGGER
                 if (not tick['fast_forward'] or True):
@@ -113,8 +66,8 @@ class Note(PLAYER.Player):
 
                         print(f"note ON:\t{self._note}")
                     
-                        if self._player.instrument != None:
-                            self._player.instrument.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                        if self._player.resource != None:
+                            self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         # needs to convert steps duration accordingly to callers time signature
                         duration_converter = staff.time_signature()['steps_per_beat'] / self._staff.time_signature()['steps_per_beat']
@@ -124,3 +77,5 @@ class Note(PLAYER.Player):
                             tick
                         )
     
+    # def actionFactoryMethod(self):
+    #     return PLAYER.Player.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)

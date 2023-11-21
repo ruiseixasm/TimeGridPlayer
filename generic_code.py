@@ -148,23 +148,28 @@ Lesser General Public License for more details.'''
 
 import lines_scales as L_SCALES
 
-bin_scale = L_SCALES.get_scale("melodic")
-keys_scale = L_SCALES.scale_keys(bin_scale)
-print (bin_scale)
-print(keys_scale)
+# bin_scale = L_SCALES.get_scale("melodic")
+# keys_scale = L_SCALES.scale_keys(bin_scale)
+# print (bin_scale)
+# print(keys_scale)
 
-bin_scale = L_SCALES.get_scale("minor")
-keys_scale = L_SCALES.scale_keys(bin_scale)
-print (bin_scale)
-print(keys_scale)
+# bin_scale = L_SCALES.get_scale("minor")
+# keys_scale = L_SCALES.scale_keys(bin_scale)
+# print (bin_scale)
+# print(keys_scale)
 
-bin_scale = L_SCALES.get_scale("major")
-keys_scale = L_SCALES.scale_keys(bin_scale)
-print (bin_scale)
-print(keys_scale)
+# bin_scale = L_SCALES.get_scale("major")
+# keys_scale = L_SCALES.scale_keys(bin_scale)
+# print (bin_scale)
+# print(keys_scale)
 
-bin_scale = L_SCALES.get_scale("Locrian ")
-keys_scale = L_SCALES.scale_keys(bin_scale)
-print (bin_scale)
-print(keys_scale)
-print(keys_scale * 2)
+# bin_scale = L_SCALES.get_scale("Locrian ")
+# keys_scale = L_SCALES.scale_keys(bin_scale)
+# print (bin_scale)
+# print(keys_scale)
+# print(keys_scale * 2)
+
+class Silly:
+    pass
+
+print (Silly.__name__)
