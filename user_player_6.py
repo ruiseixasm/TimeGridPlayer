@@ -41,7 +41,6 @@ repeat.play([0, 0], [1, 0])
 
 master.add(note)
 master.add(repeat)
-master.json_save("player_1.json")
 
 print("\n\n")
 
@@ -77,6 +76,8 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'l
 #trigger.play()
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
+
+master.json_save("player_2.json")
 
 import group as GROUP
 group = GROUP.Group()

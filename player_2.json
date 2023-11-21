@@ -49,8 +49,248 @@
                         "part": "rulers",
                         "class": "Rulers",
                         "is_none": false,
-                        "rulers_list": [],
-                        "next_id": 0
+                        "rulers_list": [
+                            {
+                                "id": 0,
+                                "type": "actions",
+                                "group": "note",
+                                "position": [
+                                    2,
+                                    4
+                                ],
+                                "lines": [
+                                    "note"
+                                ],
+                                "offset": 2,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 1,
+                                "type": "actions",
+                                "group": "note",
+                                "position": [
+                                    3,
+                                    4
+                                ],
+                                "lines": [
+                                    "note"
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 2,
+                                "type": "actions",
+                                "group": "repeat",
+                                "position": [
+                                    1,
+                                    0
+                                ],
+                                "lines": [
+                                    "repeat"
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 3,
+                                "type": "arguments",
+                                "group": "staff_channel",
+                                "position": [
+                                    0,
+                                    0
+                                ],
+                                "lines": [
+                                    3
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 4,
+                                "type": "arguments",
+                                "group": "staff_velocity",
+                                "position": [
+                                    0,
+                                    0
+                                ],
+                                "lines": [
+                                    120
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 5,
+                                "type": "arguments",
+                                "group": "staff_duration",
+                                "position": [
+                                    0,
+                                    0
+                                ],
+                                "lines": [
+                                    2
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 6,
+                                "type": "arguments",
+                                "group": "key",
+                                "position": [
+                                    2,
+                                    1
+                                ],
+                                "lines": [
+                                    "C",
+                                    "D",
+                                    "E",
+                                    "F",
+                                    "G",
+                                    "A",
+                                    "B",
+                                    "C",
+                                    "D",
+                                    "E",
+                                    "F",
+                                    "G",
+                                    "A",
+                                    "B",
+                                    "C",
+                                    "D",
+                                    "E",
+                                    "F",
+                                    "G",
+                                    "A",
+                                    "B",
+                                    "C",
+                                    "D",
+                                    "E",
+                                    "F",
+                                    "G",
+                                    "A",
+                                    "B",
+                                    "C",
+                                    "D",
+                                    "E",
+                                    "F",
+                                    "G",
+                                    "A",
+                                    "B"
+                                ],
+                                "offset": -14,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 7,
+                                "type": "arguments",
+                                "group": "key",
+                                "position": [
+                                    1,
+                                    0
+                                ],
+                                "lines": [
+                                    "c",
+                                    "c#",
+                                    "d",
+                                    null,
+                                    "e",
+                                    null
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 8,
+                                "type": "arguments",
+                                "group": "key",
+                                "position": [
+                                    3,
+                                    0
+                                ],
+                                "lines": [
+                                    "d",
+                                    "c#",
+                                    "d",
+                                    "d#",
+                                    "e",
+                                    null
+                                ],
+                                "offset": -1,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 9,
+                                "type": "arguments",
+                                "group": "key",
+                                "position": [
+                                    2,
+                                    2
+                                ],
+                                "lines": [
+                                    null,
+                                    "c#",
+                                    null,
+                                    null,
+                                    "e",
+                                    null
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 10,
+                                "type": "arguments",
+                                "group": "key",
+                                "position": [
+                                    1,
+                                    1
+                                ],
+                                "lines": [
+                                    "a",
+                                    "b",
+                                    "d",
+                                    null,
+                                    "f",
+                                    null
+                                ],
+                                "offset": -2,
+                                "enabled": true,
+                                "on_staff": true
+                            },
+                            {
+                                "id": 11,
+                                "type": "arguments",
+                                "group": "key",
+                                "position": [
+                                    3,
+                                    2
+                                ],
+                                "lines": [
+                                    null,
+                                    "c#",
+                                    "d",
+                                    "d#",
+                                    "e",
+                                    null
+                                ],
+                                "offset": 0,
+                                "enabled": true,
+                                "on_staff": true
+                            }
+                        ],
+                        "next_id": 12
                     }
                 ]
             }

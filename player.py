@@ -19,8 +19,6 @@ class Player:
 
     def __init__(self, name, description="A Player of actions based on arguments", resources=None):
 
-        self._none = False
-
         self._name = name
         self._description = description
 
@@ -28,7 +26,8 @@ class Player:
         if self._resources == None:
             self._resources = RESOURCES.ResourcesNone()
         self._resource = None
-        self._enabled_resource = False
+        self._resource_name = None
+        self._resource_enabled = False
 
         self._staff = STAFF.Staff(self)
         self._clock = Player.Clock(self)
@@ -59,26 +58,33 @@ class Player:
         return self._resource
             
     def use_resource(self, name=None):
-        if self._resources != None:
+        if self._resources != None and name != self._resource_name:
+            self.disable_resource()
             self._resource = self._resources.add(name)
+            if self._resource.__class__ != RESOURCES.Resources.ResourceNone:
+                self._resource_name = name
+            else:
+                self._resource_name = None
         return self
 
     def enable_resource(self):
-        if self._resources != None and self._resource != None and not self._enabled_resource:
+        if self._resources != None and self._resource != None and not self._resource_enabled:
             self._resources.enable(self._resource)
-            self._enabled_resource = True
+            self._resource_enabled = True
         return self
 
     def disable_resource(self):
-        if self._resources != None and self._resource != None and self._enabled_resource:
+        if self._resources != None and self._resource != None and self._resource_enabled:
             self._resources.disable(self._resource)
-            self._enabled_resource = False
+            self._resource_enabled = False
         return self
 
     def discard_resource(self):
         if self._resources != None and self._resource != None:
             self.disable_resource()
             self._resources.remove(self._resource)
+            self._resource = None
+            self._resource_name = None
         return self
 
     @property
@@ -420,7 +426,9 @@ class Player:
                 'class': self.__class__.__name__,
                 'name': self._name,
                 'description': self._description,
-                #'resource_name': None if self._resource == None else self._resource['name'],
+                'resources_class': self._resources.__class__.__name__,
+                'resource_name': self._resource_name,
+                'resource_enabled': self._resource_enabled,
                 'internal_clock': self._internal_clock,
                 'clock': [ self._clock.json_dictionnaire() ],
                 'staff': [ self._staff.json_dictionnaire() ],
@@ -637,8 +645,6 @@ class PlayerNone(Player):
 
     def __init__(self):
         super().__init__("None", "Player considered as None!")
-
-        self._none = True
 
         self._staff = STAFF.StaffNone(self)
         self._group = GROUP.GroupNone()

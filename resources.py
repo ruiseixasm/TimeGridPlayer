@@ -9,11 +9,13 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+import json
+
 class Resources:
         
     def __init__(self):
-        self._next_id = 0
         self._available_resources = []
+        self._next_id = 0
 
     def __del__(self):
         for available_resource in self._available_resources:
@@ -88,6 +90,65 @@ class Resources:
 
         return self
     
+    def json_dictionnaire(self):
+        resources = {
+                'part': "resources",
+                'class': self.__class__.__name__,
+                'next_id': self._next_id,
+                'resources': []
+            }
+        
+        for resource_dictionnaire in self._available_resources:
+            resource_json = {}
+            resource_json['part'] = "resource",
+            resource_json['class'] = resource_dictionnaire['resource'].__class__.__name__,
+            resource_json['id'] = resource_dictionnaire['id']
+            resource_json['name'] = resource_dictionnaire['name']
+            resource_json['users'] = resource_dictionnaire['users']
+            resource_json['enables'] = resource_dictionnaire['enables']
+            resources['resources'].append( resource_json )
+
+        return resources
+    
+    def json_load(self, file_name="group.json", json_object=None):
+
+        if json_object == None:
+            # Opening JSON file
+            with open(file_name, 'r') as openfile:
+                # Reading from json file
+                json_object = json.load(openfile)
+
+        self._root_self._players_list.clear()
+
+        for group_dictionnaire in json_object:
+            if group_dictionnaire['part'] == "group":
+                self._root_self._next_id = group_dictionnaire['next_id']
+                for player_dictionnaire in group_dictionnaire['players']:
+                    player = self._root_self._playerFactoryMethod(player_dictionnaire)
+                    if player != None:
+                        player.json_load(file_name, [ player_dictionnaire ])
+                        player_data = {
+                            'id': player_dictionnaire['id'],
+                            'class': player.__class__.__name__,
+                            'name': player.name,
+                            'player': player,
+                            'enabled': player_dictionnaire['enabled']
+                        }
+                        self._root_self._players_list.append(player_data)
+                break
+
+        return self
+
+    def json_save(self, file_name="group.json"):
+
+        group = [ self.json_dictionnaire() ]
+
+        # Writing to sample.json
+        with open(file_name, "w") as outfile:
+            json.dump(group, outfile)
+
+        return self
+
     class Resource():
         
         @property
