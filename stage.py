@@ -9,10 +9,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+import json
 import resources as RESOURCES
 import player as PLAYER
 
-class Composition:
+class Stage:
     
     def __init__(self, players_list=None, root_self=None, start_id=0):
 
@@ -22,7 +23,6 @@ class Composition:
         self._root_self = self
         if root_self != None:
             self._root_self = root_self
-        self._owner_player = owner_player # When working as lower stage, None when main stage
 
         self._next_id = start_id
 

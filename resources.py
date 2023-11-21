@@ -21,7 +21,7 @@ class Resources:
 
     @property
     def is_none(self):
-        return (self.__class__.__name__ == ResourcesNone.__name__)
+        return (self.__class__ == ResourcesNone)
     
     def resourceFactoryMethod(self, name):
         return Resources.ResourceNone()

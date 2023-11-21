@@ -42,9 +42,6 @@ class Player:
     def __del__(self):
         self.discard_resource()
 
-    def _is_none(self):
-        return self._none
-    
     @property
     def resources(self):
         return self._resources
@@ -86,7 +83,7 @@ class Player:
 
     @property
     def is_none(self):
-        return (self.__class__.__name__ == PlayerNone.__name__)
+        return (self.__class__ == PlayerNone)
 
     @property
     def name(self):
@@ -421,7 +418,6 @@ class Player:
         return {
                 'part': "player",
                 'class': self.__class__.__name__,
-                'is_none': self._none,
                 'name': self._name,
                 'description': self._description,
                 'resource': None if self._resource == None else self._resource['name'],
@@ -440,7 +436,6 @@ class Player:
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "player":
-                self._none = dictionnaire['is_none']
                 self._name = dictionnaire['name']
                 self._description = dictionnaire['description']
                 self._internal_clock = dictionnaire['internal_clock']

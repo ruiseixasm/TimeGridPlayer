@@ -34,6 +34,10 @@ class Group:
     def owner(self):
         return self._owner_player
     
+    @property
+    def is_none(self):
+        return (self.__class__ == GroupNone)
+
     def __iter__(self):
         return self
     
@@ -66,7 +70,7 @@ class Group:
         return player
 
     def add(self, player):
-        if not self._none and not player._is_none():
+        if not self._none and not player.is_none:
             player_data = {
                 'id': self._next_id,
                 'class': player.__class__.__name__,

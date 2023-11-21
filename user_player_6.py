@@ -57,9 +57,9 @@ master.rulers().type("arguments").sort().group("key").print().print_lines().spre
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
 
-import group_extended as GROUP_EXT
-group = GROUP_EXT.GroupExtended()
-#group2 = GROUP_EXT.GroupExtended()
+import group as GROUP
+group = GROUP.Group()
+#group2 = GROUP.Group()
 group.add(master)
 #group.add(note)
 master.set_tempo(240)
