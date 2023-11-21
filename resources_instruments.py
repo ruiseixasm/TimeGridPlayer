@@ -115,7 +115,7 @@ class Instruments(RESOURCES.Resources):
                 self.controlChange(121, 0, channel)     #5
                 time.sleep(sleep_time)
 
-                self.releaseAllNotes(channel)            #6
+                self.releaseAllNotes(channel)           #6
 
                 self.controlChange(7, 100, channel)     #7
                 time.sleep(sleep_time)

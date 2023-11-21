@@ -13,7 +13,7 @@ import time
 import json
 import resources as RESOURCES
 import staff as STAFF
-import stage as STAGE
+import group as GROUP
 
 class Player:
 
@@ -35,8 +35,7 @@ class Player:
         self._internal_clock = False
 
         # Iterator & Composite patterns for managing aggregates
-        self._main_stage = STAGE.StageNone()
-        self._lower_stage = STAGE.Stage(owner_player=self)
+        self._lower_group = GROUP.Group(owner_player=self)
         
         self._actions = []
 
@@ -98,28 +97,16 @@ class Player:
         return self._description
     
     @property
-    def main_stage(self):
-        return self._main_stage
+    def lower_group(self):
+        return self._lower_group
             
-    @main_stage.setter
-    def main_stage(self, main_stage):
-        self._main_stage = main_stage
+    @lower_group.setter
+    def lower_group(self, group):
+        self._lower_group = group
 
-    @main_stage.deleter
-    def main_stage(self):
-        self._main_stage = STAGE.StageNone()  
-            
-    @property
-    def lower_stage(self):
-        return self._lower_stage
-            
-    @lower_stage.setter
-    def lower_stage(self, stage):
-        self._lower_stage = stage
-
-    @lower_stage.deleter
-    def lower_stage(self):
-        self._lower_stage = STAGE.StageNone()
+    @lower_group.deleter
+    def lower_group(self):
+        self._lower_group = GROUP.GroupNone()
             
     class Action():
 
@@ -374,7 +361,7 @@ class Player:
     def add(self, player):
 
         # get all sub-players of player | self can't be on them or a infinite loop happens!!
-        player_sub_players = player.get_all_lower_stages().unique()
+        player_sub_players = player.get_all_lower_groups().unique()
         not_present_self_player = True
         for sub_player in player_sub_players:
             if sub_player['player'] == self:
@@ -382,8 +369,7 @@ class Player:
                 break
 
         if not_present_self_player:
-            self._lower_stage.add(player)
-            player.main_stage = self.main_stage
+            self._lower_group.add(player)
         else:
             print (f"Player {self} already descendent of Player {player}!")
 
@@ -393,16 +379,16 @@ class Player:
         if self._internal_clock:
             self._clock.stop()
 
-    def get_all_lower_stages(self):
+    def get_all_lower_groups(self):
         
-        lower_stage = self.lower_stage
-        all_lower_stages = lower_stage
+        lower_group = self.lower_group
+        all_lower_groups = lower_group
 
-        if lower_stage.len() > 0:
-            for player in lower_stage:
-                all_lower_stages += player['player'].get_all_lower_stages() # + operator already does a copy
+        if lower_group.len() > 0:
+            for player in lower_group:
+                all_lower_groups += player['player'].get_all_lower_groups() # + operator already does a copy
 
-        return all_lower_stages # Last LEAF stage is an empty stage
+        return all_lower_groups # Last LEAF group is an empty group
 
     def getClock(self):
         return self._clock
@@ -478,24 +464,24 @@ class Player:
     def print(self):
 
         print("{ class: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-players: {self.lower_stage.len()}" + " }")
+              f"description: {trimString(self.description)}    sub-players: {self.lower_group.len()}" + " }")
 
         return self
 
-    def print_stage(self):
-        self._lower_stage.print()
+    def print_group(self):
+        self._lower_group.print()
 
         return self
 
-    def play(self, start=None, finish=None, enabled_stage_players=None):
+    def play(self, start=None, finish=None, enabled_group_players=None):
 
         self._clocked_players = [
             {'name': self._name, 'player': self}
         ]
 
-        all_enabled_players = self.get_all_lower_stages().filter(enabled=True)
-        if enabled_stage_players != None:
-            all_enabled_players += enabled_stage_players
+        all_enabled_players = self.get_all_lower_groups().filter(enabled=True)
+        if enabled_group_players != None:
+            all_enabled_players += enabled_group_players
         
         for enabled_player in all_enabled_players:
             clockable_player = {
@@ -507,7 +493,7 @@ class Player:
 
         for clocked_player in self._clocked_players:
             clocked_player['player']._playable_sub_players = []
-            playable_sub_players = clocked_player['player'].get_all_lower_stages().filter(enabled=True)
+            playable_sub_players = clocked_player['player'].get_all_lower_groups().filter(enabled=True)
             for playable_player in playable_sub_players:
                 playable_player = {
                     'name': playable_player['name'],
@@ -560,10 +546,6 @@ class Player:
 
         if name != None:
             self._name = name
-            if not self._main_stage._is_none(): # needs to update the stage with the new name
-                for players_names in self._main_stage.players_list():
-                    if players_names['player'] == self:
-                        players_names['name'] = self._name
         if description != None:
             self._description = description
         if staff != None:
@@ -663,7 +645,7 @@ class PlayerNone(Player):
         self._none = True
 
         self._staff = STAFF.StaffNone(self)
-        self._lower_stage = STAGE.StageNone()
+        self._lower_group = GROUP.GroupNone()
 
 # GLOBAL CLASS METHODS
 

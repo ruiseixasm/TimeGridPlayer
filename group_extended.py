@@ -9,11 +9,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import stage as STAGE
+import group as GROUP
 import player_midi as PlayerMIDI
 import resources_instruments as MIDI_INS
 
-class StageExtended(STAGE.Stage):
+class GroupExtended(GROUP.Group):
 
     def __init__(self, start_id=0):
         super().__init__(start_id=start_id)
@@ -22,7 +22,7 @@ class StageExtended(STAGE.Stage):
 
     def add(self, player):
         super().add(player)
-        if self._owner_player == None and player.__class__.__name__ == "Note": # checks condition as Main Stage
+        if self._owner_player == None and player.__class__.__name__ == "Note": # checks condition as Main Group
             if player.synth_name != None:
                 player.midi_synth = self._midi_instruments.get(player.synth_name)
         return self

@@ -12,7 +12,7 @@ Lesser General Public License for more details.'''
 import json
 import player as PLAYER
 
-class Stage:
+class Group:
 
     def __init__(self, players_list=None, root_self=None, start_id=0, owner_player=None):
 
@@ -24,7 +24,7 @@ class Stage:
         self._root_self = self
         if root_self != None:
             self._root_self = root_self
-        self._owner_player = owner_player # When working as lower stage, None when main stage
+        self._owner_player = owner_player # When working as lower group, None when main group
 
         self._next_id = start_id
 
@@ -52,7 +52,7 @@ class Stage:
         self_players_list = self.list()
         other_players_list = other.list()
 
-        return Stage(self_players_list + other_players_list, self._root_self, self._next_id, self._owner_player)
+        return Group(self_players_list + other_players_list, self._root_self, self._next_id, self._owner_player)
         
     def _is_none(self):
         return self._none
@@ -81,9 +81,7 @@ class Stage:
                 self._next_id = self._root_self._next_id
 
             if self._owner_player == None:
-                all_sub_players = player.get_all_lower_stages().unique()
-                for sub_player in all_sub_players:
-                    sub_player['player'].main_stage = self._root_self
+                all_sub_players = player.get_all_lower_groups().unique()
         return self
     
     def disable(self):
@@ -133,11 +131,11 @@ class Stage:
                 filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
             ]
 
-        return Stage(filtered_players, self._root_self, self._next_id, self._owner_player)
+        return Group(filtered_players, self._root_self, self._next_id, self._owner_player)
 
     def json_dictionnaire(self):
-        stage = {
-                'part': "stage",
+        group = {
+                'part': "group",
                 'class': self._root_self.__class__.__name__,
                 'is_none': self._root_self._none,
                 'next_id': self._root_self._next_id,
@@ -148,11 +146,11 @@ class Stage:
             player_json = player_dictionnaire['player'].json_dictionnaire()
             player_json['id'] = player_dictionnaire['id']
             player_json['enabled'] = player_dictionnaire['enabled']
-            stage['players'].append( player_json )
+            group['players'].append( player_json )
 
-        return stage
+        return group
     
-    def json_load(self, file_name="stage.json", json_object=None):
+    def json_load(self, file_name="group.json", json_object=None):
 
         if json_object == None:
             # Opening JSON file
@@ -162,11 +160,11 @@ class Stage:
 
         self._root_self._players_list.clear()
 
-        for stage_dictionnaire in json_object:
-            if stage_dictionnaire['part'] == "stage":
-                self._root_self._none = stage_dictionnaire['is_none']
-                self._root_self._next_id = stage_dictionnaire['next_id']
-                for player_dictionnaire in stage_dictionnaire['players']:
+        for group_dictionnaire in json_object:
+            if group_dictionnaire['part'] == "group":
+                self._root_self._none = group_dictionnaire['is_none']
+                self._root_self._next_id = group_dictionnaire['next_id']
+                for player_dictionnaire in group_dictionnaire['players']:
                     player = self._root_self._playerFactoryMethod(player_dictionnaire)
                     if player != None:
                         player.json_load(file_name, [ player_dictionnaire ])
@@ -178,18 +176,17 @@ class Stage:
                             'enabled': player_dictionnaire['enabled']
                         }
                         self._root_self._players_list.append(player_data)
-                        player.main_stage = self._root_self
                 break
 
         return self
 
-    def json_save(self, file_name="stage.json"):
+    def json_save(self, file_name="group.json"):
 
-        stage = [ self.json_dictionnaire() ]
+        group = [ self.json_dictionnaire() ]
 
         # Writing to sample.json
         with open(file_name, "w") as outfile:
-            json.dump(stage, outfile)
+            json.dump(group, outfile)
 
         return self
 
@@ -202,11 +199,11 @@ class Stage:
     def play(self, start=None, finish=None, id=None):
         if len(self._players_list) > 0:
             if id != None:
-                stage_player = self.filter(ids = [id], enabled=True)
-                if stage_player.len() > 0:
-                    stage_player.list()[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
+                group_player = self.filter(ids = [id], enabled=True)
+                if group_player.len() > 0:
+                    group_player.list()[0]['player'].play(start=start, finish=finish, enabled_group_players=self.filter(enabled=True))
             elif self._players_list[0]['enabled']:
-                self._players_list[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
+                self._players_list[0]['player'].play(start=start, finish=finish, enabled_group_players=self.filter(enabled=True))
         return self
             
     def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
@@ -231,7 +228,7 @@ class Stage:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].lower_stage.len()}")
+                        key_value_length = len(f"{player['player'].lower_group.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -266,7 +263,7 @@ class Stage:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].lower_stage.len()}"
+                            key_value_str = f"{player['player'].lower_group.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -293,7 +290,6 @@ class Stage:
 
     def remove(self):
         for player_data in self._players_list[:]:
-            del player_data['player'].main_stage
             self._root_self._players_list.remove(player_data)
             break
         self._players_list.clear()
@@ -306,9 +302,9 @@ class Stage:
             if player not in unique_rulers_list:
                 unique_rulers_list.append(player)
 
-        return Stage(unique_rulers_list, self._root_self, self._next_id, self._owner_player)
+        return Group(unique_rulers_list, self._root_self, self._next_id, self._owner_player)
         
-class StageNone(Stage):
+class GroupNone(Group):
 
     def __init__(self):
         super().__init__()

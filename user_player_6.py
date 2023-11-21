@@ -9,7 +9,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
-import stage as STAGE
+import group as GROUP
 import player as PLAYER
 import player_midi as PL_MIDI
 import lines_scales as L_SCALES
@@ -57,38 +57,38 @@ master.rulers().type("arguments").sort().group("key").print().print_lines().spre
 print("\n\n\nNEXT ITERATION\n\n")
 #trigger.play([1, 0], [2, 0])
 
-import stage_extended as STAGE_EXT
-stage = STAGE_EXT.StageExtended()
-#stage2 = STAGE_EXT.StageExtended()
-stage.add(master)
-#stage.add(note)
+import group_extended as GROUP_EXT
+group = GROUP_EXT.GroupExtended()
+#group2 = GROUP_EXT.GroupExtended()
+group.add(master)
+#group.add(note)
 master.set_tempo(240)
 
 # for _ in range(1):
-#     stage.print().player().rulers().group("key").sort(reverse=True).print().print_lines(-7, 13)
-#     stage.play([2, 0], [4, 0])
-#     stage.play([2, 0], [4, 0], 1)
-#     stage.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-7, 13)
-#     stage.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
+#     group.print().player().rulers().group("key").sort(reverse=True).print().print_lines(-7, 13)
+#     group.play([2, 0], [4, 0])
+#     group.play([2, 0], [4, 0], 1)
+#     group.player().rulers().type("actions").group("note").sort(reverse=True).print().print_lines(-7, 13)
+#     group.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
 
 master.print()
-master.print_stage()
+master.print_group()
 master.add(note)
 
 #note.resources = INSTRUMENTS.Instruments()
 note.use_resource("loop")
 note.enable_resource()
 
-stage.play([2, 0], [4, 0])
+group.play([2, 0], [4, 0])
 master.print()
-master.print_stage()
-stage.print()
+master.print_group()
+group.print()
 
-# stage.json_save("stage_3.json")
-# stage.json_load("stage_3.json")
+# group.json_save("group_3.json")
+# group.json_load("group_3.json")
 
 #master.rulers().print().print_lines()
 #master.staff().print()
 
-#stage.print().player().rulers().print().print_lines().player().play()
+#group.print().player().rulers().print().print_lines().player().play()
 
