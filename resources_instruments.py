@@ -18,82 +18,24 @@ class Instruments(RESOURCES.Resources):
     def __init__(self):
         super().__init__() # not self init
         self._output_port = rtmidi.MidiOut()
-        self._available_resources = []
 
-    def __del__(self):
-        for available_resource in self._available_resources:
-            available_resource['resource'].disable()
+    def resourceFactoryMethod(self, name):
 
-    def add(self, name=None):
+        if name != None:
 
-        if name == None:
-            name = "" # gets first available instrument
-        
-        # starts by making sure there is a suitable instrument
-        total_available_resources = self._output_port.get_port_count()
-        available_instrument_ports_list = self._output_port.get_ports()
-        instrument_index = -1
-        for index in range(total_available_resources):
-            if available_instrument_ports_list[index].find(name) != -1:
-                instrument_index = index
+            # starts by making sure there is a suitable instrument
+            total_available_resources = self._output_port.get_port_count()
+            available_instrument_ports_list = self._output_port.get_ports()
+            instrument_index = -1
+            for index in range(total_available_resources):
+                if available_instrument_ports_list[index].find(name) != -1:
+                    instrument_index = index
+                
+            if instrument_index > -1: # found an instrument, now gets its address
+
+                return Instruments.Resource(self._output_port, instrument_index)
             
-        if instrument_index > -1: # found an instrument, now gets its address
-
-            for available_resource in self._available_resources:
-                if available_resource['index'] == instrument_index:
-                    available_resource['users'] += 1
-                    return available_resource['resource'] # IF EXISTENT
-            new_instrument = {
-                'id': self._next_id,
-                'index': instrument_index,
-                'name': name,
-                'resource': Instruments.Resource(self._output_port, instrument_index),
-                'users': 1, # starts with the first user count
-                'enables': 0
-            }
-            self._next_id += 1
-            self._available_resources.append(new_instrument)
-            return new_instrument['resource'] # IF NON EXISTENT
-        
-        return None
-    
-    def disable(self, resource):
-        for available_resource in self._available_resources:
-            if available_resource['resource'] == resource:
-                available_resource['enables'] -= 1
-                if available_resource['enables'] == 0:
-                    available_resource['resource'].disable()
-                break
-        
-        return self
-        
-    def enable(self, resource):
-        for available_resource in self._available_resources:
-            if available_resource['resource'] == resource:
-                if available_resource['enables'] == 0:
-                    available_resource['resource'].enable()
-                available_resource['enables'] += 1
-                break
-        
-        return self
-        
-    def enabled(self, resource):
-        for available_resource in self._available_resources:
-            if available_resource['resource'] == resource:
-                if available_resource['enables'] > 0:
-                    return True
-                break
-        
-        return False
-            
-    def remove(self, resource, force=False):
-        for available_resource in self._available_resources[:]:
-            if available_resource['resource'] == resource:
-                available_resource['users'] -= 1
-                if force == True or available_resource['users'] == 0:
-                    available_resource['resource'].disable()
-                    self._available_resources.remove(available_resource)
-                break
+        return RESOURCES.Resources.ResourceNone()
     
     class Resource(RESOURCES.Resources.Resource):
         
@@ -127,8 +69,7 @@ class Instruments(RESOURCES.Resources):
             if self._active_port != None:
                 if self._active_port.is_port_open():
                     self._active_port.close_port()
-                    return True
-            return False
+            return self
         
         def enabled(self):
             if self._active_port != None:

@@ -22,7 +22,7 @@ class Note(PLAYER.Player):
     def __init__(self, name, description="Plays notes on a given Synth", instruments=None):
         super().__init__(name, description, resources=None) # not self init
 
-        if instruments == None:
+        if self.resources.is_none:
             self._resources = INSTRUMENTS.Instruments()
 
     class Action(PLAYER.Player.Action):
@@ -77,5 +77,5 @@ class Note(PLAYER.Player):
                             tick
                         )
     
-    # def actionFactoryMethod(self):
-    #     return PLAYER.Player.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
+    def actionFactoryMethod(self):
+        return Note.Action(self)

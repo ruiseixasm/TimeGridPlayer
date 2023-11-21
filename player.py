@@ -26,7 +26,7 @@ class Player:
 
         self._resources = resources
         if self._resources == None:
-            self._resources = RESOURCES.Resources()
+            self._resources = RESOURCES.ResourcesNone()
         self._resource = None
         self._enabled_resource = False
 

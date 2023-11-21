@@ -13,39 +13,101 @@ class Resources:
         
     def __init__(self):
         self._next_id = 0
+        self._available_resources = []
+
+    def __del__(self):
+        for available_resource in self._available_resources:
+            available_resource['resource'].disable()
 
     @property
     def is_none(self):
         return (self.__class__.__name__ == ResourcesNone.__name__)
+    
+    def resourceFactoryMethod(self, name):
+        return Resources.ResourceNone()
 
     def add(self, name):
-        pass
+
+        if name != None and not self.is_none:
+        
+            for available_resource in self._available_resources:
+                if available_resource['name'] == name:
+                    available_resource['users'] += 1
+                    return available_resource['resource'] # IF EXISTENT
+            new_resource = {
+                'id': self._next_id,
+                'name': name,
+                'resource': self.resourceFactoryMethod(name),
+                'users': 1, # starts with the first user count
+                'enables': 0
+            }
+            if not new_resource['resource'].is_none:
+                self._next_id += 1
+                self._available_resources.append(new_resource)
+            return new_resource['resource'] # IF NON EXISTENT
+        
+        return Resources.ResourceNone()
+    
+    def disable(self, resource):
+        for available_resource in self._available_resources:
+            if available_resource['resource'] == resource:
+                available_resource['enables'] -= 1
+                if available_resource['enables'] == 0:
+                    available_resource['resource'].disable()
+                break
+        
+        return self
         
     def enable(self, resource):
-        pass
-
+        for available_resource in self._available_resources:
+            if available_resource['resource'] == resource:
+                if available_resource['enables'] == 0:
+                    available_resource['resource'].enable()
+                available_resource['enables'] += 1
+                break
+        
+        return self
+        
     def enabled(self, resource):
-        pass
+        for available_resource in self._available_resources:
+            if available_resource['resource'] == resource:
+                if available_resource['enables'] > 0:
+                    return True
+                break
+        
+        return False
+            
+    def remove(self, resource, force=False):
+        for available_resource in self._available_resources[:]:
+            if available_resource['resource'] == resource:
+                available_resource['users'] -= 1
+                if force == True or available_resource['users'] == 0:
+                    available_resource['resource'].disable()
+                    self._available_resources.remove(available_resource)
+                break
 
-    def disable(self, resource):
-        pass
-
-    def remove(self, resource):
-        pass
-
+        return self
+    
     class Resource():
         
+        @property
+        def is_none(self):
+            return (self.__class__.__name__ == ResourcesNone.ResourceNone.__name__)
+
         def enable(self):
-            pass
+            return self
 
         def enabled(self):
-            pass
+            return False
 
         def disable(self):
-            pass
+            return self
+
+    class ResourceNone(Resource):
+        def __init__(self):
+            super().__init__()
 
 
 class ResourcesNone(Resources):
-
     def __init__(self):
         super().__init__()
