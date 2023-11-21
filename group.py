@@ -16,8 +16,6 @@ class Group:
 
     def __init__(self, players_list=None, root_self=None, start_id=0, owner_player=None):
 
-        self._none = False
-
         self._players_list = []
         if players_list != None:
             self._players_list = players_list
@@ -58,9 +56,6 @@ class Group:
 
         return Group(self_players_list + other_players_list, self._root_self, self._next_id, self._owner_player)
         
-    def _is_none(self):
-        return self._none
-
     def _playerFactoryMethod(self, player_dictionnaire):
         player = None
         match player_dictionnaire['class']:
@@ -70,7 +65,7 @@ class Group:
         return player
 
     def add(self, player):
-        if not self._none and not player.is_none:
+        if not player.is_none:
             player_data = {
                 'id': self._next_id,
                 'class': player.__class__.__name__,
@@ -85,7 +80,7 @@ class Group:
                 self._next_id = self._root_self._next_id
 
             if self._owner_player == None:
-                all_sub_players = player.get_all_lower_groups().unique()
+                all_sub_players = player.get_all_sub_players_group().unique()
         return self
     
     def disable(self):
@@ -141,15 +136,15 @@ class Group:
         group = {
                 'part': "group",
                 'class': self._root_self.__class__.__name__,
-                'is_none': self._root_self._none,
                 'next_id': self._root_self._next_id,
                 'players': []
             }
         
         for player_dictionnaire in self._root_self._players_list:
-            player_json = player_dictionnaire['player'].json_dictionnaire()
+            player_json = {}
             player_json['id'] = player_dictionnaire['id']
             player_json['enabled'] = player_dictionnaire['enabled']
+            player_json = player_dictionnaire['player'].json_dictionnaire()
             group['players'].append( player_json )
 
         return group
@@ -166,7 +161,6 @@ class Group:
 
         for group_dictionnaire in json_object:
             if group_dictionnaire['part'] == "group":
-                self._root_self._none = group_dictionnaire['is_none']
                 self._root_self._next_id = group_dictionnaire['next_id']
                 for player_dictionnaire in group_dictionnaire['players']:
                     player = self._root_self._playerFactoryMethod(player_dictionnaire)
@@ -232,7 +226,7 @@ class Group:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].lower_group.len()}")
+                        key_value_length = len(f"{player['player'].group.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -267,7 +261,7 @@ class Group:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].lower_group.len()}"
+                            key_value_str = f"{player['player'].group.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -312,8 +306,6 @@ class GroupNone(Group):
 
     def __init__(self):
         super().__init__()
-
-        self._none = True
 
 # GLOBAL CLASS METHODS
 

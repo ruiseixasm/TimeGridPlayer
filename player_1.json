@@ -1,0 +1,475 @@
+[
+    {
+        "part": "player",
+        "class": "Player",
+        "name": "master",
+        "description": "A Player of actions based on arguments",
+        "internal_clock": false,
+        "clock": [
+            {
+                "part": "clock",
+                "class": "Clock",
+                "tempo": {
+                    "beats_per_minute": 120,
+                    "steps_per_beat": 4,
+                    "pulses_per_quarter_note": 24,
+                    "pulses_per_beat": 24
+                },
+                "pulse_duration": 0.020833333333333332
+            }
+        ],
+        "staff": [
+            {
+                "part": "staff",
+                "class": "Staff",
+                "is_none": false,
+                "time_signature": {
+                    "size_measures": 8,
+                    "beats_per_measure": 4,
+                    "steps_per_beat": 4,
+                    "pulses_per_quarter_note": 24,
+                    "pulses_per_beat": 24
+                },
+                "total_pulses": 768,
+                "play_range": [
+                    [
+                        0,
+                        0
+                    ],
+                    [
+                        8,
+                        0.0
+                    ]
+                ],
+                "rulers": [
+                    {
+                        "part": "rulers",
+                        "class": "Rulers",
+                        "is_none": false,
+                        "rulers_list": [],
+                        "next_id": 0
+                    }
+                ]
+            }
+        ],
+        "group": [
+            {
+                "part": "group",
+                "class": "Group",
+                "next_id": 2,
+                "players": [
+                    {
+                        "part": "player",
+                        "class": "Note",
+                        "name": "note",
+                        "description": "Plays notes on a given Synth",
+                        "internal_clock": false,
+                        "clock": [
+                            {
+                                "part": "clock",
+                                "class": "Clock",
+                                "tempo": {
+                                    "beats_per_minute": 120,
+                                    "steps_per_beat": 4,
+                                    "pulses_per_quarter_note": 24,
+                                    "pulses_per_beat": 24
+                                },
+                                "pulse_duration": 0.020833333333333332
+                            }
+                        ],
+                        "staff": [
+                            {
+                                "part": "staff",
+                                "class": "Staff",
+                                "is_none": false,
+                                "time_signature": {
+                                    "size_measures": 1,
+                                    "beats_per_measure": 4,
+                                    "steps_per_beat": 4,
+                                    "pulses_per_quarter_note": 24,
+                                    "pulses_per_beat": 24
+                                },
+                                "total_pulses": 96,
+                                "play_range": [
+                                    [
+                                        0,
+                                        0.0
+                                    ],
+                                    [
+                                        1,
+                                        0.0
+                                    ]
+                                ],
+                                "rulers": [
+                                    {
+                                        "part": "rulers",
+                                        "class": "Rulers",
+                                        "is_none": false,
+                                        "rulers_list": [],
+                                        "next_id": 0
+                                    }
+                                ]
+                            }
+                        ],
+                        "group": [
+                            {
+                                "part": "group",
+                                "class": "Group",
+                                "next_id": 0,
+                                "players": []
+                            }
+                        ]
+                    },
+                    {
+                        "part": "player",
+                        "class": "Player",
+                        "name": "repeat",
+                        "description": "A Player of actions based on arguments",
+                        "internal_clock": false,
+                        "clock": [
+                            {
+                                "part": "clock",
+                                "class": "Clock",
+                                "tempo": {
+                                    "beats_per_minute": 120,
+                                    "steps_per_beat": 4,
+                                    "pulses_per_quarter_note": 24,
+                                    "pulses_per_beat": 24
+                                },
+                                "pulse_duration": 0.020833333333333332
+                            }
+                        ],
+                        "staff": [
+                            {
+                                "part": "staff",
+                                "class": "Staff",
+                                "is_none": false,
+                                "time_signature": {
+                                    "size_measures": 8,
+                                    "beats_per_measure": 4,
+                                    "steps_per_beat": 4,
+                                    "pulses_per_quarter_note": 24,
+                                    "pulses_per_beat": 24
+                                },
+                                "total_pulses": 768,
+                                "play_range": [
+                                    [
+                                        0,
+                                        0
+                                    ],
+                                    [
+                                        8,
+                                        0.0
+                                    ]
+                                ],
+                                "rulers": [
+                                    {
+                                        "part": "rulers",
+                                        "class": "Rulers",
+                                        "is_none": false,
+                                        "rulers_list": [
+                                            {
+                                                "id": 0,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    0.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 0,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 1,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    2.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 1,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 2,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    4.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 2,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 3,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    6.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 3,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 4,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    8.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 4,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 5,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    10.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 5,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 6,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    12.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 6,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 7,
+                                                "type": "actions",
+                                                "group": "note",
+                                                "position": [
+                                                    0,
+                                                    14.0
+                                                ],
+                                                "lines": [
+                                                    "note"
+                                                ],
+                                                "offset": 7,
+                                                "enabled": true,
+                                                "on_staff": true,
+                                                "line": 0
+                                            },
+                                            {
+                                                "id": 8,
+                                                "type": "arguments",
+                                                "group": "key",
+                                                "position": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "lines": [
+                                                    "C",
+                                                    "D",
+                                                    "D#",
+                                                    "F",
+                                                    "G",
+                                                    "G#",
+                                                    "A#",
+                                                    "C",
+                                                    "D",
+                                                    "D#",
+                                                    "F",
+                                                    "G",
+                                                    "G#",
+                                                    "A#",
+                                                    "C",
+                                                    "D",
+                                                    "D#",
+                                                    "F",
+                                                    "G",
+                                                    "G#",
+                                                    "A#",
+                                                    "C",
+                                                    "D",
+                                                    "D#",
+                                                    "F",
+                                                    "G",
+                                                    "G#",
+                                                    "A#",
+                                                    "C",
+                                                    "D",
+                                                    "D#",
+                                                    "F",
+                                                    "G",
+                                                    "G#",
+                                                    "A#"
+                                                ],
+                                                "offset": -14,
+                                                "enabled": true,
+                                                "on_staff": true
+                                            },
+                                            {
+                                                "id": 9,
+                                                "type": "arguments",
+                                                "group": "staff_channel",
+                                                "position": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "lines": [
+                                                    3
+                                                ],
+                                                "offset": 0,
+                                                "enabled": true,
+                                                "on_staff": true
+                                            },
+                                            {
+                                                "id": 10,
+                                                "type": "arguments",
+                                                "group": "staff_velocity",
+                                                "position": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "lines": [
+                                                    120
+                                                ],
+                                                "offset": 0,
+                                                "enabled": true,
+                                                "on_staff": true
+                                            },
+                                            {
+                                                "id": 11,
+                                                "type": "arguments",
+                                                "group": "staff_duration",
+                                                "position": [
+                                                    0,
+                                                    0
+                                                ],
+                                                "lines": [
+                                                    1
+                                                ],
+                                                "offset": 0,
+                                                "enabled": true,
+                                                "on_staff": true
+                                            }
+                                        ],
+                                        "next_id": 12
+                                    }
+                                ]
+                            }
+                        ],
+                        "group": [
+                            {
+                                "part": "group",
+                                "class": "Group",
+                                "next_id": 1,
+                                "players": [
+                                    {
+                                        "part": "player",
+                                        "class": "Note",
+                                        "name": "note",
+                                        "description": "Plays notes on a given Synth",
+                                        "internal_clock": false,
+                                        "clock": [
+                                            {
+                                                "part": "clock",
+                                                "class": "Clock",
+                                                "tempo": {
+                                                    "beats_per_minute": 120,
+                                                    "steps_per_beat": 4,
+                                                    "pulses_per_quarter_note": 24,
+                                                    "pulses_per_beat": 24
+                                                },
+                                                "pulse_duration": 0.020833333333333332
+                                            }
+                                        ],
+                                        "staff": [
+                                            {
+                                                "part": "staff",
+                                                "class": "Staff",
+                                                "is_none": false,
+                                                "time_signature": {
+                                                    "size_measures": 1,
+                                                    "beats_per_measure": 4,
+                                                    "steps_per_beat": 4,
+                                                    "pulses_per_quarter_note": 24,
+                                                    "pulses_per_beat": 24
+                                                },
+                                                "total_pulses": 96,
+                                                "play_range": [
+                                                    [
+                                                        0,
+                                                        0.0
+                                                    ],
+                                                    [
+                                                        1,
+                                                        0.0
+                                                    ]
+                                                ],
+                                                "rulers": [
+                                                    {
+                                                        "part": "rulers",
+                                                        "class": "Rulers",
+                                                        "is_none": false,
+                                                        "rulers_list": [],
+                                                        "next_id": 0
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "group": [
+                                            {
+                                                "part": "group",
+                                                "class": "Group",
+                                                "next_id": 0,
+                                                "players": []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
