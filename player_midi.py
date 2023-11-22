@@ -25,6 +25,7 @@ class Note(PLAYER.Player):
         if self.resources.is_none:
             self._resources = RESOURCES_MIDI.Midi()
 
+
     class Action(PLAYER.Player.Action):
         
         def __init__(self, player):

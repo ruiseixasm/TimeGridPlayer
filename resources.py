@@ -38,6 +38,7 @@ class Resources:
                     return available_resource['resource'] # IF EXISTENT
             new_resource = {
                 'id': self._next_id,
+                'type': self.__class__.__name__,
                 'name': name,
                 'resource': self.resourceFactoryMethod(name),
                 'users': 1, # starts with the first user count

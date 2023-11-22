@@ -1463,7 +1463,7 @@ def trimString(full_string):
     string_maxum_size = 16
     long_string_termination = "…"
     trimmed_string = full_string
-    if len(full_string) > string_maxum_size:
+    if full_string != None and len(full_string) > string_maxum_size:
         trimmed_string = full_string[:string_maxum_size] + long_string_termination
     return trimmed_string
 

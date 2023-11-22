@@ -47,17 +47,19 @@ class Stage:
             raise StopIteration
         
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
-        return PLAYER.Player(name, description, self._resources)
+        if resources == None:
+            return PLAYER.Player(name, description, self._resources)
+        return PLAYER.Player(name, description, resources)
 
     def add(self, name, description=None, resources=None, type=None):
         if type == None:
             type = "Player"
-        existent_player = self._root_self.filter(classes=[type], names=[name])
+        existent_player = self._root_self.filter(types=[type], names=[name])
         if existent_player.len() == 0:
-            player = self.playerFactoryMethod(name, description, resources, type)
+            player = self.playerFactoryMethod(name, description, resources, type) # Factory Method
             player_data = {
                 'id': self._next_id,
-                'class': player.__class__.__name__,
+                'type': player.__class__.__name__,
                 'name': player.name,
                 'player': player,
                 'enabled': True
@@ -71,17 +73,7 @@ class Stage:
 
         return self
     
-
-    def destroy(self):
-        for player_data in self._players_list[:]:
-            del player_data['player'].main_stage
-            self._root_self._players_list.remove(player_data)
-            break
-        self._players_list.clear()
-
-        return self
-
-    def filter(self, ids = [], classes = [], names = [], player = None, enabled = None):
+    def filter(self, ids = [], types = [], names = [], player = None, enabled = None):
 
         filtered_players = self._players_list.copy()
 
@@ -89,13 +81,13 @@ class Stage:
             filtered_players = [
                 filtered_player for filtered_player in filtered_players if filtered_player['id'] in ids
             ]
-        if (len(classes) > 0 and classes != [None]):
+        if (len(types) > 0 and types != [None]):
             filtered_players = [
-                filtered_player for filtered_player in filtered_players if filtered_player['id'] in classes
+                filtered_player for filtered_player in filtered_players if filtered_player['type'] in types
             ]
         if (len(names) > 0 and names != [None]):
             filtered_players = [
-                filtered_player for filtered_player in filtered_players if filtered_player['id'] in names
+                filtered_player for filtered_player in filtered_players if filtered_player['name'] in names
             ]
         if (player != None):
             filtered_players = [
@@ -145,7 +137,7 @@ class Stage:
                         player.json_load(file_name, [ player_dictionnaire ])
                         player_data = {
                             'id': player_dictionnaire['id'],
-                            'class': player.__class__.__name__,
+                            'type': player.__class__.__name__,
                             'name': player.name,
                             'player': player,
                             'enabled': player_dictionnaire['enabled']
@@ -182,16 +174,17 @@ class Stage:
                 self._players_list[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
         return self
             
-    def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
-        if len(self._players_list) > 0:
-            return self._players_list[0]['player']
+    def player(self, name=None, id=None, type=None) -> (PLAYER.Player | PLAYER.PlayerNone):
+        selected_player = self.filter(names=[name], ids=[id], types=[type])
+        if selected_player.len() > 0:
+            return selected_player.list()[0]['player']
         return PLAYER.PlayerNone()
 
     def print(self):
 
         header_char = "¤"
         if len(self._players_list) > 0:
-            string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
+            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
             for player in self: # get maximum sizes
                 
@@ -199,12 +192,12 @@ class Stage:
                     if key == 'sequence':
                         key_value_length = len(f"{sequence_index}")
                         sequence_index += 1
-                    elif key == 'class':
+                    elif key == 'type':
                         key_value_length = len(f"{player['player'].__class__.__name__}")
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].lower_stage.len()}")
+                        key_value_length = len(f"{player['player'].group.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -215,7 +208,7 @@ class Stage:
                 full_string_top_length += value
 
             spaces_between = 4
-            header_char_length = full_string_top_length + 78
+            header_char_length = full_string_top_length + 77
 
             header_class = "   " + self.__class__.__name__ + "   "
             header_class_length = len(header_class)
@@ -234,12 +227,12 @@ class Stage:
                         sequence_index += 1
                     else:
                         key_value_str = ""
-                        if key == 'class':
+                        if key == 'type':
                             key_value_str = f"{player['player'].__class__.__name__}"
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].lower_stage.len()}"
+                            key_value_str = f"{player['player'].group.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -264,6 +257,13 @@ class Stage:
             print(header_char * (7 + 1 + header_class_length))
         return self
 
+    def remove(self):
+        for player_data in self._players_list[:]:
+            self._root_self._players_list.remove(player_data)
+        self._players_list.clear()
+
+        return self
+
     def unique(self):
         unique_rulers_list = []
         for player in self._players_list:
@@ -278,7 +278,7 @@ def trimString(full_string):
     string_maxum_size = 60
     long_string_termination = "…"
     trimmed_string = full_string
-    if len(full_string) > string_maxum_size:
+    if full_string != None and len(full_string) > string_maxum_size:
         trimmed_string = full_string[:string_maxum_size] + long_string_termination
     return trimmed_string
 

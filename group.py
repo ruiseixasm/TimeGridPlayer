@@ -68,7 +68,7 @@ class Group:
         if not player.is_none:
             player_data = {
                 'id': self._next_id,
-                'class': player.__class__.__name__,
+                'type': player.__class__.__name__,
                 'name': player.name,
                 'player': player,
                 'enabled': True
@@ -105,7 +105,7 @@ class Group:
             return self._players_list[0]['enabled']
         return False
     
-    def filter(self, ids = [], classes = [], names = [], player = None, enabled = None):
+    def filter(self, ids = [], types = [], names = [], player = None, enabled = None):
 
         filtered_players = self._players_list.copy()
 
@@ -113,13 +113,13 @@ class Group:
             filtered_players = [
                 filtered_player for filtered_player in filtered_players if filtered_player['id'] in ids
             ]
-        if (len(classes) > 0 and classes != [None]):
+        if (len(types) > 0 and types != [None]):
             filtered_players = [
-                filtered_player for filtered_player in filtered_players if filtered_player['id'] in classes
+                filtered_player for filtered_player in filtered_players if filtered_player['type'] in types
             ]
         if (len(names) > 0 and names != [None]):
             filtered_players = [
-                filtered_player for filtered_player in filtered_players if filtered_player['id'] in names
+                filtered_player for filtered_player in filtered_players if filtered_player['name'] in names
             ]
         if (player != None):
             filtered_players = [
@@ -204,7 +204,7 @@ class Group:
                 self._players_list[0]['player'].play(start=start, finish=finish, enabled_group_players=self.filter(enabled=True))
         return self
             
-    def player(self) -> (PLAYER.Player | PLAYER.PlayerNone):
+    def player(self):
         if len(self._players_list) > 0:
             return self._players_list[0]['player']
         return PLAYER.PlayerNone()
@@ -213,7 +213,7 @@ class Group:
 
         header_char = "^"
         if len(self._players_list) > 0:
-            string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
+            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
             for player in self: # get maximum sizes
                 
@@ -221,7 +221,7 @@ class Group:
                     if key == 'sequence':
                         key_value_length = len(f"{sequence_index}")
                         sequence_index += 1
-                    elif key == 'class':
+                    elif key == 'type':
                         key_value_length = len(f"{player['player'].__class__.__name__}")
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
@@ -237,14 +237,14 @@ class Group:
                 full_string_top_length += value
 
             spaces_between = 4
-            header_char_length = full_string_top_length + 78
+            header_char_length = full_string_top_length + 77
 
-            header_class = "   " + self.__class__.__name__ + "   "
-            header_class_length = len(header_class)
-            header_left_half_length = int((header_char_length - header_class_length) / 2)
-            header_right_half_length = header_left_half_length + (header_char_length - header_class_length) % 2
+            header_type = "   " + self.__class__.__name__ + "   "
+            header_type_length = len(header_type)
+            header_left_half_length = int((header_char_length - header_type_length) / 2)
+            header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
 
-            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
+            print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
             sequence_index = 0
             for player in self._players_list:
 
@@ -256,7 +256,7 @@ class Group:
                         sequence_index += 1
                     else:
                         key_value_str = ""
-                        if key == 'class':
+                        if key == 'type':
                             key_value_str = f"{player['player'].__class__.__name__}"
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
@@ -279,17 +279,16 @@ class Group:
             print(header_char * header_char_length)
 
         else:
-            header_class = self.__class__.__name__
-            header_class_length = len(header_class)
-            print(header_char * (7 + 1 + header_class_length))
-            print(f"[EMPTY] {header_class}")
-            print(header_char * (7 + 1 + header_class_length))
+            header_type = self.__class__.__name__
+            header_type_length = len(header_type)
+            print(header_char * (7 + 1 + header_type_length))
+            print(f"[EMPTY] {header_type}")
+            print(header_char * (7 + 1 + header_type_length))
         return self
 
     def remove(self):
         for player_data in self._players_list[:]:
             self._root_self._players_list.remove(player_data)
-            break
         self._players_list.clear()
 
         return self

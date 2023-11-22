@@ -45,10 +45,26 @@ class Player:
     def name(self):
         return self._name
             
+    @name.setter
+    def name(self, name):
+        self._name = name
+            
+    @name.deleter
+    def name(self):
+        self._name = None
+
     @property
     def description(self):
         return self._description
             
+    @description.setter
+    def description(self, description):
+        self._description = description
+            
+    @description.deleter
+    def description(self):
+        self._description = None
+
     @property
     def resources(self):
         return self._resources
@@ -65,48 +81,10 @@ class Player:
     def resource(self):
         return self._resource
             
-    def use_resource(self, name=None):
-        if self._resources != None and name != self._resource_name:
-            self.disable_resource()
-            self._resource = self._resources.add(name)
-            if self._resource.__class__ != RESOURCES.Resources.ResourceNone:
-                self._resource_name = name
-            else:
-                self._resource_name = None
-        return self
-
-    def enable_resource(self):
-        if self._resources != None and self._resource != None and not self._resource_enabled:
-            self._resources.enable(self._resource)
-            self._resource_enabled = True
-        return self
-
-    def disable_resource(self):
-        if self._resources != None and self._resource != None and self._resource_enabled:
-            self._resources.disable(self._resource)
-            self._resource_enabled = False
-        return self
-
-    def discard_resource(self):
-        if self._resources != None and self._resource != None:
-            self.disable_resource()
-            self._resources.remove(self._resource)
-            self._resource = None
-            self._resource_name = None
-        return self
-
     @property
     def is_none(self):
         return (self.__class__ == PlayerNone)
 
-    @property
-    def name(self):
-        return self._name
-    
-    @property
-    def description(self):
-        return self._description
-    
     @property
     def group(self):
         return self._group
@@ -369,6 +347,36 @@ class Player:
 
 # Player METHODS ###############################################################################################################################
 
+    def use_resource(self, name=None):
+        if self._resources != None and name != self._resource_name:
+            self.disable_resource()
+            self._resource = self._resources.add(name)
+            if self._resource.__class__ != RESOURCES.Resources.ResourceNone:
+                self._resource_name = name
+            else:
+                self._resource_name = None
+        return self
+
+    def enable_resource(self):
+        if self._resources != None and self._resource != None and not self._resource_enabled:
+            self._resources.enable(self._resource)
+            self._resource_enabled = True
+        return self
+
+    def disable_resource(self):
+        if self._resources != None and self._resource != None and self._resource_enabled:
+            self._resources.disable(self._resource)
+            self._resource_enabled = False
+        return self
+
+    def discard_resource(self):
+        if self._resources != None and self._resource != None:
+            self.disable_resource()
+            self._resources.remove(self._resource)
+            self._resource = None
+            self._resource_name = None
+        return self
+
     def add(self, player):
 
         # get all sub-players of player | self can't be on them or a infinite loop happens!!
@@ -475,8 +483,9 @@ class Player:
 
     def print(self):
 
-        print("{ class: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-players: {self.group.len()}" + " }")
+        print("{ type: " + f"{self.__class__.__name__}    name: {self._name}    " + \
+              f"description: {trimString(self.description)}    sub-players: {self.group.len()}    " + \
+              f"resources_type: {self._resources.__class__.__name__}    resource_name: {self._resource_name}    resource_enabled: {self._resource_enabled}" + " }")
 
         return self
 
@@ -669,6 +678,6 @@ def trimString(full_string):
     string_maxum_size = 60
     long_string_termination = "…"
     trimmed_string = full_string
-    if len(full_string) > string_maxum_size:
+    if full_string != None and len(full_string) > string_maxum_size:
         trimmed_string = full_string[:string_maxum_size] + long_string_termination
     return trimmed_string

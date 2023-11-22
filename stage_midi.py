@@ -22,7 +22,9 @@ class StageMidi(STAGE.Stage):
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
         match type:
             case "Note":
-                return PLAYER_MIDI.Note(name, description, self._resources_midi)
+                if resources == None:
+                    return PLAYER_MIDI.Note(name, description, self._resources_midi)
+                return PLAYER_MIDI.Note(name, description, resources)
             case "Master":
                 return PLAYER_MIDI.Master(name, description)
         return super().playerFactoryMethod(name, description, resources, type)

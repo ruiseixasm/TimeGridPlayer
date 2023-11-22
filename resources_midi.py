@@ -23,17 +23,17 @@ class Midi(RESOURCES.Resources):
 
         if name != None:
 
-            # starts by making sure there is a suitable instrument
+            # starts by making sure there is a suitable midi instrument
             total_available_resources = self._output_port.get_port_count()
-            available_instrument_ports_list = self._output_port.get_ports()
-            instrument_index = -1
+            available_midi_ports_list = self._output_port.get_ports()
+            midi_index = -1
             for index in range(total_available_resources):
-                if available_instrument_ports_list[index].find(name) != -1:
-                    instrument_index = index
+                if available_midi_ports_list[index].find(name) != -1:
+                    midi_index = index
                 
-            if instrument_index > -1: # found an instrument, now gets its address
+            if midi_index > -1: # found an midi instrument, now gets its address
 
-                return Midi.Resource(self._output_port, instrument_index)
+                return Midi.Resource(self._output_port, midi_index)
             
         return RESOURCES.Resources.ResourceNone()
     
@@ -52,14 +52,14 @@ class Midi(RESOURCES.Resources):
             try:
                 self._active_port = self._output_port.open_port(self._port_index)
             except SystemError:
-                available_instrument_ports_list = self._output_port.get_ports()
-                instrument_name = available_instrument_ports_list[self._port_index]
-                print (f"The instrumment '{instrument_name}' is already connected!")
+                available_midi_ports_list = self._output_port.get_ports()
+                midi_name = available_midi_ports_list[self._port_index]
+                print (f"The instrumment '{midi_name}' is already connected!")
                 self._active_port = None
             except Exception as e:
-                available_instrument_ports_list = self._output_port.get_ports()
-                instrument_name = available_instrument_ports_list[self._port_index]
-                print (f"Something went wrong while trying to connect the instrument '{instrument_name}'!")
+                available_midi_ports_list = self._output_port.get_ports()
+                midi_name = available_midi_ports_list[self._port_index]
+                print (f"Something went wrong while trying to connect the midi instrument '{midi_name}'!")
                 print (e)
                 self._active_port = None
 
