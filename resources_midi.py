@@ -13,7 +13,7 @@ import rtmidi
 import time
 import resources as RESOURCES
 
-class Instruments(RESOURCES.Resources):
+class Midi(RESOURCES.Resources):
         
     def __init__(self):
         super().__init__() # not self init
@@ -33,7 +33,7 @@ class Instruments(RESOURCES.Resources):
                 
             if instrument_index > -1: # found an instrument, now gets its address
 
-                return Instruments.Resource(self._output_port, instrument_index)
+                return Midi.Resource(self._output_port, instrument_index)
             
         return RESOURCES.Resources.ResourceNone()
     

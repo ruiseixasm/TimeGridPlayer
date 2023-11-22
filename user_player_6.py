@@ -11,24 +11,24 @@ Lesser General Public License for more details.'''
 
 import group as GROUP
 import player as PLAYER
-import player_midi as PL_MIDI
-import lines_scales as L_SCALES
+import player_midi as PLAYER_MIDI
+import lines_scales as LINES_SCALES
 
 trigger = PLAYER.Trigger("trigger")
 # trigger.useInternalClock(True)
 
 master = PLAYER.Player("master")
-note = PL_MIDI.Note("note")
+note = PLAYER_MIDI.Note("note")
 note.staff().set(size_measures=1)
 #note.useInternalClock(True)
-#note.resources = INSTRUMENTS.Instruments()
+#note.resources = PLAYER_MIDI.Midi()
 note.use_resource("loop")
 note.enable_resource()
 
 
 repeat = PLAYER.Player("repeat")
 repeat.add(note)
-scales = L_SCALES.Scales()
+scales = LINES_SCALES.Scales()
 scales.scale("minor", 5)
 lines_minor_scale = scales.lines()
 repeat.rulers().add({'type': "actions", 'group': "note", 'position': [0, 0], 'lines': ["note"]})
@@ -58,7 +58,7 @@ master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': 
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [2]})
 
-scales = L_SCALES.Scales()
+scales = LINES_SCALES.Scales()
 scales.scale("major", 5)
 lines_major_scale = scales.lines()
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': lines_major_scale})

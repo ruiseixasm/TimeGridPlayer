@@ -211,7 +211,7 @@ class Group:
 
     def print(self):
 
-        header_char = "¤"
+        header_char = "^"
         if len(self._players_list) > 0:
             string_top_length = {'sequence': 0, 'id': 0, 'class': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0

@@ -9,6 +9,11 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+# import os
+# import win32api         # pip install pywin32
+# import win32process
+# import win32con
+
 import json
 import resources as RESOURCES
 import player as PLAYER
@@ -24,8 +29,9 @@ class Stage:
         if root_self != None:
             self._root_self = root_self
 
-        self._next_id = start_id
+        self._resources = RESOURCES.Resources()
 
+        self._next_id = start_id
         self.current_player = 0
 
     def __iter__(self):
@@ -40,13 +46,31 @@ class Stage:
             self.current_player = 0  # Reset to 0 when limit is reached
             raise StopIteration
         
-    def _playerFactoryMethod(self, player_dictionnaire):
-        player = None
-        match player_dictionnaire['class']:
-            case "Player" | "Trigger":
-                player = PLAYER.Player(player_dictionnaire['name'], player_dictionnaire['description'])
+    def playerFactoryMethod(self, name, description=None, resources=None, type=None):
+        return PLAYER.Player(name, description, self._resources)
 
-        return player
+    def add(self, name, description=None, resources=None, type=None):
+        if type == None:
+            type = "Player"
+        existent_player = self._root_self.filter(classes=[type], names=[name])
+        if existent_player.len() == 0:
+            player = self.playerFactoryMethod(name, description, resources, type)
+            player_data = {
+                'id': self._next_id,
+                'class': player.__class__.__name__,
+                'name': player.name,
+                'player': player,
+                'enabled': True
+            }
+
+            self._root_self._next_id += 1
+            self._root_self._players_list.append(player_data)
+            if self != self._root_self:
+                self._players_list.append(player_data)
+                self._next_id = self._root_self._next_id
+
+        return self
+    
 
     def destroy(self):
         for player_data in self._players_list[:]:
@@ -82,7 +106,7 @@ class Stage:
                 filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
             ]
 
-        return Stage(filtered_players, self._root_self, self._next_id, self._owner_player)
+        return Stage(filtered_players, self._root_self, self._next_id)
 
     def json_dictionnaire(self):
         stage = {
@@ -147,29 +171,6 @@ class Stage:
             
     def list(self):
         return self._players_list
-    
-    def new(self) -> PLAYER.Player:
-
-        if not self._none and not player._is_none():
-            player_data = {
-                'id': self._next_id,
-                'class': player.__class__.__name__,
-                'name': player.name,
-                'player': player,
-                'enabled': True
-            }
-            self._root_self._next_id += 1
-            self._root_self._players_list.append(player_data)
-            if self != self._root_self:
-                self._players_list.append(player_data)
-                self._next_id = self._root_self._next_id
-
-            if self._owner_player == None:
-                all_sub_players = player.get_all_lower_stages().unique()
-                for sub_player in all_sub_players:
-                    sub_player['player'].main_stage = self._root_self
-                    
-        return self
     
     def play(self, start=None, finish=None, id=None):
         if len(self._players_list) > 0:
@@ -269,7 +270,7 @@ class Stage:
             if player not in unique_rulers_list:
                 unique_rulers_list.append(player)
 
-        return Stage(unique_rulers_list, self._root_self, self._next_id, self._owner_player)
+        return Stage(unique_rulers_list, self._root_self, self._next_id)
         
 # GLOBAL CLASS METHODS
 
@@ -280,3 +281,11 @@ def trimString(full_string):
     if len(full_string) > string_maxum_size:
         trimmed_string = full_string[:string_maxum_size] + long_string_termination
     return trimmed_string
+
+# def set_high_priority():
+#     handle = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, True, os.getpid())
+#     win32process.SetPriorityClass(handle, win32process.HIGH_PRIORITY_CLASS) # you could set this to REALTIME_PRIORITY_CLASS etc.
+
+# set_high_priority()
+
+# # the rest of your code after this

@@ -10,7 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import player as PLAYER
-import resources_instruments as INSTRUMENTS
+import resources_midi as RESOURCES_MIDI
 
 class Master(PLAYER.Player):
     
@@ -19,11 +19,11 @@ class Master(PLAYER.Player):
 
 class Note(PLAYER.Player):
     
-    def __init__(self, name, description="Plays notes on a given Synth", instruments=None):
+    def __init__(self, name, description="Plays notes on a given Synth", resources_midi=None):
         super().__init__(name, description, resources=None) # not self init
 
         if self.resources.is_none:
-            self._resources = INSTRUMENTS.Instruments()
+            self._resources = RESOURCES_MIDI.Midi()
 
     class Action(PLAYER.Player.Action):
         
