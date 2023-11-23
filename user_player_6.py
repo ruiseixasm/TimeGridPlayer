@@ -94,11 +94,11 @@ master.set_tempo(240)
 #     group.player().rulers().group("key").sort(reverse=True).rotate_lines().print_lines(-7, 13)
 
 master.print()
-master.print_group()
+master.print_lower_group()
 
 group.play([1, 0], [4, 0])
 master.print()
-master.print_group()
+master.print_lower_group()
 group.print()
 
 # group.json_save("group_3.json")

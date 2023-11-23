@@ -80,7 +80,7 @@ class Group:
                 self._next_id = self._root_self._next_id
 
             if self._owner_player == None:
-                all_sub_players = player.get_all_sub_players_group().unique()
+                all_sub_players = player.get_all_lower_players_group().unique()
         return self
     
     def disable(self):
@@ -199,9 +199,9 @@ class Group:
             if id != None:
                 group_player = self.filter(ids = [id], enabled=True)
                 if group_player.len() > 0:
-                    group_player.list()[0]['player'].play(start=start, finish=finish, enabled_group_players=self.filter(enabled=True))
+                    group_player.list()[0]['player'].play(start=start, finish=finish, enabled_lower_group_players=self.filter(enabled=True))
             elif self._players_list[0]['enabled']:
-                self._players_list[0]['player'].play(start=start, finish=finish, enabled_group_players=self.filter(enabled=True))
+                self._players_list[0]['player'].play(start=start, finish=finish, enabled_lower_group_players=self.filter(enabled=True))
         return self
             
     def player(self):
@@ -226,7 +226,7 @@ class Group:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].group.len()}")
+                        key_value_length = len(f"{player['player'].lower_group.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -261,7 +261,7 @@ class Group:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].group.len()}"
+                            key_value_str = f"{player['player'].lower_group.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 

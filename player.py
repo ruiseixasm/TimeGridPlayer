@@ -34,7 +34,8 @@ class Player:
         self._internal_clock = False
 
         # Iterator & Composite patterns for managing aggregates
-        self._group = GROUP.Group(owner_player=self)
+        self._upper_group = GROUP.Group(owner_player=self)
+        self._lower_group = GROUP.Group(owner_player=self)
         
         self._actions = []
 
@@ -86,16 +87,8 @@ class Player:
         return (self.__class__ == PlayerNone)
 
     @property
-    def group(self):
-        return self._group
-            
-    @group.setter
-    def group(self, group):
-        self._group = group
-
-    @group.deleter
-    def group(self):
-        self._group = GROUP.GroupNone()
+    def lower_group(self):
+        return self._lower_group
             
     class Action():
 
@@ -380,7 +373,7 @@ class Player:
     def add(self, player):
 
         # get all sub-players of player | self can't be on them or a infinite loop happens!!
-        player_sub_players = player.get_all_sub_players_group().unique()
+        player_sub_players = player.get_all_lower_players_group().unique()
         not_present_self_player = True
         for sub_player in player_sub_players:
             if sub_player['player'] == self:
@@ -388,7 +381,7 @@ class Player:
                 break
 
         if not_present_self_player:
-            self._group.add(player)
+            self._lower_group.add(player)
         else:
             print (f"Player {self} already descendent of Player {player}!")
 
@@ -398,16 +391,27 @@ class Player:
         if self._internal_clock:
             self._clock.stop()
 
-    def get_all_sub_players_group(self):
+    def get_all_upper_players_group(self):
         
-        group = self.group
-        all_groups = group
+        lower_group = self.lower_group
+        all_lower_groups = lower_group
 
-        if group.len() > 0:
-            for player in group:
-                all_groups += player['player'].get_all_sub_players_group() # + operator already does a copy
+        if lower_group.len() > 0:
+            for player in lower_group:
+                all_lower_groups += player['player'].get_all_upper_players_group() # + operator already does a copy
 
-        return all_groups # Last LEAF group is an empty group
+        return all_lower_groups # Last LEAF group is an empty group
+
+    def get_all_lower_players_group(self):
+        
+        lower_group = self.lower_group
+        all_lower_groups = lower_group
+
+        if lower_group.len() > 0:
+            for player in lower_group:
+                all_lower_groups += player['player'].get_all_lower_players_group() # + operator already does a copy
+
+        return all_lower_groups # Last LEAF group is an empty group
 
     def getClock(self):
         return self._clock
@@ -448,7 +452,7 @@ class Player:
                 'internal_clock': self._internal_clock,
                 'clock': [ self._clock.json_dictionnaire() ],
                 'staff': [ self._staff.json_dictionnaire() ],
-                'group': [ self._group.json_dictionnaire() ]
+                'lower_group': [ self._lower_group.json_dictionnaire() ]
             }
 
     def json_load(self, file_name="player.json", json_object=None):
@@ -484,25 +488,25 @@ class Player:
     def print(self):
 
         print("{ type: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-players: {self.group.len()}    " + \
+              f"description: {trimString(self.description)}    sub-players: {self.lower_group.len()}    " + \
               f"resources_type: {self._resources.__class__.__name__}    resource_name: {self._resource_name}    resource_enabled: {self._resource_enabled}" + " }")
 
         return self
 
-    def print_group(self):
-        self._group.print()
+    def print_lower_group(self):
+        self._lower_group.print()
 
         return self
 
-    def play(self, start=None, finish=None, enabled_group_players=None):
+    def play(self, start=None, finish=None, enabled_lower_group_players=None):
 
         self._clocked_players = [
             {'name': self._name, 'player': self}
         ]
 
-        all_enabled_players = self.get_all_sub_players_group().filter(enabled=True)
-        if enabled_group_players != None:
-            all_enabled_players += enabled_group_players
+        all_enabled_players = self.get_all_lower_players_group().filter(enabled=True)
+        if enabled_lower_group_players != None:
+            all_enabled_players += enabled_lower_group_players
         
         for enabled_player in all_enabled_players:
             clockable_player = {
@@ -514,7 +518,7 @@ class Player:
 
         for clocked_player in self._clocked_players:
             clocked_player['player']._playable_sub_players = []
-            playable_sub_players = clocked_player['player'].get_all_sub_players_group().filter(enabled=True)
+            playable_sub_players = clocked_player['player'].get_all_lower_players_group().filter(enabled=True)
             for playable_player in playable_sub_players:
                 playable_player = {
                     'name': playable_player['name'],
@@ -664,7 +668,7 @@ class PlayerNone(Player):
         super().__init__("None", "Player considered as None!")
 
         self._staff = STAFF.StaffNone(self)
-        self._group = GROUP.GroupNone()
+        self._lower_group = GROUP.GroupNone()
 
 # GLOBAL CLASS METHODS
 
