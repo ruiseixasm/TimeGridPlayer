@@ -376,19 +376,12 @@ class Player:
 
     def add(self, player):
 
-        # get all sub-players of player | self can't be on them or a infinite loop happens!!
-        player_sub_players = player.get_all_lower_players_group().unique()
-        not_present_self_player = True
-        for sub_player in player_sub_players:
-            if sub_player['player'] == self:
-                not_present_self_player = False
-                break
+        self._lower_group.add(player)
+        return self
 
-        if not_present_self_player:
-            self._lower_group.add(player)
-        else:
-            print (f"Player {self} already descendent of Player {player}!")
+    def remove(self, player):
 
+        self._lower_group.filter(player=player).remove()
         return self
     
     def finish(self):

@@ -37,7 +37,7 @@ repeat.rulers().add({'type': "arguments", 'group': "key", 'position': [0, 0], 'l
 repeat.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 repeat.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 repeat.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [1]})
-repeat.play([0, 0], [1, 0])
+#repeat.play([0, 0], [1, 0])
 
 master.add(note)
 master.add(repeat)
@@ -100,6 +100,8 @@ master.print_lower_group()
 master.play([1, 0], [4, 0])
 master.print()
 master.print_lower_group()
+master.remove(repeat)
+master.play([1, 0], [4, 0])
 #group.print()
 
 # group.json_save("group_3.json")
