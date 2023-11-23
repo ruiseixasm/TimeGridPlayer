@@ -34,6 +34,8 @@ class Stage:
         self._next_id = start_id
         self.current_player = 0
 
+        self.sequence_index = 0
+
     def __iter__(self):
         return self
     
@@ -182,7 +184,7 @@ class Stage:
 
     def print(self):
 
-        header_char = "¤"
+        header_char = "="
         if len(self._players_list) > 0:
             string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
@@ -257,12 +259,151 @@ class Stage:
             print(header_char * (7 + 1 + header_class_length))
         return self
 
+    def print_tree_player(self, player, string_top_length, tabs=0):
+        
+        lower_group = player['player'].lower_group
+
+        tabs += 1
+        spaces_between = 4
+        
+        if lower_group.len() > 0:
+            for lower_player in lower_group:
+                player_str = ""
+                for key, value in string_top_length.items():
+                    if key == 'sequence':
+                        key_value_str = f"{self.sequence_index}"
+                        key_value_str = (" " * (string_top_length[key] - len(key_value_str))) + key_value_str + ": " + "«" * 6 * (tabs - 1) + "««««« " + "{ "
+                        #self.sequence_index += 1
+                    else:
+                        key_value_str = ""
+                        if key == 'type':
+                            key_value_str = f"{lower_player['type']}"
+                        elif key == 'description':
+                            key_value_str = trimString(f"{lower_player['player'].description}")
+                        elif key == 'sub-players':
+                            key_value_str = f"{lower_player['player'].lower_group.len()}"
+                        else:
+                            stage_player = self.filter(types=[lower_player['type']], names=[lower_player['name']])
+                            key_value_str = f"{stage_player.list()[0][key]}"
+
+                        if key == 'sub-players':
+                            key_value_str = f"{key}: " + (" " * (string_top_length[key] - len(key_value_str))) + key_value_str
+                        else:
+                            key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
+
+                        if key != 'enabled':
+                            key_value_str += " " * spaces_between
+
+                    player_str +=  key_value_str
+                player_str += " }"
+                print(player_str)
+
+                self.print_tree_player(lower_player, string_top_length, tabs)
+
+        return self
+
+    def print_tree(self):
+
+        header_char = "«"
+        if len(self._players_list) > 0:
+            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
+            self.sequence_index = 0
+            for player in self: # get maximum sizes
+                
+                for key, value in string_top_length.items():
+                    if key == 'sequence':
+                        key_value_length = len(f"{self.sequence_index}")
+                        self.sequence_index += 1
+                    elif key == 'type':
+                        key_value_length = len(f"{player['player'].__class__.__name__}")
+                    elif key == 'description':
+                        key_value_length = len(f"{player['player'].description}")
+                    elif key == 'sub-players':
+                        key_value_length = len(f"{player['player'].lower_group.len()}")
+                    else:
+                        key_value_length = len(f"{player[key]}")
+
+                    string_top_length[key] = max(string_top_length[key], key_value_length)
+
+            full_string_top_length = 0
+            for value in string_top_length.values():
+                full_string_top_length += value
+
+            top_level = 0
+            for player in self:
+                if player['player'].upper_group.len() == 0: # root players
+                    top_level = max(top_level, self.tree_top_level(player))
+
+            spaces_between = 4
+            header_char_length = full_string_top_length + 77 + len("......" * top_level)
+
+            header_class = "   " + self.__class__.__name__ + " Tree" + "   "
+            header_class_length = len(header_class)
+            header_left_half_length = int((header_char_length - header_class_length) / 2)
+            header_right_half_length = header_left_half_length + (header_char_length - header_class_length) % 2
+
+            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
+            self.sequence_index = 0
+            for player in self._players_list:
+
+                if player['player'].upper_group.len() == 0: # root players
+                    player_str = ""
+                    for key, value in string_top_length.items():
+                        if key == 'sequence':
+                            key_value_str = f"{self.sequence_index}"
+                            key_value_str = (" " * (string_top_length[key] - len(key_value_str))) + key_value_str + ": { "
+                        else:
+                            key_value_str = ""
+                            if key == 'type':
+                                key_value_str = f"{player['player'].__class__.__name__}"
+                            elif key == 'description':
+                                key_value_str = trimString(f"{player['player'].description}")
+                            elif key == 'sub-players':
+                                key_value_str = f"{player['player'].lower_group.len()}"
+                            else:
+                                key_value_str = f"{player[key]}"
+
+                            if key == 'sub-players':
+                                key_value_str = f"{key}: " + (" " * (string_top_length[key] - len(key_value_str))) + key_value_str
+                            else:
+                                key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
+
+                            if key != 'enabled':
+                                key_value_str += " " * spaces_between
+
+                        player_str +=  key_value_str
+                    player_str += " }" + " " + f"{self.tree_top_level(player)}"
+                    print(player_str)
+                    self.print_tree_player(player, string_top_length)
+                    self.sequence_index += 1
+            print(header_char * header_char_length)
+
+        else:
+            header_class = self.__class__.__name__
+            header_class_length = len(header_class)
+            print(header_char * (7 + 1 + header_class_length))
+            print(f"[EMPTY] {header_class}")
+            print(header_char * (7 + 1 + header_class_length))
+        return self
+
     def remove(self):
         for player_data in self._players_list[:]:
             self._root_self._players_list.remove(player_data)
         self._players_list.clear()
 
         return self
+    
+    def tree_top_level(self, player, level=0):
+        level += 1
+        top_level = 0
+        
+        lower_group = player['player'].lower_group
+
+        if lower_group.len() > 0:
+            for lower_player in lower_group:
+                top_level = max(max(top_level, self.tree_top_level(lower_player, level)), level)
+
+        return top_level
 
     def unique(self):
         unique_rulers_list = []
