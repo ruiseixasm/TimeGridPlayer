@@ -14,7 +14,7 @@ import player as PLAYER
 
 class Group:
 
-    def __init__(self, players_list=None, root_self=None, start_id=0, owner_player=None):
+    def __init__(self, owner_player, players_list=None, root_self=None, start_id=0):
 
         self._players_list = []
         if players_list != None:
@@ -54,7 +54,7 @@ class Group:
         self_players_list = self.list()
         other_players_list = other.list()
 
-        return Group(self_players_list + other_players_list, self._root_self, self._next_id, self._owner_player)
+        return Group(self._owner_player, self_players_list + other_players_list, self._root_self, self._next_id)
         
     def _playerFactoryMethod(self, player_dictionnaire):
         player = None
@@ -65,22 +65,37 @@ class Group:
         return player
 
     def add(self, player):
-        if not player.is_none:
-            player_data = {
-                'id': self._next_id,
-                'type': player.__class__.__name__,
-                'name': player.name,
-                'player': player,
-                'enabled': True
-            }
-            self._root_self._next_id += 1
-            self._root_self._players_list.append(player_data)
-            if self != self._root_self:
-                self._players_list.append(player_data)
-                self._next_id = self._root_self._next_id
+        if self == self._owner_player.lower_group:
+            all_upper_players_group = self._owner_player.get_all_upper_players_group()
+            player_upper_players_group = all_upper_players_group.filter(player=player)
+            if player_upper_players_group.len() == 0:
+                if not player.is_none:
+                    player_data = {
+                        'id': self._next_id,
+                        'type': player.__class__.__name__,
+                        'name': player.name,
+                        'player': player,
+                        'enabled': True
+                    }
+                    # Updates self LOWER Group
+                    self._root_self._next_id += 1
+                    self._root_self._players_list.append(player_data)
+                    if self != self._root_self:
+                        self._players_list.append(player_data)
+                        self._next_id = self._root_self._next_id
+                    # Updates player UPPER Group
+                    player.upper_group.add(self._owner_player)
+            else:
+                print (f"Player {player} already an upper Player of Player {self}!")
 
-            if self._owner_player == None:
-                all_sub_players = player.get_all_lower_players_group().unique()
+        else: # upper_group instead
+            all_upper_players_group = player.get_all_upper_players_group()
+            self_players_group = all_upper_players_group.filter(player=self._owner_player)
+            
+            else:
+                print (f"Player {self} already a lower Player of Player {player}!")
+
+
         return self
     
     def disable(self):
@@ -130,7 +145,7 @@ class Group:
                 filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
             ]
 
-        return Group(filtered_players, self._root_self, self._next_id, self._owner_player)
+        return Group(self._owner_player, filtered_players, self._root_self, self._next_id)
 
     def json_dictionnaire(self):
         group = {
@@ -299,7 +314,7 @@ class Group:
             if player not in unique_rulers_list:
                 unique_rulers_list.append(player)
 
-        return Group(unique_rulers_list, self._root_self, self._next_id, self._owner_player)
+        return Group(self._owner_player, unique_rulers_list, self._root_self, self._next_id)
         
 class GroupNone(Group):
 

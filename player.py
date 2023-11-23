@@ -33,9 +33,9 @@ class Player:
         self._clock = Player.Clock(self)
         self._internal_clock = False
 
-        # Iterator & Composite patterns for managing aggregates
-        self._upper_group = GROUP.Group(owner_player=self)
-        self._lower_group = GROUP.Group(owner_player=self)
+        # Iterator & Composite patterns for managing aggregates (net graph)
+        self._upper_group = GROUP.Group(self)
+        self._lower_group = GROUP.Group(self)
         
         self._actions = []
 
@@ -86,6 +86,10 @@ class Player:
     def is_none(self):
         return (self.__class__ == PlayerNone)
 
+    @property
+    def upper_group(self):
+        return self._upper_group
+            
     @property
     def lower_group(self):
         return self._lower_group
@@ -393,18 +397,18 @@ class Player:
 
     def get_all_upper_players_group(self):
         
-        lower_group = self.lower_group
-        all_lower_groups = lower_group
+        upper_group = self._upper_group
+        all_upper_groups = upper_group
 
-        if lower_group.len() > 0:
-            for player in lower_group:
-                all_lower_groups += player['player'].get_all_upper_players_group() # + operator already does a copy
+        if upper_group.len() > 0:
+            for player in upper_group:
+                all_upper_groups += player['player'].get_all_upper_players_group() # + operator already does a copy
 
-        return all_lower_groups # Last LEAF group is an empty group
+        return all_upper_groups # First HEAD group is an empty group
 
     def get_all_lower_players_group(self):
         
-        lower_group = self.lower_group
+        lower_group = self._lower_group
         all_lower_groups = lower_group
 
         if lower_group.len() > 0:

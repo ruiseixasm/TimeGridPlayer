@@ -197,7 +197,7 @@ class Stage:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].group.len()}")
+                        key_value_length = len(f"{player['player'].lower_group.len()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -232,7 +232,7 @@ class Stage:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].group.len()}"
+                            key_value_str = f"{player['player'].lower_group.len()}"
                         else:
                             key_value_str = f"{player[key]}"
 

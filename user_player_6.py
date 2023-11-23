@@ -80,9 +80,9 @@ print("\n\n\nNEXT ITERATION\n\n")
 master.json_save("player_2.json")
 
 import group as GROUP
-group = GROUP.Group()
+# group = GROUP.Group()
 #group2 = GROUP.Group()
-group.add(master)
+# group.add(master)
 #group.add(note)
 master.set_tempo(240)
 
@@ -96,10 +96,11 @@ master.set_tempo(240)
 master.print()
 master.print_lower_group()
 
-group.play([1, 0], [4, 0])
+# group.play([1, 0], [4, 0])
+master.play([1, 0], [4, 0])
 master.print()
 master.print_lower_group()
-group.print()
+#group.print()
 
 # group.json_save("group_3.json")
 # group.json_load("group_3.json")
