@@ -169,9 +169,9 @@ class Stage:
             if id != None:
                 stage_player = self.filter(ids = [id], enabled=True)
                 if stage_player.len() > 0:
-                    stage_player.list()[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
+                    stage_player.list()[0]['player'].play(start=start, finish=finish, enabled_lower_group_players=self.filter(enabled=True))
             elif self._players_list[0]['enabled']:
-                self._players_list[0]['player'].play(start=start, finish=finish, enabled_stage_players=self.filter(enabled=True))
+                self._players_list[0]['player'].play(start=start, finish=finish, enabled_lower_group_players=self.filter(enabled=True))
         return self
             
     def player(self, name=None, id=None, type=None) -> (PLAYER.Player | PLAYER.PlayerNone):

@@ -10,6 +10,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
 import stage_midi as STAGE_MIDI
+import lines_scales as LINES_SCALES
 
 stage_midi = STAGE_MIDI.StageMidi()
 
@@ -19,7 +20,60 @@ stage_midi.add("note", type="Note")
 stage_midi.add("repeat", type="Master")
 
 note = stage_midi.print().player("note").print()
-
 note.use_resource("loop").enable_resource()
-
 note.print()
+
+scales = LINES_SCALES.Scales()
+
+master = stage_midi.player("master")
+
+# MASTER MIDI COMPOSITION
+master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 4], 'lines': ["note"], 'offset': 2})
+master.rulers().add({'type': "actions", 'group': "note", 'position': [3, 4], 'lines': ["note"]})
+master.rulers().add({'type': "actions", 'group': "repeat", 'position': [1, 0], 'lines': ["repeat"]})
+master.rulers().filter(type="actions").sort().print().print_lines()
+
+master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
+master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
+master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [2]})
+master.rulers().filter(type="arguments").sort().print().print_lines()
+
+scales.scale("major", 5)
+lines_major_scale = scales.lines()
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 1], 'lines': lines_major_scale})
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 0], 'lines': ['d', 'c#', 'd', 'd#', 'e', None], 'offset': -1})
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
+
+
+repeat = stage_midi.player("repeat")
+# REPEAT MIDI COMPOSITION
+scales.scale("minor", 5)
+lines_minor_scale = scales.lines()
+repeat.rulers().add({'type': "actions", 'group': "note", 'position': [0, 0], 'lines': ["note"]})
+repeat.rulers().duplicate().duplicate().duplicate().distribute_position(16).spread_lines().print_lines(-10, 10)
+repeat.rulers().add({'type': "arguments", 'group': "key", 'position': [0, 0], 'lines': lines_minor_scale})
+repeat.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
+repeat.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
+repeat.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [1]})
+repeat.rulers().filter(type="arguments").print().print_lines(-10, 10)
+
+
+#master.set_tempo(240)
+#master.play([1, 0], [4, 0])
+
+master.add(repeat)
+
+#master.play([1, 0], [4, 0])
+
+master.add(note)
+
+#master.play([1, 0], [4, 0])
+
+repeat.add(note)
+
+master.play([1, 0], [4, 0])
+
+stage_midi.play([1, 0], [4, 0])
