@@ -112,6 +112,9 @@ class Player:
             self._clocked_actions = []
             self._next_clocked_pulse = -1
 
+            self._total_ticks = 0
+            self._min_ticks = 100000 * 100000
+
         # using property decorator 
         # a getter function 
         @property
@@ -189,8 +192,12 @@ class Player:
                 enabled_arguments_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
                 enabled_actions_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
 
+                self._total_ticks += tick['tick_pulse']
+                self._min_ticks = min(self._min_ticks, tick['tick_pulse'])
                 if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
-                    self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f" ticks: {tick['tick_pulse']}")
+                    self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
+                    self._total_ticks = 0
+                    self._min_ticks = 100000 * 100000
 
                 if (enabled_arguments_rulers > 0):
                     

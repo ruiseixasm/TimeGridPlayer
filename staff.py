@@ -252,10 +252,11 @@ class Staff:
                 self._staff.add(self.unique().list())
             return self
 
-        def duplicate(self):
+        def duplicate(self, times=1):
             """Duplicates the listed rulers"""
             for ruler in self._rulers_list[:]:
-                self.add(ruler.copy())
+                for _ in range(times):
+                    self.add(ruler.copy())
             return self
         
         def erase_lines(self, line, amount=1, id=None):
