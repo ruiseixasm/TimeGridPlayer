@@ -260,7 +260,7 @@ class Player:
         def json_dictionnaire(self):
             return {
                     'part': "clock",
-                    'class': self.__class__.__name__,
+                    'type': self.__class__.__name__,
                     'tempo': self._tempo,
                     'pulse_duration': self._pulse_duration
                 }
@@ -429,10 +429,10 @@ class Player:
     def json_dictionnaire(self):
         return {
                 'part': "player",
-                'class': self.__class__.__name__,
+                'type': self.__class__.__name__,
                 'name': self._name,
                 'description': self._description,
-                'resources_class': self._resources.__class__.__name__,
+                'resources_type': self._resources.__class__.__name__,
                 'resource_name': self._resource_name,
                 'resource_enabled': self._resource_enabled,
                 'internal_clock': self._internal_clock,

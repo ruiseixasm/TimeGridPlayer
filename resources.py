@@ -94,7 +94,7 @@ class Resources:
     def json_dictionnaire(self):
         resources = {
                 'part': "resources",
-                'class': self.__class__.__name__,
+                'type': self.__class__.__name__,
                 'next_id': self._next_id,
                 'resources': []
             }
@@ -102,7 +102,7 @@ class Resources:
         for resource_dictionnaire in self._available_resources:
             resource_json = {}
             resource_json['part'] = "resource",
-            resource_json['class'] = resource_dictionnaire['resource'].__class__.__name__,
+            resource_json['type'] = resource_dictionnaire['resource'].__class__.__name__,
             resource_json['id'] = resource_dictionnaire['id']
             resource_json['name'] = resource_dictionnaire['name']
             resource_json['users'] = resource_dictionnaire['users']
@@ -130,7 +130,7 @@ class Resources:
                         player.json_load(file_name, [ player_dictionnaire ])
                         player_data = {
                             'id': player_dictionnaire['id'],
-                            'class': player.__class__.__name__,
+                            'type': player.__class__.__name__,
                             'name': player.name,
                             'player': player,
                             'enabled': player_dictionnaire['enabled']

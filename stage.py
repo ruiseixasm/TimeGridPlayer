@@ -103,7 +103,7 @@ class Stage:
     def json_dictionnaire(self):
         stage = {
                 'part': "stage",
-                'class': self._root_self.__class__.__name__,
+                'type': self._root_self.__class__.__name__,
                 'next_id': self._root_self._next_id,
                 'players': []
             }
@@ -133,7 +133,7 @@ class Stage:
             if stage_dictionnaire['part'] == "stage":
                 self._root_self._next_id = stage_dictionnaire['next_id']
                 for player_dictionnaire in stage_dictionnaire['players']:
-                    player_type = player_dictionnaire['class']
+                    player_type = player_dictionnaire['type']
                     player_name = player_dictionnaire['name']
                     description = player_dictionnaire['description']
                     player = self._root_self.playerFactoryMethod(type=player_type, name=player_name, description=description)
@@ -234,12 +234,12 @@ class Stage:
             spaces_between = 4
             header_char_length = full_string_top_length + 77
 
-            header_class = "   " + self.__class__.__name__ + "   "
-            header_class_length = len(header_class)
-            header_left_half_length = int((header_char_length - header_class_length) / 2)
-            header_right_half_length = header_left_half_length + (header_char_length - header_class_length) % 2
+            header_type = "   " + self.__class__.__name__ + "   "
+            header_type_length = len(header_type)
+            header_left_half_length = int((header_char_length - header_type_length) / 2)
+            header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
 
-            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
+            print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
             sequence_index = 0
             for player_data in self._players_list:
 
@@ -274,11 +274,11 @@ class Stage:
             print(header_char * header_char_length)
 
         else:
-            header_class = self.__class__.__name__
-            header_class_length = len(header_class)
-            print(header_char * (7 + 1 + header_class_length))
-            print(f"[EMPTY] {header_class}")
-            print(header_char * (7 + 1 + header_class_length))
+            header_type = self.__class__.__name__
+            header_type_length = len(header_type)
+            print(header_char * (7 + 1 + header_type_length))
+            print(f"[EMPTY] {header_type}")
+            print(header_char * (7 + 1 + header_type_length))
         return self
 
     def print_tree(self):
@@ -372,13 +372,13 @@ class Stage:
             spaces_between = 4
             header_char_length = full_string_top_length + 77 + len("......" * top_level)
 
-            header_class = "   " + self.__class__.__name__ + " Tree" + "   "
-            header_class_length = len(header_class)
-            header_left_half_length = int((header_char_length - header_class_length) / 2)
-            header_right_half_length = header_left_half_length + (header_char_length - header_class_length) % 2
+            header_type = "   " + self.__class__.__name__ + " Tree" + "   "
+            header_type_length = len(header_type)
+            header_left_half_length = int((header_char_length - header_type_length) / 2)
+            header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
 
             sequence_index = 0
-            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
+            print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
             for player_data in self._players_list:
 
                 if player_data['player'].upper_group.len() == 0: # root players
@@ -416,11 +416,11 @@ class Stage:
             print(header_char * header_char_length)
 
         else:
-            header_class = self.__class__.__name__
-            header_class_length = len(header_class)
-            print(header_char * (7 + 1 + header_class_length))
-            print(f"[EMPTY] {header_class}")
-            print(header_char * (7 + 1 + header_class_length))
+            header_type = self.__class__.__name__
+            header_type_length = len(header_type)
+            print(header_char * (7 + 1 + header_type_length))
+            print(f"[EMPTY] {header_type}")
+            print(header_char * (7 + 1 + header_type_length))
 
         return self
 

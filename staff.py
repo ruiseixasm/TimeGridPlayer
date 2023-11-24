@@ -398,7 +398,7 @@ class Staff:
         def json_dictionnaire(self):
             return {
                     'part': "rulers",
-                    'class': self.__class__.__name__,
+                    'type': self.__class__.__name__,
                     'is_none': self._none,
                     'rulers_list': self.root().list(),
                     'next_id': self.next_id()
@@ -1173,7 +1173,7 @@ class Staff:
     def json_dictionnaire(self):
         return {
                 'part': "staff",
-                'class': self.__class__.__name__,
+                'type': self.__class__.__name__,
                 'is_none': self._none,
                 'time_signature': self._time_signature,
                 'total_pulses': self._total_pulses,

@@ -212,7 +212,7 @@ class Group:
     def json_dictionnaire(self):
         group = {
                 'part': "group",
-                'class': self._root_self.__class__.__name__,
+                'type': self._root_self.__class__.__name__,
                 'next_id': self._root_self._next_id,
                 'players': []
             }
@@ -220,7 +220,7 @@ class Group:
         for player_dictionnaire in self._root_self._players_list:
             player_json = {}
             player_json['id'] = player_dictionnaire['id']
-            player_json['class'] = player_dictionnaire['type']
+            player_json['type'] = player_dictionnaire['type']
             player_json['name'] = player_dictionnaire['name']
             player_json['enabled'] = player_dictionnaire['enabled']
             group['players'].append( player_json )
@@ -242,7 +242,7 @@ class Group:
                 self._root_self._next_id = group_dictionnaire['next_id']
                 # where each Player is loaded
                 for player_dictionnaire in group_dictionnaire['players']:
-                    player_type = player_dictionnaire['class']
+                    player_type = player_dictionnaire['type']
                     player_name = player_dictionnaire['name']
                     if stage != None:
                         player_staged = stage.filter(types=[player_type], names=[player_name])
