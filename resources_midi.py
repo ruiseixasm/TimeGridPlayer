@@ -186,7 +186,29 @@ class Midi(RESOURCES.Resources):
             parameter_2 = amount >> 7 # MSB | 8192 >> 7 = 64
             message = [command, parameter_1, parameter_2]
             return self.sendMessage(message)
-        
+
+        def songPositionStart(self):
+            message = [0xF2, 0, 0]
+            return self.sendMessage(message)
+
+        def clock(self):
+            message = [0xF8, 0, 0]
+            return self.sendMessage(message)
+
+        def clockStart(self):
+            message = [0xFA, 0, 0]
+            return self.sendMessage(message)
+
+        def clockContinue(self):
+            message = [0xFB, 0, 0]
+            return self.sendMessage(message)
+
+        def clockStop(self):
+            message = [0xFC, 0, 0]
+            return self.sendMessage(message)
+
+# GLOBAL CLASS METHODS
+
 def getMidiNote(note={'key': "C", 'octave': 4}): # middle C by default
     """Octaves range from -1 to 9"""
     key_str = note['key'].strip().upper()
