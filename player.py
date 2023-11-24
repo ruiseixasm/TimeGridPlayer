@@ -395,28 +395,6 @@ class Player:
         if self._internal_clock:
             self._clock.stop()
 
-    def get_all_upper_players_group(self):
-        
-        upper_group = self._upper_group
-        all_upper_groups = upper_group
-
-        if upper_group.len() > 0:
-            for player in upper_group:
-                all_upper_groups += player['player'].get_all_upper_players_group() # + operator already does a copy
-
-        return all_upper_groups # First HEAD group is an empty group
-
-    def get_all_lower_players_group(self):
-        
-        lower_group = self._lower_group
-        all_lower_groups = lower_group
-
-        if lower_group.len() > 0:
-            for player in lower_group:
-                all_lower_groups += player['player'].get_all_lower_players_group() # + operator already does a copy
-
-        return all_lower_groups # Last LEAF group is an empty group
-
     def getClock(self):
         return self._clock
 
@@ -492,7 +470,7 @@ class Player:
     def print(self):
 
         print("{ type: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-players: {self.lower_group.len()}    " + \
+              f"description: {trimString(self.description)}    sub-players: {self.lower_group.all_players_count()}    " + \
               f"resources_type: {self._resources.__class__.__name__}    resource_name: {self._resource_name}    resource_enabled: {self._resource_enabled}" + " }")
 
         return self
@@ -508,7 +486,7 @@ class Player:
             {'name': self._name, 'player': self}
         ]
 
-        all_enabled_players = self.get_all_lower_players_group().filter(enabled=True)
+        all_enabled_players = self.lower_group.all_players_group().filter(enabled=True)
         if enabled_lower_group_players != None:
             all_enabled_players += enabled_lower_group_players
         
@@ -522,7 +500,7 @@ class Player:
 
         for clocked_player in self._clocked_players:
             clocked_player['player']._playable_sub_players = []
-            playable_sub_players = clocked_player['player'].get_all_lower_players_group().filter(enabled=True)
+            playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True)
             for playable_player in playable_sub_players:
                 playable_player = {
                     'name': playable_player['name'],

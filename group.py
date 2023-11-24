@@ -76,16 +76,16 @@ class Group:
 
         if self._root_self == self._owner_player.lower_group: # add as lower player
 
-            all_upper_self_group = self._owner_player.get_all_upper_players_group()
+            all_upper_self_group = self._owner_player.upper_group.all_players_group()
             player_upper_self_group = all_upper_self_group.filter(player=player)
             if player_upper_self_group.len() > 0:
-                print (f"Player {player} already an upper Player of Player {self._owner_player}!")
+                print (f"Player '{player}' already an upper Player of Player '{self._owner_player}'!")
                 return self
 
-            all_lower_player_group = player.get_all_lower_players_group()
+            all_lower_player_group = player.lower_group.all_players_group()
             player_lower_player_group = all_lower_player_group.filter(player=self._owner_player)
             if player_lower_player_group.len() > 0:
-                print (f"Player {self._owner_player} already a lower Player of Player {player}!")
+                print (f"Player '{self._owner_player}' already a lower Player of Player '{player}'!")
                 return self
 
             player_already_added = self._owner_player.lower_group.filter(player=player)
@@ -102,16 +102,16 @@ class Group:
 
         elif self._root_self == self._owner_player.upper_group: #  # add as upper player
             
-            all_lower_self_group = self._owner_player.get_all_lower_players_group()
+            all_lower_self_group = self._owner_player.lower_group.all_players_group()
             player_lower_self_group = all_lower_self_group.filter(player=player)
             if player_lower_self_group.len() > 0:
-                print (f"Player {player} already a lower Player of Player {self._owner_player}!")
+                print (f"Player '{player}' already a lower Player of Player '{self._owner_player}'!")
                 return self
 
-            all_upper_player_group = player.get_all_upper_players_group()
+            all_upper_player_group = player.upper_group.all_players_group()
             player_upper_player_group = all_upper_player_group.filter(player=self._owner_player)
             if player_upper_player_group.len() > 0:
-                print (f"Player {self._owner_player} already an upper Player of Player {player}!")
+                print (f"Player '{self._owner_player}' already an upper Player of Player '{player}'!")
                 return self
 
             player_already_added = self._owner_player.upper_group.filter(player=player)
@@ -128,6 +128,46 @@ class Group:
 
         return self
     
+    def all_players_count(self):
+        
+        if self._root_self == self._owner_player.lower_group: # lower players
+
+            all_players = 0 # += operator bellow already does a copy
+
+            if self.len() > 0:
+                for player in self:
+                    all_players += player['player'].lower_group.all_players_count() + 1
+
+        elif self._root_self == self._owner_player.upper_group: # upper players
+
+            all_players = 0 # += operator bellow already does a copy
+
+            if self.len() > 0:
+                for player in self:
+                    all_players += player['player'].upper_group.all_players_count() + 1
+
+        return all_players # Last LEAF group is an empty group
+
+    def all_players_group(self):
+        
+        if self._root_self == self._owner_player.lower_group: # lower players
+
+            all_players = self # += operator bellow already does a copy
+
+            if self.len() > 0:
+                for player in self:
+                    all_players += player['player'].lower_group.all_players_group()
+
+        elif self._root_self == self._owner_player.upper_group: # upper players
+
+            all_players = self # += operator bellow already does a copy
+
+            if self.len() > 0:
+                for player in self:
+                    all_players += player['player'].upper_group.all_players_group()
+
+        return all_players # Last LEAF group is an empty group
+
     def disable(self):
         for player in self._players_list:
             player['enabled'] = False
@@ -271,7 +311,7 @@ class Group:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].lower_group.len()}")
+                        key_value_length = len(f"{player['player'].lower_group.all_players_count()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -306,7 +346,7 @@ class Group:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].lower_group.len()}"
+                            key_value_str = f"{player['player'].lower_group.all_players_count()}"
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -335,7 +375,7 @@ class Group:
         
         if self._root_self == self._owner_player.lower_group: # remove lower player
 
-            for player_to_remove in self._players_list[:]:
+            for player_to_remove in self._players_list[:]: # as copy
                 self._root_self._players_list.remove(player_to_remove)
                 if self != self._root_self:
                     self._players_list.remove(player_to_remove)
@@ -345,7 +385,7 @@ class Group:
 
         elif self._root_self == self._owner_player.upper_group: # remove upper player
 
-            for player_to_remove in self._players_list[:]:
+            for player_to_remove in self._players_list[:]: # as copy
                 self._root_self._players_list.remove(player_to_remove)
                 if self != self._root_self:
                     self._players_list.remove(player_to_remove)

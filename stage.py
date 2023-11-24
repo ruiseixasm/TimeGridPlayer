@@ -197,7 +197,7 @@ class Stage:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].lower_group.len()}")
+                        key_value_length = len(f"{player['player'].lower_group.all_players_count()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -232,7 +232,7 @@ class Stage:
                         elif key == 'description':
                             key_value_str = trimString(f"{player['player'].description}")
                         elif key == 'sub-players':
-                            key_value_str = f"{player['player'].lower_group.len()}"
+                            key_value_str = f"{player['player'].lower_group.all_players_count()}"
                         else:
                             key_value_str = f"{player[key]}"
 
@@ -259,6 +259,8 @@ class Stage:
 
     def print_tree(self):
 
+        sequence_index = 0
+
         def tree_top_level(player, level=0):
             level += 1
             top_level = 0
@@ -275,6 +277,7 @@ class Stage:
             
             lower_group = player['player'].lower_group
 
+            nonlocal sequence_index
             tabs += 1
             spaces_between = 4
             
@@ -283,9 +286,9 @@ class Stage:
                     player_str = ""
                     for key, value in string_top_length.items():
                         if key == 'sequence':
+                            #sequence_index += 1
                             key_value_str = f"{sequence_index}"
                             key_value_str = (" " * (string_top_length[key] - len(key_value_str))) + key_value_str + ": " + "«" * 6 * (tabs - 1) + "««««« " + "{ "
-                            #sequence_index += 1
                         else:
                             key_value_str = ""
                             if key == 'type':
@@ -293,7 +296,7 @@ class Stage:
                             elif key == 'description':
                                 key_value_str = trimString(f"{lower_player['player'].description}")
                             elif key == 'sub-players':
-                                key_value_str = f"{lower_player['player'].lower_group.len()}"
+                                key_value_str = f"{lower_player['player'].lower_group.all_players_count()}"
                             else:
                                 stage_player = self.filter(types=[lower_player['type']], names=[lower_player['name']])
                                 key_value_str = f"{stage_player.list()[0][key]}"
@@ -327,7 +330,7 @@ class Stage:
                     elif key == 'description':
                         key_value_length = len(f"{player['player'].description}")
                     elif key == 'sub-players':
-                        key_value_length = len(f"{player['player'].lower_group.len()}")
+                        key_value_length = len(f"{player['player'].lower_group.all_players_count()}")
                     else:
                         key_value_length = len(f"{player[key]}")
 
@@ -350,8 +353,8 @@ class Stage:
             header_left_half_length = int((header_char_length - header_class_length) / 2)
             header_right_half_length = header_left_half_length + (header_char_length - header_class_length) % 2
 
-            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
             sequence_index = 0
+            print(header_char * header_left_half_length + header_class + header_char * header_right_half_length)
             for player in self._players_list:
 
                 if player['player'].upper_group.len() == 0: # root players
@@ -367,7 +370,7 @@ class Stage:
                             elif key == 'description':
                                 key_value_str = trimString(f"{player['player'].description}")
                             elif key == 'sub-players':
-                                key_value_str = f"{player['player'].lower_group.len()}"
+                                key_value_str = f"{player['player'].lower_group.all_players_count()}"
                             else:
                                 key_value_str = f"{player[key]}"
 

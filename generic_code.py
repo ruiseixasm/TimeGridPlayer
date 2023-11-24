@@ -176,8 +176,10 @@ import lines_scales as L_SCALES
 
 class Test:
     def print_outer(self):
-
+        x = 1
         def print_inner():
+            nonlocal x
+            x += 1
             print ("Inner!")
 
         print ("Outer!")

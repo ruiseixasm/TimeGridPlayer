@@ -76,7 +76,7 @@ repeat.add(note)
 
 #master.play([1, 0], [4, 0])
 
-#stage_midi.play([1, 0], [4, 0])
+stage_midi.play([1, 0], [4, 0])
 
 stage_midi.print()
 stage_midi.print_tree()
