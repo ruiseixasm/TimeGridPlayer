@@ -94,6 +94,10 @@ class Player:
     def lower_group(self):
         return self._lower_group
             
+    @property
+    def playable_sub_players(self):
+        return self._playable_sub_players
+            
     class Action():
 
         def __init__(self, player):
@@ -168,6 +172,11 @@ class Player:
 
         def pulse(self, tick):
 
+            def getActionPlayers(playable_sub_players, action_name):
+                return [
+                    playable_player for playable_player in playable_sub_players if playable_player['name'] == action_name
+                ]
+
             # clock triggers staked to be called
             if (self._next_clocked_pulse == tick['pulse']):
                 clockedActions = [
@@ -219,7 +228,7 @@ class Player:
                                         arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
                                 action_name = triggered_action['lines'][action_line]
-                                action_players = self._player.getPlayablePlayers(action_name)
+                                action_players = getActionPlayers(self._player.playable_sub_players, action_name)
                                 for action_player in action_players:
                                     action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
@@ -401,11 +410,6 @@ class Player:
     def getFinishPulse(self):
         return self._finish_pulse
 
-    def getPlayablePlayers(self, name):
-        return [
-            playable_player for playable_player in self._playable_sub_players if playable_player['name'] == name
-        ]
-
     def getStaff(self):
         return self._staff
 
@@ -434,10 +438,11 @@ class Player:
                 'internal_clock': self._internal_clock,
                 'clock': [ self._clock.json_dictionnaire() ],
                 'staff': [ self._staff.json_dictionnaire() ],
+                'upper_group': [ self._upper_group.json_dictionnaire() ],
                 'lower_group': [ self._lower_group.json_dictionnaire() ]
             }
 
-    def json_load(self, file_name="player.json", json_object=None):
+    def json_load(self, file_name="player.json", json_object=None, stage=None):
 
         if json_object == None:
             # Opening JSON file
@@ -453,6 +458,8 @@ class Player:
 
                 self._clock.json_load(file_name, dictionnaire['clock'])
                 self._staff.json_load(file_name, dictionnaire['staff'])
+                self._upper_group.json_load(file_name, dictionnaire['upper_group'], stage)
+                self._lower_group.json_load(file_name, dictionnaire['lower_group'], stage)
 
                 break
 

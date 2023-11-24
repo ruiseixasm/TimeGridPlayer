@@ -104,7 +104,6 @@ class Stage:
         stage = {
                 'part': "stage",
                 'class': self._root_self.__class__.__name__,
-                'is_none': self._root_self._none,
                 'next_id': self._root_self._next_id,
                 'players': []
             }
@@ -125,25 +124,50 @@ class Stage:
                 # Reading from json file
                 json_object = json.load(openfile)
 
+        for player_data in self._root_self._players_list:
+            player_data['player'].discard_resource()
+
         self._root_self._players_list.clear()
 
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
-                self._root_self._none = stage_dictionnaire['is_none']
                 self._root_self._next_id = stage_dictionnaire['next_id']
                 for player_dictionnaire in stage_dictionnaire['players']:
-                    player = self._root_self._playerFactoryMethod(player_dictionnaire)
+                    player_type = player_dictionnaire['class']
+                    player_name = player_dictionnaire['name']
+                    description = player_dictionnaire['description']
+                    player = self._root_self.playerFactoryMethod(type=player_type, name=player_name, description=description)
+
                     if player != None:
-                        player.json_load(file_name, [ player_dictionnaire ])
+
+                        # Enables Resources as needed
+                        if player_dictionnaire['resource_name'] != None:
+                            player.use_resource(player_dictionnaire['resource_name'])
+                            if player_dictionnaire['resource_enabled']:
+                                player.enable_resource()
+
                         player_data = {
                             'id': player_dictionnaire['id'],
-                            'type': player.__class__.__name__,
-                            'name': player.name,
+                            'type': player_type,
+                            'name': player_name,
                             'player': player,
                             'enabled': player_dictionnaire['enabled']
                         }
                         self._root_self._players_list.append(player_data)
-                        player.main_stage = self._root_self
+                        
+                break
+
+        for stage_dictionnaire in json_object:
+            if stage_dictionnaire['part'] == "stage":
+                
+                for player_dictionnaire in stage_dictionnaire['players']:
+
+                    player_staged = self._root_self.filter(ids=[player_dictionnaire['id']])
+                    if player_staged.len() > 0:
+
+                        # Rewires Players with their Groups
+                        player_staged.list()[0]['player'].json_load(file_name, [ player_dictionnaire ], stage=self._root_self) # injects stage in the dictionnaire
+                        
                 break
 
         return self
@@ -404,6 +428,7 @@ class Stage:
         for player_data in self._players_list[:]:
             player_data['player'].upper_group.remove()
             player_data['player'].lower_group.remove()
+            player_data['player'].discard_resource()
             self._root_self._players_list.remove(player_data)
         self._players_list.clear()
 

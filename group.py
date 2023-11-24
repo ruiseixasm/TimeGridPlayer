@@ -56,14 +56,6 @@ class Group:
 
         return Group(self._owner_player, self_players_list + other_players_list, self._root_self, self._next_id)
         
-    def _playerFactoryMethod(self, player_dictionnaire):
-        player = None
-        match player_dictionnaire['class']:
-            case "Player" | "Trigger":
-                player = PLAYER.Player(player_dictionnaire['name'], player_dictionnaire['description'])
-
-        return player
-
     def add(self, player):
 
         player_data = {
@@ -228,13 +220,14 @@ class Group:
         for player_dictionnaire in self._root_self._players_list:
             player_json = {}
             player_json['id'] = player_dictionnaire['id']
+            player_json['class'] = player_dictionnaire['type']
+            player_json['name'] = player_dictionnaire['name']
             player_json['enabled'] = player_dictionnaire['enabled']
-            player_json = player_dictionnaire['player'].json_dictionnaire()
             group['players'].append( player_json )
 
         return group
     
-    def json_load(self, file_name="group.json", json_object=None):
+    def json_load(self, file_name="group.json", json_object=None, stage=None):
 
         if json_object == None:
             # Opening JSON file
@@ -247,18 +240,23 @@ class Group:
         for group_dictionnaire in json_object:
             if group_dictionnaire['part'] == "group":
                 self._root_self._next_id = group_dictionnaire['next_id']
+                # where each Player is loaded
                 for player_dictionnaire in group_dictionnaire['players']:
-                    player = self._root_self._playerFactoryMethod(player_dictionnaire)
-                    if player != None:
-                        player.json_load(file_name, [ player_dictionnaire ])
-                        player_data = {
-                            'id': player_dictionnaire['id'],
-                            'class': player.__class__.__name__,
-                            'name': player.name,
-                            'player': player,
-                            'enabled': player_dictionnaire['enabled']
-                        }
-                        self._root_self._players_list.append(player_data)
+                    player_type = player_dictionnaire['class']
+                    player_name = player_dictionnaire['name']
+                    if stage != None:
+                        player_staged = stage.filter(types=[player_type], names=[player_name])
+                        if player_staged.len() > 0:
+                            player = player_staged.list()[0]['player']
+                            if player != None:
+                                player_data = {
+                                    'id': player_dictionnaire['id'],
+                                    'type': player_type,
+                                    'name': player_name,
+                                    'player': player,
+                                    'enabled': player_dictionnaire['enabled']
+                                }
+                                self._root_self._players_list.append(player_data)
                 break
 
         return self

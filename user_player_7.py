@@ -53,12 +53,12 @@ repeat = stage_midi.player("repeat")
 scales.scale("minor", 5)
 lines_minor_scale = scales.lines()
 repeat.rulers().add({'type': "actions", 'group': "note", 'position': [0, 0], 'lines': ["note"]})
-repeat.rulers().duplicate(7).duplicate().distribute_position(16).spread_lines().print_lines(-10, 10)
+repeat.rulers().duplicate(7).duplicate().distribute_position(16).spread_lines().print_lines()
 repeat.rulers().add({'type': "arguments", 'group': "key", 'position': [0, 0], 'lines': lines_minor_scale})
 repeat.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 repeat.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 repeat.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [0, 0], 'lines': [0.5]})
-repeat.rulers().filter(type="arguments").print().print_lines(-10, 10)
+repeat.rulers().filter(type="arguments").print().print_lines(0, 15)
 
 
 master.set_tempo(240)
@@ -76,7 +76,15 @@ repeat.add(note)
 
 #master.play([1, 0], [4, 0])
 
-stage_midi.play([1, 0], [4, 0])
+#stage_midi.play([1, 0], [4, 0])
 
 stage_midi.print()
 stage_midi.print_tree()
+
+stage_midi.json_save("stage_2.json")
+stage_midi.json_load("stage_2.json")
+
+stage_midi.print()
+stage_midi.print_tree()
+
+stage_midi.play([1, 0], [4, 0])
