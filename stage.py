@@ -372,7 +372,7 @@ class Stage:
             spaces_between = 4
             header_char_length = full_string_top_length + 77 + len("......" * top_level)
 
-            header_type = "   " + self.__class__.__name__ + " Tree" + "   "
+            header_type = "   " + self.__class__.__name__ + "   "
             header_type_length = len(header_type)
             header_left_half_length = int((header_char_length - header_type_length) / 2)
             header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2

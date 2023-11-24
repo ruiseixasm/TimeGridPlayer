@@ -15,8 +15,6 @@ class Staff:
 
     def __init__(self, player):
 
-        self._none = False
-
         self._player = player
         self._rulers = Staff.Rulers(self)
         self._staff = []
@@ -28,14 +26,17 @@ class Staff:
         self.set_range([], [])
         self.set()
 
-    def _is_none(self):
-        return self._none
+    @property
+    def is_none(self):
+        return (self.__class__ == StaffNone)
 
+    @property
+    def player(self):
+        return self._player
+            
     class Rulers():
 
         def __init__(self, staff, rulers_list=None, root_self=None, start_id=0):
-
-            self._none = False
 
             self._staff = staff
             self._rulers_list = []
@@ -49,6 +50,14 @@ class Staff:
 
             self.current_ruler = 0
 
+        @property
+        def is_none(self):
+            return (self.__class__ == Staff.RulersNone)
+
+        @property
+        def player(self):
+            return self._staff.player
+            
         def __iter__(self):
             return self
         
@@ -61,9 +70,6 @@ class Staff:
                 self.current_ruler = 0  # Reset to 0 when limit is reached
                 raise StopIteration
         
-        def _is_none(self):
-            return self._none
-
         # + Operator Overloading in Python
         def __add__(self, other):
             '''Works as Union'''
@@ -107,7 +113,7 @@ class Staff:
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
-            if not self._none and ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
+            if not self.is_none and ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
 
                 structured_ruler = {
                     'id': self._root_self._next_id,
@@ -399,7 +405,6 @@ class Staff:
             return {
                     'part': "rulers",
                     'type': self.__class__.__name__,
-                    'is_none': self._none,
                     'rulers_list': self.root().list(),
                     'next_id': self.next_id()
                 }
@@ -420,7 +425,6 @@ class Staff:
                         root_self=None,
                         start_id=dictionnaire['next_id']
                     )
-                    self._none = dictionnaire['is_none']
                     self._staff.clear()
                     self.drop()
                     break
@@ -564,11 +568,9 @@ class Staff:
             odd_rulers_list = self._rulers_list[1::2]
             return Staff.Rulers(self._staff, odd_rulers_list, self._root_self, self._next_id)
         
-        def player(self):
-            return self._staff.player()
-
         def print(self):
             
+            header_char = "'"
             if len(self._rulers_list) > 0:
                 string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'group': 0, 'position': 0, 'lines': 0, 'offset': 0, 'enabled': 0, 'on_staff': 0}
                 sequence_index = 0
@@ -597,7 +599,14 @@ class Staff:
 
                 spaces_between = 4
 
-                print("'" * (full_string_top_length + 95))
+                header_char_length = full_string_top_length + 95
+
+                header_type = "  " + self.player.name + "  "
+                header_type_length = len(header_type)
+                header_left_half_length = int((header_char_length - header_type_length) / 2)
+                header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
+
+                print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
                 sequence_index = 0
                 for ruler in self._rulers_list:
 
@@ -632,16 +641,17 @@ class Staff:
                         ruler_str +=  key_value_str
                     ruler_str += " }"
                     print(ruler_str)
-                print("'" * (full_string_top_length + 95))
+                print(header_char * header_char_length)
 
             else:
-                print("'" * 7)
+                print(header_char * 7)
                 print("[EMPTY]")
-                print("'" * 7)
+                print(header_char * 7)
             return self
 
         def print_lines(self, first_line=None, last_line=None):
             
+            header_char = "-"
             rulers_size = self.len()
             if rulers_size > 0:
                 rulers_list = self.list()
@@ -716,6 +726,15 @@ class Staff:
 
                 spaces_between = 4
 
+                header_char_length = ((full_string_top_length - 3) + 4 * (total_lines + 3))
+
+                header_type = "  " + self.player.name + "  "
+                header_type_length = len(header_type)
+                header_left_half_length = int((header_char_length - header_type_length) / 2)
+                header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
+
+                print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
+
                 lines_str_header = " " * (string_top_length['sequence'] + 1) + "lines:" + " " * (string_top_length['id'] + 4)
                 lines_str_tail = ""
 
@@ -731,11 +750,9 @@ class Staff:
 
                     lines_str_tail += key_value_str
 
-                print("-" * (full_string_top_length - 3) + "----" * (total_lines + 3))
-
                 print(lines_str_header + lines_str_tail)
 
-                print("-" * (full_string_top_length - 3) + "----" * (total_lines + 3))
+                print(header_char * header_char_length)
 
                 sequence_index = 0
                 for ruler in self._rulers_list:
@@ -779,12 +796,12 @@ class Staff:
 
                     print(lines_str)
 
-                print("-" * (full_string_top_length - 3) + "----" * (total_lines + 3))
+                print(header_char * header_char_length)
 
             else:
-                print("-" * 7)
+                print(header_char * 7)
                 print("[EMPTY]")
-                print("-" * 7)
+                print(header_char * 7)
             return self
 
         def remove(self):
@@ -1045,8 +1062,6 @@ class Staff:
         def __init__(self, staff):
             super().__init__(staff)
 
-            self._none = True
-
 # Staff METHODS ###############################################################################################################################
 
     def _getStaffSums(self, staff_list): # outputs single staff pulse
@@ -1174,7 +1189,6 @@ class Staff:
         return {
                 'part': "staff",
                 'type': self.__class__.__name__,
-                'is_none': self._none,
                 'time_signature': self._time_signature,
                 'total_pulses': self._total_pulses,
                 'play_range': self._play_range,
@@ -1191,7 +1205,6 @@ class Staff:
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "staff":
-                self._none = dictionnaire['is_none']
                 size_measures = dictionnaire['time_signature']['size_measures']
                 beats_per_measure = dictionnaire['time_signature']['beats_per_measure']
                 steps_per_beat = dictionnaire['time_signature']['steps_per_beat']
@@ -1227,9 +1240,6 @@ class Staff:
     def list(self):
         return self._staff
     
-    def player(self):
-        return self._player
-
     def playRange(self):
         return self._play_range
 
@@ -1453,8 +1463,6 @@ class StaffNone(Staff):
 
     def __init__(self, player):
         super().__init__(player)
-
-        self._none = True
 
         self._rulers = self.RulersNone(self)
 
