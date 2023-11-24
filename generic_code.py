@@ -169,7 +169,19 @@ import lines_scales as L_SCALES
 # print(keys_scale)
 # print(keys_scale * 2)
 
-class Silly:
-    pass
+# class Silly:
+#     pass
 
-print (Silly.__name__)
+# print (Silly.__name__)
+
+class Test:
+    def print_outer(self):
+
+        def print_inner():
+            print ("Inner!")
+
+        print ("Outer!")
+        print_inner()
+
+test = Test()
+test.print_outer()
