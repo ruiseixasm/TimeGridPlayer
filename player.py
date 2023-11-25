@@ -333,7 +333,9 @@ class Player:
             self._next_pulse = 0
             self._next_pulse_time = time.time()
 
-            self._tick = {'tempo': self._tempo, 'pulse': None, 'clock': self, 'player': self._player, 'fast_forward': False, 'pulse_ticks': 0}
+            self._tick = {'tempo': self._tempo, 'pulse': self._next_pulse, 'clock': self, 'player': self._player, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks}
+
+            return self._tick
             
         def stop(self, FORCE_STOP = False):
             pass
@@ -533,11 +535,8 @@ class Player:
             non_fast_forward_range[1] = self._staff.pulses(finish)
 
         # Self own Action needs to be triggered in order to generate respective Action
-        self._clock.start(non_fast_forward_range)
-        tick = self._clock.tick()
+        tick = self._clock.start(non_fast_forward_range)
         self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
-
-        self._clock.start(non_fast_forward_range)
 
         still_playing = True
         while still_playing:
