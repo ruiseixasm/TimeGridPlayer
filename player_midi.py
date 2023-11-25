@@ -118,6 +118,8 @@ class Clock(PLAYER.Player):
             return self._tick
             
         def tick(self, tick = None):
+            if tick != None:
+                self._pulse_duration = self.getPulseDuration(tick['tempo']['beats_per_minute'], 24) # in seconds
             self._tick = super().tick(tick)
             if self._tick['pulse'] != None: # a pulse of this clock
                 # print(f"\tclock pulse")
