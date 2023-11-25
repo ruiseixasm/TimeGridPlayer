@@ -113,8 +113,9 @@ class Player:
             self._finish_pulse = self._player.rangePulses()['finish']
             self._play_pulse = self._start_pulse
 
-            self._clocked_actions = []
-            self._next_clocked_pulse = -1
+            self._clocked_actions = []      # clocked actions list
+            self._next_clocked_pulse = -1   # next programmed pulse on clocked actions list
+            self._next_clock_pulse = -1     # next expected pulse from Clock
 
             self._total_ticks = 0
             self._min_ticks = 100000 * 100000
@@ -170,7 +171,7 @@ class Player:
 
             return line_argument_value
 
-        def pulse(self, tick):
+        def pulse(self, tick, first_pulse=False):
 
             def getActionPlayers(playable_sub_players, action_name):
                 return [
@@ -197,42 +198,48 @@ class Player:
 
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
-                position = self._staff.position(pulses=self._play_pulse)
-                enabled_arguments_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
-                enabled_actions_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
+                if first_pulse:
+                    self._next_clock_pulse = tick['pulse']
 
-                self._total_ticks += tick['tick_pulse']
-                self._min_ticks = min(self._min_ticks, tick['tick_pulse'])
-                if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
-                    self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
-                    self._total_ticks = 0
-                    self._min_ticks = 100000 * 100000
+                if tick['pulse'] == self._next_clock_pulse: # avoids repeated action on a single pulse
 
-                if (enabled_arguments_rulers > 0):
-                    
-                    pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
-                    self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge()
+                    position = self._staff.position(pulses=self._play_pulse)
+                    enabled_arguments_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
+                    enabled_actions_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
 
-                if (enabled_actions_rulers > 0):
-                    
-                    pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
-                    merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
+                    self._total_ticks += tick['pulse_ticks']
+                    self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
+                    if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
+                        self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
+                        self._total_ticks = 0
+                        self._min_ticks = 100000 * 100000
 
-                    for triggered_action in pulse_actions_rulers: # single ruler actions
-                        for action_line in range(len(triggered_action['lines'])):
-                            if (triggered_action['lines'][action_line] != None):
-                                triggered_action['line'] = action_line
-                                for arguments_ruler in merged_staff_arguments:
-                                    arguments_ruler['line'] = action_line + triggered_action['offset'] - arguments_ruler['offset']
-                                    if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
-                                        arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
+                    if (enabled_arguments_rulers > 0):
+                        
+                        pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
+                        self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge()
 
-                                action_name = triggered_action['lines'][action_line]
-                                action_players = getActionPlayers(self._player.playable_sub_players, action_name)
-                                for action_player in action_players:
-                                    action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                    if (enabled_actions_rulers > 0):
+                        
+                        pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
+                        merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
 
-                self._play_pulse += 1
+                        for triggered_action in pulse_actions_rulers: # single ruler actions
+                            for action_line in range(len(triggered_action['lines'])):
+                                if (triggered_action['lines'][action_line] != None):
+                                    triggered_action['line'] = action_line
+                                    for arguments_ruler in merged_staff_arguments:
+                                        arguments_ruler['line'] = action_line + triggered_action['offset'] - arguments_ruler['offset']
+                                        if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
+                                            arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
+
+                                    action_name = triggered_action['lines'][action_line]
+                                    action_players = getActionPlayers(self._player.playable_sub_players, action_name)
+                                    for action_player in action_players:
+                                        action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+
+                    self._play_pulse += 1
+                    self._next_clock_pulse += 1
 
             elif len(self._clocked_actions) == 0:
                 self._play_mode = False
@@ -322,19 +329,19 @@ class Player:
             if non_fast_forward_range_pulses != None and non_fast_forward_range_pulses != [] and len(non_fast_forward_range_pulses) == 2:
                 self._non_fast_forward_range_pulses = non_fast_forward_range_pulses
 
-            self._tick_pulse = 0
+            self._pulse_ticks = 0
             self._next_pulse = 0
             self._next_pulse_time = time.time()
 
-            self._tick = {'tempo': self._tempo, 'pulse': None, 'clock': self, 'player': self._player, 'fast_forward': False, 'tick_pulse': 0}
+            self._tick = {'tempo': self._tempo, 'pulse': None, 'clock': self, 'player': self._player, 'fast_forward': False, 'pulse_ticks': 0}
             
         def stop(self, FORCE_STOP = False):
             pass
 
         def tick(self):
 
-            self._tick['tick_pulse'] = self._tick_pulse
-            self._tick_pulse += 1
+            self._tick['pulse_ticks'] = self._pulse_ticks
+            self._pulse_ticks += 1
 
             if not self._next_pulse_time > time.time():
 
@@ -351,7 +358,7 @@ class Player:
                     self._next_pulse_time += self._pulse_duration
                     
                 self._next_pulse += 1
-                self._tick_pulse = 0
+                self._pulse_ticks = 0
 
             else:
                 self._tick['pulse'] = None
@@ -525,7 +532,7 @@ class Player:
         if finish != None:
             non_fast_forward_range[1] = self._staff.pulses(finish)
 
-        # At least one Action needs to be externally triggered
+        # Self own Action needs to be triggered in order to generate respective Action
         self._clock.start(non_fast_forward_range)
         tick = self._clock.tick()
         self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
@@ -612,16 +619,15 @@ class Player:
 
     ### PLAYER ACTIONS ###
 
-    def actionFactoryMethod(self):
+    def actionFactoryMethod(self): # Factory Method Pattern
         return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
-        player_action = self.actionFactoryMethod()
+    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        player_action = self.actionFactoryMethod() # Factory Method Pattern
         self._actions.append(player_action)
         player_action.external_arguments_rulers = merged_staff_arguments
         player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
-        if triggered_action != None:
-            player_action.pulse(tick)
+        player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
 
     ### CLASS ###
     

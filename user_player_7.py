@@ -87,4 +87,4 @@ stage_midi.json_load("stage_2.json")
 stage_midi.print()
 stage_midi.print_tree()
 
-#stage_midi.play([1, 0], [4, 0])
+stage_midi.play([1, 0], [4, 0])
