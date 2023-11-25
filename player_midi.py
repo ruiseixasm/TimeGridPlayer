@@ -30,6 +30,7 @@ class Note(PLAYER.Player):
         
         def __init__(self, player):
             super().__init__(player) # not self init
+            self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1, 'duration': 4}
 
         ### ACTION ACTIONS ###
@@ -96,6 +97,7 @@ class Clock(PLAYER.Player):
         
         def __init__(self, player):
             super().__init__(player) # not self init
+            self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1, 'duration': 4}
 
         ### ACTION ACTIONS ###

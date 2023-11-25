@@ -94,6 +94,10 @@ class Player:
     def lower_group(self):
         return self._lower_group
             
+    # @property
+    # def actions(self):
+    #     return self._actions
+            
     @property
     def playable_sub_players(self):
         return self._playable_sub_players
@@ -178,7 +182,7 @@ class Player:
                     playable_player for playable_player in playable_sub_players if playable_player['name'] == action_name
                 ]
 
-            # clock triggers staked to be called
+            # clocked triggers staked to be called
             if (self._next_clocked_pulse == tick['pulse']):
                 clockedActions = [
                     clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
@@ -204,8 +208,6 @@ class Player:
                 if tick['pulse'] == self._next_clock_pulse: # avoids repeated action on a single pulse
 
                     position = self._staff.position(pulses=self._play_pulse)
-                    enabled_arguments_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['arguments']['enabled']
-                    enabled_actions_rulers = self._staff.filterList(pulse=self._play_pulse)[0]['actions']['enabled']
 
                     self._total_ticks += tick['pulse_ticks']
                     self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
@@ -214,12 +216,13 @@ class Player:
                         self._total_ticks = 0
                         self._min_ticks = 100000 * 100000
 
-                    if (enabled_arguments_rulers > 0):
+                    pulse_data = self._staff.pulse(pulse=self._play_pulse)
+                    if (pulse_data['arguments']['enabled'] > 0):
                         
                         pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
                         self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge()
 
-                    if (enabled_actions_rulers > 0):
+                    if (pulse_data['actions']['enabled'] > 0):
                         
                         pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
                         merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
@@ -244,6 +247,8 @@ class Player:
             elif len(self._clocked_actions) == 0:
                 self._play_mode = False
                 self._play_pulse = self._start_pulse
+                # # remove itself from actions list 
+                # self._player.actions.remove(self)
 
             return self
         
@@ -432,7 +437,7 @@ class Player:
             if action.isPlaying():
                 is_playing = True
             else:
-                self._actions.remove(action)
+                self._actions.remove(action) # removal from action is here
         return is_playing
 
     def json_dictionnaire(self):
