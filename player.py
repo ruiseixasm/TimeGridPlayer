@@ -23,8 +23,8 @@ class Player:
         self._description = description
 
         self._resources = resources
-        if self._resources == None:
-            self._resources = RESOURCES.ResourcesNone()
+        if resources == None:
+            self._resources = RESOURCES.Resources()
         self._resource = None
         self._resource_name = None
         self._resource_enabled = False
@@ -328,7 +328,9 @@ class Player:
             
             self._pulse_duration = self.getPulseDuration(self._tempo['beats_per_minute'], self._tempo['pulses_per_beat']) # in seconds
 
-        def start(self, non_fast_forward_range_pulses = []): # Where a non fast forward range is set
+            return self
+
+        def start(self, non_fast_forward_range_pulses = [], tick = None): # Where a non fast forward range is set
 
             self._non_fast_forward_range_pulses = None
             if non_fast_forward_range_pulses != None and non_fast_forward_range_pulses != [] and len(non_fast_forward_range_pulses) == 2:
@@ -338,14 +340,14 @@ class Player:
             self._next_pulse = 0
             self._next_pulse_time = time.time()
 
-            self._tick = {'tempo': self._tempo, 'pulse': self._next_pulse, 'clock': self, 'player': self._player, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks}
+            self._tick = {'player': self._player, 'tempo': self._tempo, 'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks}
 
             return self._tick
             
-        def stop(self, FORCE_STOP = False):
-            pass
+        def stop(self, tick = None):
+            return self._tick
 
-        def tick(self):
+        def tick(self, tick = None):
 
             self._tick['pulse_ticks'] = self._pulse_ticks
             self._pulse_ticks += 1
@@ -353,9 +355,13 @@ class Player:
             if not self._next_pulse_time > time.time():
 
                 self._tick['pulse'] = self._next_pulse
-                self._tick['fast_forward'] = self._non_fast_forward_range_pulses != None \
-                    and (self._non_fast_forward_range_pulses[0] != None and self._next_pulse < self._non_fast_forward_range_pulses[0] \
-                    or self._non_fast_forward_range_pulses[1] != None and not self._next_pulse < self._non_fast_forward_range_pulses[1])
+
+                if tick != None:
+                    self._tick['fast_forward'] = tick['fast_forward']
+                else:
+                    self._tick['fast_forward'] = self._non_fast_forward_range_pulses != None \
+                        and (self._non_fast_forward_range_pulses[0] != None and self._next_pulse < self._non_fast_forward_range_pulses[0] \
+                        or self._non_fast_forward_range_pulses[1] != None and not self._next_pulse < self._non_fast_forward_range_pulses[1])
             
                 if self._tick['fast_forward']:
                     self._next_pulse_time = time.time()
@@ -376,12 +382,9 @@ class Player:
 
     def use_resource(self, name=None):
         if self._resources != None and name != self._resource_name:
-            self.disable_resource()
+            self.discard_resource()
             self._resource = self._resources.add(name)
-            if self._resource.__class__ != RESOURCES.Resources.ResourceNone:
-                self._resource_name = name
-            else:
-                self._resource_name = None
+            self._resource_name = name
         return self
 
     def enable_resource(self):
@@ -414,9 +417,11 @@ class Player:
         self._lower_group.filter(player=player).remove()
         return self
     
-    def finish(self):
-        if self._internal_clock:
+    def finish(self, tick):
+        if self == tick['player']:
             self._clock.stop()
+        elif self._internal_clock:
+            self._clock.stop(tick)
 
     def getClock(self):
         return self._clock
@@ -530,9 +535,6 @@ class Player:
                 if not playable_player in clocked_player['player']._playable_sub_players:
                     clocked_player['player']._playable_sub_players.append(playable_player)
 
-        for player in self._clocked_players:
-            player['player'].start()
-        
         non_fast_forward_range = [None, None]
         if start != None:
             non_fast_forward_range[0] = self._staff.pulses(start)
@@ -541,20 +543,21 @@ class Player:
 
         # Self own Action needs to be triggered in order to generate respective Action
         tick = self._clock.start(non_fast_forward_range)
+        for player in self._clocked_players:
+            player['player'].start(tick)
         self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
 
         still_playing = True
         while still_playing:
-            tick = self._clock.tick()
+            tick = self._clock.tick() # where it ticks
             still_playing = False
             for player in self._clocked_players:
                 player['player'].tick(tick)
                 if player['player'].isPlaying():
                     still_playing = True
         
-        self._clock.stop()
         for player in self._clocked_players:
-            player['player'].finish()
+            player['player'].finish(tick)
 
         return self
 
@@ -596,17 +599,17 @@ class Player:
     def staff(self):
         return self._staff
     
-    def start(self):
-        if self._internal_clock:
-            self._clock.start()
+    def start(self, tick):
+        if self._internal_clock and self != tick['player']:
+            self._clock.start(tick=tick)
         return self
 
     def tempo(self):
         return self._clock.getClockTempo()['beats_per_minute']
 
     def tick(self, tick):
-        if self._internal_clock:
-            tick = self._clock.tick()
+        if self._internal_clock and self != tick['player']:
+            tick = self._clock.tick(tick) # changes the tick for the internal clock one
         if tick['pulse'] != None:
             for action in self._actions:
                 action.pulse(tick)
@@ -632,6 +635,8 @@ class Player:
         player_action.external_arguments_rulers = merged_staff_arguments
         player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
         player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
+
+        return self
 
     ### CLASS ###
     

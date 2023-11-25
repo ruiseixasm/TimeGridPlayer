@@ -18,10 +18,14 @@ stage_midi = STAGE_MIDI.StageMidi()
 stage_midi.add("master")
 stage_midi.add("note", type="Note")
 stage_midi.add("repeat", type="Master")
+stage_midi.add("clock", type="Clock")
 
 note = stage_midi.print().player("note").print()
 note.use_resource("loop").enable_resource()
 note.print()
+midi_clock = stage_midi.print().player("clock").print()
+midi_clock.use_resource("loop").enable_resource()
+midi_clock.print()
 
 scales = LINES_SCALES.Scales()
 

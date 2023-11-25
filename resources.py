@@ -95,7 +95,7 @@ class Resources:
         
         @property
         def is_none(self):
-            return (self.__class__.__name__ == ResourcesNone.ResourceNone.__name__)
+            return (self.__class__ == ResourcesNone.ResourceNone)
 
         def enable(self):
             return self

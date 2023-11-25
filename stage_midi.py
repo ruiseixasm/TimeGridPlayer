@@ -17,14 +17,18 @@ class StageMidi(STAGE.Stage):
     
     def __init__(self, players_list=None, root_self=None, start_id=0):
         super().__init__(players_list, root_self, start_id)
-        self._resources_midi = RESOURCES_MIDI.Midi()
+        self._resources = RESOURCES_MIDI.Midi()
 
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
         match type:
-            case "Note":
-                if resources == None:
-                    return PLAYER_MIDI.Note(name, description, self._resources_midi)
-                return PLAYER_MIDI.Note(name, description, resources)
             case "Master":
                 return PLAYER_MIDI.Master(name, description)
+            case "Note":
+                if resources == None:
+                    return PLAYER_MIDI.Note(name, description, self._resources)
+                return PLAYER_MIDI.Note(name, description, resources)
+            case "Clock":
+                if resources == None:
+                    return PLAYER_MIDI.Clock(name, description, self._resources)
+                return PLAYER_MIDI.Clock(name, description, resources)
         return super().playerFactoryMethod(name, description, resources, type)

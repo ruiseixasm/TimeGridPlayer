@@ -1161,8 +1161,15 @@ class Staff:
     def filterList(self, measure=None, beat=None, step=None, pulse=None, list=None):
         if list != None:
             filtered_list = list[:]
+            if pulse != None:
+                filtered_list = [
+                    pulses for pulses in filtered_list if pulses['pulse'] == pulse
+                ]
         else:
-            filtered_list = self._staff[:]
+            if pulse != None:
+                filtered_list = [ self.pulse(pulse) ]
+            else:
+                filtered_list = self._staff[:]
 
         if measure != None:
             filtered_list = [
@@ -1175,10 +1182,6 @@ class Staff:
         if step != None:
             filtered_list = [
                 pulses for pulses in filtered_list if pulses['step'] == step
-            ]
-        if pulse != None:
-            filtered_list = [
-                pulses for pulses in filtered_list if pulses['pulse'] == pulse
             ]
         return filtered_list
 
