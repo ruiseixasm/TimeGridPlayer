@@ -118,7 +118,7 @@ class Staff:
                 structured_ruler = {
                     'id': self._root_self._next_id,
                     'type': ruler['type'],
-                    'group': "main",
+                    'group': "default",
                     'position': [0, 0],
                     'lines': [],
                     'offset': None,
@@ -143,7 +143,6 @@ class Staff:
                     structured_ruler['offset'] = 0
                 if ('enabled' in ruler and ruler['enabled'] != None):
                     structured_ruler['enabled'] = ruler['enabled']
-
 
                 self._root_self._rulers_list.append(structured_ruler)
                 if (self != self._root_self):
@@ -200,8 +199,8 @@ class Staff:
             enabled_rulers_list = self.filter(enabled=False).unique().list()
             for disabled_ruler in enabled_rulers_list:
                 disabled_ruler['enabled'] = True
-            if self._staff != None:
-                self._staff.enable(enabled_rulers_list)
+                
+            self._staff.enable(enabled_rulers_list)
             return self
         
         def enabled(self):
@@ -216,8 +215,8 @@ class Staff:
         
         def disable(self):
             disabled_rulers_list = self.filter(enabled=True).unique().list()
-            if self._staff != None:
-                self._staff.disable(disabled_rulers_list)
+            
+            self._staff.disable(disabled_rulers_list)
             for enabled_ruler in disabled_rulers_list:
                 enabled_ruler['enabled'] = False
             return self
@@ -228,7 +227,7 @@ class Staff:
         def distribute_position(self, range_steps=None, range_positions=[[None, None], [None, None]]):
             sorted_rulers = self.unique().sort()
             number_intervals = sorted_rulers.len()
-            if self._staff != None and number_intervals > 1:
+            if number_intervals > 1:
                 if range_positions[0][0] != None and range_positions[0][1] != None and range_positions[1][0] != None and range_positions[1][1] != None:
                     distance_pulses = self._staff.pulses(range_positions[1]) - self._staff.pulses(range_positions[0]) # total distance
                     start_pulses = self._staff.pulses(range_positions[0])
@@ -254,8 +253,7 @@ class Staff:
             return sorted_rulers
         
         def drop(self):
-            if self._staff != None:
-                self._staff.add(self.unique().list())
+            self._staff.add(self.unique().list())
             return self
 
         def duplicate(self, times=1):
@@ -322,8 +320,7 @@ class Staff:
             return self
         
         def float(self):
-            if self._staff != None:
-                self._staff.remove(self.unique().list())
+            self._staff.remove(self.unique().list())
             return self
         
         def filter(self, ids = [], type = None, groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
@@ -479,7 +476,7 @@ class Staff:
                 lines['offset'] = single_ruler.list()[0]['offset']
             return lines
 
-        def merge(self):
+        def merge(self, merge_none=False):
 
             type_groups = [] # merge agregates rulers by type and gorup
 
@@ -512,12 +509,27 @@ class Staff:
                     'enabled': subject_rulers_list[0]['enabled'],
                     'on_staff': False
                 }
-
+                
+                subject_head_offset = None
+                subject_tail_offset = None
                 for subject_ruler in subject_rulers_list:
-                    for i in range(len(subject_ruler['lines'])):
-                        merged_line = i + subject_ruler['offset'] - merged_ruler['offset']
-                        if (merged_ruler['lines'][merged_line] == None):
+
+                    lines = len(subject_ruler['lines'])
+                    actual_subject_head_offset = subject_ruler['offset'] - merged_ruler['offset']
+                    actual_subject_tail_offset = actual_subject_head_offset + lines - 1
+
+                    for i in range(lines):
+                        merged_line = actual_subject_head_offset + i
+                        if (not merge_none and merged_ruler['lines'][merged_line] == None \
+                            or merge_none and (subject_head_offset == None or merged_line < subject_head_offset or merged_line > subject_tail_offset)):
                             merged_ruler['lines'][merged_line] = subject_ruler['lines'][i]
+
+                    if subject_head_offset == None:
+                        subject_head_offset = actual_subject_head_offset
+                        subject_tail_offset = actual_subject_tail_offset
+                    else:
+                        subject_head_offset = min(subject_head_offset, actual_subject_head_offset)
+                        subject_tail_offset = max(subject_tail_offset, actual_subject_tail_offset)
 
                 merged_rulers.append(merged_ruler)
 
@@ -806,9 +818,8 @@ class Staff:
 
         def remove(self):
             self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
-            if self._staff != None:
-                unique_rulers_list = self.unique().list()
-                self._staff.remove(unique_rulers_list)
+            unique_rulers_list = self.unique().list()
+            self._staff.remove(unique_rulers_list)
             self._rulers_list = []
             return self
         
@@ -839,21 +850,18 @@ class Staff:
             return self
         
         def reroot(self):
-            if self._staff != None:
-                extra_root_rulers = (self._root_self - self).unique()
-                self._staff.remove(extra_root_rulers.list())
-            
+            extra_root_rulers = (self._root_self - self).unique()
+            self._staff.remove(extra_root_rulers.list())
             self._root_self = self
             self._staff.setRuler(self) # avoids broken links
             return self
         
         def reset(self):
-            if self._staff != None:
-                self._staff.clear()
-                for staff_ruler in self._root_self:
-                    staff_ruler['on_staff'] = True
-                unique_rulers_list = self._root_self.unique().list()
-                self._staff.add(unique_rulers_list)
+            self._staff.clear()
+            for staff_ruler in self._root_self:
+                staff_ruler['on_staff'] = True
+            unique_rulers_list = self._root_self.unique().list()
+            self._staff.add(unique_rulers_list)
 
             return self
         
@@ -970,7 +978,7 @@ class Staff:
             return self
 
         def slide_position(self, distance_steps=4):
-            if self._staff != None and distance_steps != 0:
+            if distance_steps != 0:
 
                 distance_pulses = self._staff.pulses([0, distance_steps])
                 if distance_pulses > 0:
@@ -1319,7 +1327,7 @@ class Staff:
         return self
 
     def pulse(self, pulse):
-        pulse = min(len(self._staff), pulse)
+        pulse = min(len(self._staff) - 1, pulse)
         return self._staff[pulse]
 
     def pulseRemainders(self, pulse=0):

@@ -220,12 +220,12 @@ class Player:
                     if (pulse_data['arguments']['enabled'] > 0):
                         
                         pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
-                        self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge()
+                        self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
                         pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
-                        merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge()
+                        merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge() # Where external arguments are merged
 
                         for triggered_action in pulse_actions_rulers: # single ruler actions
                             for action_line in range(len(triggered_action['lines'])):
@@ -247,8 +247,6 @@ class Player:
             elif len(self._clocked_actions) == 0:
                 self._play_mode = False
                 self._play_pulse = self._start_pulse
-                # # remove itself from actions list 
-                # self._player.actions.remove(self)
 
             return self
         

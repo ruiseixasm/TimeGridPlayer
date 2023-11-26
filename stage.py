@@ -371,8 +371,8 @@ class Stage:
                     top_level = max(top_level, tree_top_level(player_data))
                     total_lines += 1 + player_data['player'].lower_group.all_players_count()
 
-            key_value_length = len(f"{total_lines}")
-            string_top_length['sequence'] = max(string_top_length['sequence'], key_value_length)
+            sequence_value_length = len(f"{total_lines - 1}")
+            string_top_length['sequence'] = max(string_top_length['sequence'], sequence_value_length)
 
             spaces_between = 4
             header_char_length = full_string_top_length + 77 + len("......" * top_level)
