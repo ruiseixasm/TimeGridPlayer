@@ -123,7 +123,7 @@ class Staff:
                     'lines': [],
                     'offset': None,
                     'enabled': True,
-                    'on_staff': self._staff != None
+                    'on_staff': True
                 }
                 self._root_self._next_id += 1
 
@@ -148,8 +148,7 @@ class Staff:
                 if (self != self._root_self):
                     self._rulers_list.append(structured_ruler)
                     self._next_id = self._root_self._next_id
-                if structured_ruler['on_staff']:
-                    self._staff.add([structured_ruler])
+                self._staff.add([structured_ruler])
 
             return self
         
@@ -218,33 +217,6 @@ class Staff:
             copied_rulers = duplicated_rulers - source_rulers
             return copied_rulers
         
-        def empty(self):
-            empty_rulers_list = []
-            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self, self._next_id)
-        
-        def empty_lines(self):
-            for ruler in self._rulers_list:
-                ruler['lines'] = []
-            return self
-    
-        def enable(self):
-            enabled_rulers_list = self.filter(enabled=False).unique().list()
-            for disabled_ruler in enabled_rulers_list:
-                disabled_ruler['enabled'] = True
-                
-            self._staff.enable(enabled_rulers_list)
-            return self
-        
-        def enabled(self):
-            return self.filter(enabled=True)
-        
-        def erase_lines(self):
-            for rulers in self._rulers_list:
-                for index in len(rulers['lines']):
-                    rulers['lines'][index] = None
-
-            return self
-        
         def disable(self):
             disabled_rulers_list = self.filter(enabled=True).unique().list()
             
@@ -293,6 +265,33 @@ class Staff:
             for ruler in self._rulers_list[:]:
                 for _ in range(times):
                     self.add(ruler.copy())
+            return self
+        
+        def empty(self):
+            empty_rulers_list = []
+            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self, self._next_id)
+        
+        def empty_lines(self):
+            for ruler in self._rulers_list:
+                ruler['lines'] = []
+            return self
+    
+        def enable(self):
+            enabled_rulers_list = self.filter(enabled=False).unique().list()
+            for disabled_ruler in enabled_rulers_list:
+                disabled_ruler['enabled'] = True
+                
+            self._staff.enable(enabled_rulers_list)
+            return self
+        
+        def enabled(self):
+            return self.filter(enabled=True)
+        
+        def erase_lines(self):
+            for rulers in self._rulers_list:
+                for index in len(rulers['lines']):
+                    rulers['lines'][index] = None
+
             return self
         
         def erase_lines(self, line, amount=1, id=None):
@@ -1191,10 +1190,15 @@ class Staff:
         for ruler in rulers:
             pulses = self.pulses(ruler['position'])
             if pulses < self.len():
-                if ruler['on_staff']:
-                    if ruler['enabled']:
-                        self._staff[pulses][ruler['type']]['enabled'] += enabled_one
-                    self._staff[pulses][ruler['type']]['total'] += total_one
+                if ruler['enabled']:
+                    self._staff[pulses][ruler['type']]['enabled'] += enabled_one
+                self._staff[pulses][ruler['type']]['total'] += total_one
+                if total_one == 1:
+                    ruler['on_staff'] = True
+                elif total_one == -1:
+                    ruler['on_staff'] = False
+            else:
+                ruler['on_staff'] = False
         
         return self._setTopLengths_Sums()
     
@@ -1334,6 +1338,12 @@ class Staff:
                           (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
         return [measures, steps]
     
+    def position_on_staff(self, position):
+        position_pulses = self.pulses(position)
+        if position_pulses < self._total_pulses:
+            return True
+        return False
+
     def print(self):
         if len(self._staff) > 0:
             if len(self._staff) > 1:
