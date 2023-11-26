@@ -192,6 +192,9 @@ class Staff:
                         ruler['offset'] = first_ruler['offset']
                         ruler['enabled'] = first_ruler['enabled']
                         ruler['on_staff'] = first_ruler['on_staff']
+                        for line in ruler['lines']:
+                            if isinstance(line, list) or isinstance(line, dict):
+                                line = line.copy()
             self.drop()
             return self
 
@@ -203,6 +206,9 @@ class Staff:
                     for ruler in rulers:
                         ruler['lines'] = first_ruler['lines'].copy()
                         ruler['offset'] = first_ruler['offset']
+                        for line in ruler['lines']:
+                            if isinstance(line, list) or isinstance(line, dict):
+                                line = line.copy()
             return self
 
         def copy(self):

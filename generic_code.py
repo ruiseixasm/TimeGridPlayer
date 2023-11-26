@@ -174,16 +174,23 @@ import lines_scales as L_SCALES
 
 # print (Silly.__name__)
 
-class Test:
-    def print_outer(self):
-        x = 1
-        def print_inner():
-            nonlocal x
-            x += 1
-            print ("Inner!")
+# class Test:
+#     def print_outer(self):
+#         x = 1
+#         def print_inner():
+#             nonlocal x
+#             x += 1
+#             print ("Inner!")
 
-        print ("Outer!")
-        print_inner()
+#         print ("Outer!")
+#         print_inner()
 
-test = Test()
-test.print_outer()
+# test = Test()
+# test.print_outer()
+
+number_1 = 3
+list_1 = []
+dict_1 = {}
+print (isinstance(number_1, int))
+print (isinstance(list_1, list))
+print (isinstance(dict_1, dict))
