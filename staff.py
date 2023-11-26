@@ -179,6 +179,32 @@ class Staff:
                 
             return self
             
+        def clone(self):
+            type_rulers = [ self.type("arguments"), self.type("actions") ]
+            self.float()
+            for rulers in type_rulers:
+                if rulers.len() > 1:
+                    first_ruler = rulers.list()[0]
+                    for ruler in rulers:
+                        ruler['group'] = first_ruler['group']
+                        ruler['position'] = first_ruler['position'].copy()
+                        ruler['lines'] = first_ruler['lines'].copy()
+                        ruler['offset'] = first_ruler['offset']
+                        ruler['enabled'] = first_ruler['enabled']
+                        ruler['on_staff'] = first_ruler['on_staff']
+            self.drop()
+            return self
+
+        def clone_lines(self):
+            type_rulers = [ self.type("arguments"), self.type("actions") ]
+            for rulers in type_rulers:
+                if rulers.len() > 1:
+                    first_ruler = rulers.list()[0]
+                    for ruler in rulers:
+                        ruler['lines'] = first_ruler['lines'].copy()
+                        ruler['offset'] = first_ruler['offset']
+            return self
+
         def copy(self):
             """Shows just the copied rulers"""
             source_rulers = self + self.empty()
