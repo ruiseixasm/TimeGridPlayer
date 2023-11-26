@@ -19,10 +19,16 @@ class Scales(LINES.Lines):
     def chromatic(self, size):
         return self.scale("chromatic", size)
     
-    def scale(self, name, size):
-        bin_scale = get_scale(name)
+    def scale(self, name, root_note="C", size=3):
+        root_note = convert_key(root_note)
+        bin_scale = get_scale(name, root_note)
         local_scale_keys = scale_keys(bin_scale)
         block_size = len(local_scale_keys)
+        for _ in range(block_size + 1):
+            if local_scale_keys[0] == root_note:
+                break
+            local_scale_keys = local_scale_keys[-1:block_size] + local_scale_keys[0:-1]
+
         offset_blocks = int((size - 1) / 2)
         self._lines['offset'] = -(block_size * offset_blocks)
         self._lines['lines'] = local_scale_keys * size
@@ -57,7 +63,27 @@ diatonic_rotations = [
     {'name': "locrian",     'mode': "B",    'rotation': -11}
 ]
 
-def get_scale(name):
+keys_conversion = {
+    "CB": "B",
+    "DB": "C#",
+    "EB": "D#",
+    "FB": "E",
+    "GB": "F#",
+    "AB": "G#",
+    "BB": "A#",
+    "E#": "F",
+    "B#": "C"
+}
+
+def convert_key(key="C"):
+    key_str = key.strip().upper()
+    for dict_key, dict_value in keys_conversion.items():
+        if dict_key == key_str:
+            key_str = dict_value
+            break
+    return key_str
+
+def get_scale(name, key="C"):
     name = name.strip().lower()
     rotation = None
     for diatonic_rotation in diatonic_rotations:
@@ -71,11 +97,13 @@ def get_scale(name):
         if scale['name'] == name:
             bin_scale = scale['scale']
             break
-    if rotation != None:
-        bin_scale = rotate(bin_scale, rotation)
+    if rotation == None:
+        rotation = 0
+    rotation += get_key_position_12(key)
+    bin_scale = rotate_bin_scale_12(bin_scale, rotation)
     return bin_scale # chromatic scale by default
 
-def rotate(scale, amount):
+def rotate_bin_scale_12(scale, amount):
     return scale[-amount:12] + scale[0:-amount] # from left to right
 
 def scale_keys(bin_scale):
@@ -84,3 +112,22 @@ def scale_keys(bin_scale):
         if bin_scale[key] == 1:
             keys.append(chromatic_keys[key])
     return keys
+
+def get_key_position_12(key="C"): # C by default
+    key_str = key.strip().upper()
+    key_position = 0
+    # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
+
+    for index in range(12):
+        if key_str[0] == str_keys[index]:
+            key_position = index
+            break
+
+    if (len(key_str) > 1):
+        if key_str[1] == '#':
+            key_position += 1
+        elif key_str[1] == 'B': # upper b meaning flat
+            key_position -= 1
+
+    return key_position % 12
