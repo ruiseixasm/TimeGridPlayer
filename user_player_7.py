@@ -50,7 +50,7 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 0], 'l
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-
+master.rulers().print().group_name_find("staff_").print()
 
 repeat = stage_midi.player("repeat")
 # REPEAT MIDI COMPOSITION

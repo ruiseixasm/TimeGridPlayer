@@ -365,6 +365,34 @@ class Staff:
         
         def group(self, group):
             return self.filter(groups=[group])
+        
+        def group_name_find(self, name):
+            group_name_found = []
+            for ruler in self._rulers_list:
+                if ruler['group'].find(name) != -1:
+                    group_name_found.append(ruler)
+            return Staff.Rulers(self._staff, group_name_found, self._root_self, self._next_id)
+            
+        def group_name_prefix(self, prefix):
+            for ruler in self._rulers_list:
+                original_group_name = ruler['group']
+                prefixed_group_name = prefix + original_group_name
+                ruler['group'] = prefixed_group_name
+            return self
+
+        def group_name_strip(self, strip):
+            for ruler in self._rulers_list:
+                original_group_name = ruler['group']
+                stripped_group_name = original_group_name.strip(strip)
+                ruler['group'] = stripped_group_name
+            return self
+
+        def group_name_suffix(self, suffix):
+            for ruler in self._rulers_list:
+                original_group_name = ruler['group']
+                suffixed_group_name = original_group_name + suffix
+                ruler['group'] = suffixed_group_name
+            return self
 
         def head(self, elements=1):
             head_rulers_list = self._rulers_list[:elements]

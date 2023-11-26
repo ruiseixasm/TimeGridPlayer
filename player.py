@@ -221,6 +221,8 @@ class Player:
                         
                         pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
                         self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
+                        pulse_reset_arguments_rulers = pulse_arguments_rulers.group_name_find("reset_").group_name_strip("reset_")
+                        self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
