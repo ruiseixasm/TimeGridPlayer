@@ -95,18 +95,6 @@ class Clock(PLAYER.Player):
             super().__init__(player)
             self.set(beats_per_minute=120, steps_per_beat=4, pulses_per_quarter_note=24)
 
-        def start(self, non_fast_forward_range_pulses = [], tick = None): # Where a non fast forward range is set
-            self._tick = super().start(non_fast_forward_range_pulses, tick)
-            
-            if tick != None:
-                self._pulse_duration = self.getPulseDuration(tick['tempo']['beats_per_minute'], 24) # in seconds
-
-            # print(f"\tclock start")
-            if self._player.resource != None:
-                self._player.resource.clockStart() # WERE THE MIDI START IS SENT
-            
-            return self._tick
-            
         def stop(self, tick = None):
             self._tick = super().stop(tick)
             if self._player.resource != None:
@@ -120,11 +108,17 @@ class Clock(PLAYER.Player):
         def tick(self, tick = None):
             if tick != None:
                 self._pulse_duration = self.getPulseDuration(tick['tempo']['beats_per_minute'], 24) # in seconds
+
             self._tick = super().tick(tick)
+
             if self._tick['pulse'] != None: # a pulse of this clock
-                # print(f"\tclock pulse")
                 if self._player.resource != None:
-                    self._player.resource.clock() # WERE THE MIDI CLOCK IS SENT
+                    if self._next_pulse == 1:
+                        #print(f"\tclock start")
+                        self._player.resource.clockStart() # WERE THE MIDI START IS SENT
+                    else:
+                        #print(f"\tclock pulse")
+                        self._player.resource.clock() # WERE THE MIDI CLOCK IS SENT
 
             return self._tick
 
