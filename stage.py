@@ -48,7 +48,11 @@ class Stage:
         
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
         if resources == None:
+            if description == None:
+                return PLAYER.Player(name, resources=self._resources)
             return PLAYER.Player(name, description, self._resources)
+        if description == None:
+            return PLAYER.Player(name, resources=resources)
         return PLAYER.Player(name, description, resources)
 
     def add(self, name, description=None, resources=None, type=None):
@@ -341,7 +345,7 @@ class Stage:
 
         header_char = "«"
         if len(self._players_list) > 0:
-            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'sub-players': 0, 'enabled': 0}
+            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'sub-players': 0, 'enabled': 0}
             sequence_index = 0
             for player_data in self: # get maximum sizes
                 
@@ -375,7 +379,7 @@ class Stage:
             string_top_length['sequence'] = max(string_top_length['sequence'], sequence_value_length)
 
             spaces_between = 4
-            header_char_length = full_string_top_length + 77 + len("......" * top_level)
+            header_char_length = full_string_top_length + 60 + len("......" * top_level)
 
             header_type = "   " + self.__class__.__name__ + "   "
             header_type_length = len(header_type)

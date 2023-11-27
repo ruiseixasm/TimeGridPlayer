@@ -21,14 +21,32 @@ class StageMidi(STAGE.Stage):
 
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
         match type:
+            case "Clock":
+                if resources == None:
+                    if description == None:
+                        return PLAYER_MIDI.Clock(name, resources=self._resources)
+                    return PLAYER_MIDI.Clock(name, description, self._resources)
+                if description == None:
+                    return PLAYER_MIDI.Clock(name, resources=resources)
+                return PLAYER_MIDI.Clock(name, description, resources)
             case "Master":
+                if description == None:
+                    return PLAYER_MIDI.Master(name)
                 return PLAYER_MIDI.Master(name, description)
             case "Note":
                 if resources == None:
+                    if description == None:
+                        return PLAYER_MIDI.Note(name, resources=self._resources)
                     return PLAYER_MIDI.Note(name, description, self._resources)
+                if description == None:
+                    return PLAYER_MIDI.Note(name, resources=resources)
                 return PLAYER_MIDI.Note(name, description, resources)
-            case "Clock":
+            case "Retrig":
                 if resources == None:
-                    return PLAYER_MIDI.Clock(name, description, self._resources)
-                return PLAYER_MIDI.Clock(name, description, resources)
+                    if description == None:
+                        return PLAYER_MIDI.Retrig(name, resources=self._resources)
+                    return PLAYER_MIDI.Retrig(name, description, self._resources)
+                if description == None:
+                    return PLAYER_MIDI.Retrig(name, resources=resources)
+                return PLAYER_MIDI.Retrig(name, description, resources)
         return super().playerFactoryMethod(name, description, resources, type)
