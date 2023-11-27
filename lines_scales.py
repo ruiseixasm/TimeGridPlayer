@@ -20,6 +20,7 @@ class Scales(LINES.Lines):
         return self.scale("chromatic", size)
     
     def scale(self, name, root_note="C", size=3):
+        root_note = int_to_key(root_note)
         root_note = convert_key(root_note)
         bin_scale = get_scale(name, root_note)
         local_scale_keys = scale_keys(bin_scale)
@@ -27,7 +28,7 @@ class Scales(LINES.Lines):
         for _ in range(block_size + 1):
             if local_scale_keys[0] == root_note:
                 break
-            local_scale_keys = local_scale_keys[-1:block_size] + local_scale_keys[0:-1]
+            local_scale_keys = local_scale_keys[1:block_size] + local_scale_keys[0:1]
 
         offset_blocks = int((size - 1) / 2)
         self._lines['offset'] = -(block_size * offset_blocks)
@@ -131,3 +132,8 @@ def get_key_position_12(key="C"): # C by default
             key_position -= 1
 
     return key_position % 12
+
+def int_to_key(key_int=0):
+    if isinstance(key_int, int):
+        return chromatic_keys[ key_int % 12 ]
+    return key_int

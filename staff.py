@@ -123,7 +123,7 @@ class Staff:
                     'lines': [],
                     'offset': None,
                     'enabled': True,
-                    'on_staff': True
+                    'on_staff': False # at the beginning it's not on the Staff
                 }
                 self._root_self._next_id += 1
 
@@ -180,7 +180,8 @@ class Staff:
             
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]
-            self.float()
+            on_staff = self.on_staff()
+            on_staff.float()
             for rulers in type_rulers:
                 if rulers.len() > 1:
                     first_ruler = rulers.list()[0]
@@ -194,7 +195,7 @@ class Staff:
                         for line in ruler['lines']:
                             if isinstance(line, list) or isinstance(line, dict):
                                 line = line.copy()
-            self.drop()
+            on_staff.drop()
             return self
 
         def clone_lines(self):
@@ -219,10 +220,11 @@ class Staff:
         
         def disable(self):
             disabled_rulers_list = self.filter(enabled=True).unique().list()
-            
-            self._staff.disable(disabled_rulers_list)
+            # disables all rulers
             for enabled_ruler in disabled_rulers_list:
                 enabled_ruler['enabled'] = False
+            # updates disabled on staff
+            self._staff.disabled(disabled_rulers_list)
             return self
         
         def disabled(self):
@@ -248,11 +250,12 @@ class Staff:
                     start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
 
                 if not finish_pulses < 0 and finish_pulses < self._staff.len():
-                    sorted_rulers.float()
+                    on_staff = sorted_rulers.on_staff()
+                    on_staff.float()
                     for index in range(number_intervals):
                         new_position = self._staff.position(pulses=start_pulses + round(index * distance_pulses / number_intervals))
                         sorted_rulers.list()[index]['position'] = new_position
-                    sorted_rulers.drop()
+                    on_staff.drop()
 
             return sorted_rulers
         
@@ -278,10 +281,11 @@ class Staff:
     
         def enable(self):
             enabled_rulers_list = self.filter(enabled=False).unique().list()
+            # enables all rulers
             for disabled_ruler in enabled_rulers_list:
                 disabled_ruler['enabled'] = True
-                
-            self._staff.enable(enabled_rulers_list)
+            # updates enabled on staff
+            self._staff.enabled(enabled_rulers_list)
             return self
         
         def enabled(self):
@@ -344,14 +348,18 @@ class Staff:
         
         def expand_position(self, spread_steps=4):
             first_position = self._rulers_list[0]['position']
-            self.float()
+            on_staff = self.on_staff()
+            on_staff.float()
             for ruler_index in range(1, self.len()):
                 self._rulers_list[ruler_index]['position'] = self._staff.addPositions(first_position, [0, ruler_index * spread_steps])
-            self.drop()
+            on_staff.drop()
             return self
         
         def float(self):
             self._staff.remove(self.unique().list())
+            # updates on_staff for all remaining rulers not on staff
+            for ruler_list in self.list():
+                ruler_list['on_staff'] = False
             return self
         
         def filter(self, ids = [], type = None, groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
@@ -481,8 +489,10 @@ class Staff:
                         root_self=None,
                         start_id=dictionnaire['next_id']
                     )
-                    self._staff.clear()
-                    self.drop()
+                    on_staff = self.on_staff()
+                    on_staff.float()
+                    self._staff.clear() # specific staff reset method
+                    on_staff.drop()
                     break
 
             return self
@@ -619,10 +629,11 @@ class Staff:
                     slack_steps = first_ruler_step - first_staff_step
                     move_steps = -min(slack_steps, -move_steps)
 
-                self.float()
+                on_staff = self.on_staff()
+                on_staff.float()
                 for ruler in self._rulers_list:
                     ruler['position'] = self._staff.addPositions(ruler['position'], [0, move_steps])
-                self.drop()
+                on_staff.drop()
 
             return self
         
@@ -639,6 +650,9 @@ class Staff:
             odd_rulers_list = self._rulers_list[1::2]
             return Staff.Rulers(self._staff, odd_rulers_list, self._root_self, self._next_id)
         
+        def on_staff(self):
+            return self.filter(on_staff=True)
+
         def print(self):
             
             header_char = "'"
@@ -946,12 +960,13 @@ class Staff:
         def reverse_position(self):
             self = self.unique().reverse()
             rulers_list_size = self.len()
-            self.float()
+            on_staff = self.on_staff()
+            on_staff.float()
             for index in range(int(rulers_list_size/2)):
                 temp_position = self._rulers_list[index]['position']
                 self._rulers_list[index]['position'] = self._rulers_list[rulers_list_size - 1 - index]['position']
                 self._rulers_list[rulers_list_size - 1 - index]['position'] = temp_position
-            self.drop()
+            on_staff.drop()
 
             return self
         
@@ -991,11 +1006,12 @@ class Staff:
             for original_ruler in self._rulers_list:
                 original_positions.append(original_ruler['position'].copy())
 
-            self.float()
+            on_staff = self.on_staff()
+            on_staff.float()
             for ruler_index in range(rulers_size):
                 rotated_index = (ruler_index + increments) % rulers_size
                 self._rulers_list[ruler_index]['position'] = original_positions[rotated_index]
-            self.drop()
+            on_staff.drop()
 
             return self.rotate(increments)
         
@@ -1013,10 +1029,11 @@ class Staff:
 
         def set_position(self, position=[None, None]):
             if position[0] != None and position[1] != None:
-                self.float()
+                on_staff = self.on_staff()
+                on_staff.float()
                 for ruler in self._rulers_list:
                     ruler['position'] = position
-                self.drop()
+                on_staff.drop()
 
             return self
         
@@ -1052,13 +1069,14 @@ class Staff:
                 else:
                     return self
                 
-                self.float()
+                on_staff = self.on_staff()
+                on_staff.float()
 
                 for ruler in self._rulers_list:
                     new_position_pulses = self._staff.pulses(ruler['position']) + distance_pulses # always positive
                     ruler['position'] = self._staff.position(pulses=new_position_pulses)
 
-                self.drop()
+                on_staff.drop()
 
             return self
 
@@ -1190,13 +1208,15 @@ class Staff:
         for ruler in rulers:
             pulses = self.pulses(ruler['position'])
             if pulses < self.len():
-                if ruler['enabled']:
-                    self._staff[pulses][ruler['type']]['enabled'] += enabled_one
-                self._staff[pulses][ruler['type']]['total'] += total_one
-                if total_one == 1:
+                if total_one == 1 and ruler['on_staff'] == False:
                     ruler['on_staff'] = True
-                elif total_one == -1:
-                    ruler['on_staff'] = False
+                    self._staff[pulses][ruler['type']]['total'] += total_one
+                if ruler['on_staff']:
+                    if ruler['enabled'] and enabled_one == 1 or not ruler['enabled'] and enabled_one == -1:
+                        self._staff[pulses][ruler['type']]['enabled'] += enabled_one
+                    if total_one == -1:
+                        ruler['on_staff'] = False
+                        self._staff[pulses][ruler['type']]['total'] += total_one
             else:
                 ruler['on_staff'] = False
         
@@ -1224,10 +1244,10 @@ class Staff:
 
         return self._setTopLengths_Sums()
 
-    def disable(self, rulers):
+    def disabled(self, rulers):
         return self.remove(rulers, total_one=0)
     
-    def enable(self, rulers):
+    def enabled(self, rulers):
         return self.add(rulers, total_one=0)
 
     def filterList(self, measure=None, beat=None, step=None, pulse=None, list=None):
