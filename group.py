@@ -58,65 +58,67 @@ class Group:
         
     def add(self, player):
 
-        player_data = {
-            'id': self._next_id,
-            'type': player.__class__.__name__,
-            'name': player.name,
-            'player': player,
-            'enabled': True
-        }
+        if player != self._player:
 
-        if self._root_self == self._player.lower_group: # add as lower player
+            player_data = {
+                'id': self._next_id,
+                'type': player.__class__.__name__,
+                'name': player.name,
+                'player': player,
+                'enabled': True
+            }
 
-            all_upper_self_group = self._player.upper_group.all_players_group()
-            player_upper_self_group = all_upper_self_group.filter(player=player)
-            if player_upper_self_group.len() > 0:
-                print (f"Player '{player}' already an upper Player of Player '{self._player}'!")
-                return self
+            if self._root_self == self._player.lower_group: # add as lower player
 
-            all_lower_player_group = player.lower_group.all_players_group()
-            player_lower_player_group = all_lower_player_group.filter(player=self._player)
-            if player_lower_player_group.len() > 0:
-                print (f"Player '{self._player}' already a lower Player of Player '{player}'!")
-                return self
+                all_upper_self_group = self._player.upper_group.all_players_group()
+                player_upper_self_group = all_upper_self_group.filter(player=player)
+                if player_upper_self_group.len() > 0:
+                    print (f"Player '{player}' already an upper Player of Player '{self._player}'!")
+                    return self
 
-            player_already_added = self._player.lower_group.filter(player=player)
-            if player_already_added.len() == 0 and not player.is_none:
+                all_lower_player_group = player.lower_group.all_players_group()
+                player_lower_player_group = all_lower_player_group.filter(player=self._player)
+                if player_lower_player_group.len() > 0:
+                    print (f"Player '{self._player}' already a lower Player of Player '{player}'!")
+                    return self
+
+                player_already_added = self._player.lower_group.filter(player=player)
+                if player_already_added.len() == 0 and not player.is_none:
+                    
+                    # Updates self LOWER Group (self)
+                    self._root_self._next_id += 1
+                    self._root_self._players_list.append(player_data)
+                    if self != self._root_self:
+                        self._players_list.append(player_data)
+                        self._next_id = self._root_self._next_id
+                    # Updates player UPPER Group
+                    player.upper_group.add(self._player)
+
+            elif self._root_self == self._player.upper_group: #  # add as upper player
                 
-                # Updates self LOWER Group (self)
-                self._root_self._next_id += 1
-                self._root_self._players_list.append(player_data)
-                if self != self._root_self:
-                    self._players_list.append(player_data)
-                    self._next_id = self._root_self._next_id
-                # Updates player UPPER Group
-                player.upper_group.add(self._player)
+                all_lower_self_group = self._player.lower_group.all_players_group()
+                player_lower_self_group = all_lower_self_group.filter(player=player)
+                if player_lower_self_group.len() > 0:
+                    print (f"Player '{player}' already a lower Player of Player '{self._player}'!")
+                    return self
 
-        elif self._root_self == self._player.upper_group: #  # add as upper player
-            
-            all_lower_self_group = self._player.lower_group.all_players_group()
-            player_lower_self_group = all_lower_self_group.filter(player=player)
-            if player_lower_self_group.len() > 0:
-                print (f"Player '{player}' already a lower Player of Player '{self._player}'!")
-                return self
+                all_upper_player_group = player.upper_group.all_players_group()
+                player_upper_player_group = all_upper_player_group.filter(player=self._player)
+                if player_upper_player_group.len() > 0:
+                    print (f"Player '{self._player}' already an upper Player of Player '{player}'!")
+                    return self
 
-            all_upper_player_group = player.upper_group.all_players_group()
-            player_upper_player_group = all_upper_player_group.filter(player=self._player)
-            if player_upper_player_group.len() > 0:
-                print (f"Player '{self._player}' already an upper Player of Player '{player}'!")
-                return self
-
-            player_already_added = self._player.upper_group.filter(player=player)
-            if player_already_added.len() == 0 and not player.is_none:
-                
-                # Updates self UPPER Group (self)
-                self._root_self._next_id += 1
-                self._root_self._players_list.append(player_data)
-                if self != self._root_self:
-                    self._players_list.append(player_data)
-                    self._next_id = self._root_self._next_id
-                # Updates player LOWER Group
-                player.lower_group.add(self._player)
+                player_already_added = self._player.upper_group.filter(player=player)
+                if player_already_added.len() == 0 and not player.is_none:
+                    
+                    # Updates self UPPER Group (self)
+                    self._root_self._next_id += 1
+                    self._root_self._players_list.append(player_data)
+                    if self != self._root_self:
+                        self._players_list.append(player_data)
+                        self._next_id = self._root_self._next_id
+                    # Updates player LOWER Group
+                    player.lower_group.add(self._player)
 
         return self
     

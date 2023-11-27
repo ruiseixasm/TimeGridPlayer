@@ -408,12 +408,10 @@ class Player:
         return self
 
     def add(self, player):
-
         self._lower_group.add(player)
         return self
 
     def remove(self, player):
-
         self._lower_group.filter(player=player).remove()
         return self
     
