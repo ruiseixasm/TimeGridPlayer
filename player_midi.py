@@ -118,7 +118,7 @@ class Note(PLAYER.Player):
                             self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
                         self_duration_pulses = self._duration * self._clock_pulses_per_step
-                        clock_duration = self_duration_pulses * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                        clock_duration = self_duration_pulses * self._clock_trigger_steps_per_beat_ratio
                         
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
@@ -152,18 +152,18 @@ class Retrigger(PLAYER.Player):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
             self_rate_pulses = self._rate * self._clock_pulses_per_step
-            clock_rate_pulses = self_rate_pulses * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+            clock_rate_pulses = self_rate_pulses * self._clock_trigger_steps_per_beat_ratio
 
             if staff == None: # CLOCKED TRIGGER
 
                 if self._key_pressed:
                     if self._player.resource != None:
                         self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                    clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_trigger_steps_per_beat_ratio
                 elif self._remaining_pulses_duration > 0:
                     if self._player.resource != None:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                    clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
                 else:
                     clock_retrig_duration = 0
 
@@ -217,7 +217,7 @@ class Retrigger(PLAYER.Player):
                     
                         self._key_pressed = True
     
-                        clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                        clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
                         clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
                         
                         self.addClockedAction(
@@ -255,18 +255,18 @@ class Arpeggiator(PLAYER.Player):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
             self_rate_pulses = self._rate * self._clock_pulses_per_step
-            clock_rate_pulses = self_rate_pulses * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+            clock_rate_pulses = self_rate_pulses * self._clock_trigger_steps_per_beat_ratio
 
             if staff == None: # CLOCKED TRIGGER
 
                 if self._key_pressed:
                     if self._player.resource != None:
                         self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                    clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_trigger_steps_per_beat_ratio
                 elif self._remaining_pulses_duration > 0:
                     if self._player.resource != None:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                    clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
                 else:
                     clock_retrig_duration = 0
 
@@ -320,7 +320,7 @@ class Arpeggiator(PLAYER.Player):
                     
                         self._key_pressed = True
     
-                        clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                        clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
                         clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
                         
                         self.addClockedAction(

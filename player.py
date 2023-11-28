@@ -125,6 +125,17 @@ class Player:
             self._min_ticks = 100000 * 100000
 
         # using property decorator 
+        
+        # a getter function 
+        @property
+        def play_mode(self):
+            return self._play_mode
+    
+        # a setter function (requires previous @property decorator)
+        @play_mode.setter 
+        def play_mode(self, mode):
+            self._play_mode = mode
+
         # a getter function 
         @property
         def external_arguments_rulers(self):
@@ -253,13 +264,11 @@ class Player:
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             if staff != None: # EXTERNAL TRIGGER
-                self._trigger_player_steps_per_beat = staff.time_signature()['steps_per_beat']
-            self._clock_player_steps_per_beat = tick['tempo']['steps_per_beat']
+                self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
+            self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
             self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
+            self._clock_trigger_steps_per_beat_ratio = self._clock_steps_per_beat / self._trigger_steps_per_beat
                         
-
-
-
     class Clock():
         def __init__(self, player):
             self._player = player
@@ -635,7 +644,10 @@ class Player:
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
         player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
-        self._actions.append(player_action)
+        if player_action not in self._actions:
+            self._actions.append(player_action)
+        else:
+            player_action.play_mode = True
         player_action.external_arguments_rulers = merged_staff_arguments
         player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
         player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
