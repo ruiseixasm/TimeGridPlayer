@@ -143,9 +143,7 @@ class Player:
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
-                clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
-                pulses_duration = clocked_action['duration'] * clock_pulses_per_step # Converts duration in clock steps to clock pulses
-                clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
+                clocked_action['pulse'] = round(tick['pulse'] + clocked_action['duration'])
                 clocked_action['stack_id'] = len(self._clocked_actions)
                 self._clocked_actions.append(clocked_action)
 
