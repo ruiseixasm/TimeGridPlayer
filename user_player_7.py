@@ -19,7 +19,7 @@ stage_midi.add("master")
 stage_midi.add("note", type="Note")
 stage_midi.add("repeat", type="Master")
 stage_midi.add("clock", type="Clock")
-stage_midi.add("retrig", type="Retrig")
+stage_midi.add("retrig", type="Retrigger")
 
 note = stage_midi.print().player("note").print()
 note.use_resource("loop").enable_resource()

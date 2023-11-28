@@ -41,12 +41,12 @@ class StageMidi(STAGE.Stage):
                 if description == None:
                     return PLAYER_MIDI.Note(name, resources=resources)
                 return PLAYER_MIDI.Note(name, description, resources)
-            case "Retrig":
+            case "Retrigger":
                 if resources == None:
                     if description == None:
-                        return PLAYER_MIDI.Retrig(name, resources=self._resources)
-                    return PLAYER_MIDI.Retrig(name, description, self._resources)
+                        return PLAYER_MIDI.Retrigger(name, resources=self._resources)
+                    return PLAYER_MIDI.Retrigger(name, description, self._resources)
                 if description == None:
-                    return PLAYER_MIDI.Retrig(name, resources=resources)
-                return PLAYER_MIDI.Retrig(name, description, resources)
+                    return PLAYER_MIDI.Retrigger(name, resources=resources)
+                return PLAYER_MIDI.Retrigger(name, description, resources)
         return super().playerFactoryMethod(name, description, resources, type)

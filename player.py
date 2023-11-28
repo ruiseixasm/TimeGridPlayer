@@ -94,9 +94,9 @@ class Player:
     def lower_group(self):
         return self._lower_group
             
-    # @property
-    # def actions(self):
-    #     return self._actions
+    @property
+    def actions(self):
+        return self._actions
             
     @property
     def playable_sub_players(self):
@@ -630,11 +630,11 @@ class Player:
 
     ### PLAYER ACTIONS ###
 
-    def actionFactoryMethod(self): # Factory Method Pattern
+    def actionFactoryMethod(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
         return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-        player_action = self.actionFactoryMethod() # Factory Method Pattern
+        player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
         self._actions.append(player_action)
         player_action.external_arguments_rulers = merged_staff_arguments
         player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
