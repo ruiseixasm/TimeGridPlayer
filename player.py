@@ -256,7 +256,8 @@ class Player:
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             if staff != None: # EXTERNAL TRIGGER
                 self._trigger_player_steps_per_beat = staff.time_signature()['steps_per_beat']
-                self._clock_player_steps_per_beat = tick['tempo']['steps_per_beat']
+            self._clock_player_steps_per_beat = tick['tempo']['steps_per_beat']
+            self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
                         
 
 

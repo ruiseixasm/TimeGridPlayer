@@ -174,6 +174,8 @@ class Retrig(PLAYER.Player):
                         {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
                             'duration': clock_retrig_duration, 'action': self}, tick
                     )
+                else:
+                    print(f"retrigger OFF:\t{self._note}")
 
                 self._remaining_retrig_duration -= clock_retrig_duration
 
@@ -181,10 +183,10 @@ class Retrig(PLAYER.Player):
 
                 if (not tick['fast_forward']):
 
-                    retrig_retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "retrig_duration")
-                    if (retrig_retrig_duration != None):
-                        self._retrig_duration = retrig_retrig_duration
-                        self._remaining_retrig_duration = retrig_retrig_duration
+                    retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "retrig_duration")
+                    if (retrig_duration != None):
+                        self._retrig_duration = retrig_duration
+                        self._remaining_retrig_duration = retrig_duration
 
                     retrig_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
                     if (retrig_gate != None):
@@ -206,7 +208,7 @@ class Retrig(PLAYER.Player):
                     if (retrig_key != None):
                         self._note['key'] = retrig_key
 
-                        print(f"note ON:\t{self._note}")
+                        print(f"retrigger ON:\t{self._note}")
                         if self._player.resource != None:
                             self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     

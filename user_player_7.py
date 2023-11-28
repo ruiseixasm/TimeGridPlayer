@@ -46,7 +46,7 @@ master.rulers().filter(type="actions").sort().print().print_lines()
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [2, 0], 'lines': [0.25]})
-master.rulers().add({'type': "arguments", 'group': "retrig_duration", 'position': [2, 0], 'lines': [16]})
+master.rulers().add({'type': "arguments", 'group': "retrig_duration", 'position': [2, 0], 'lines': [20]})
 master.rulers().filter(type="arguments").sort().print().print_lines()
 
 scales.scale("major", "A", 5)
@@ -73,7 +73,7 @@ repeat.rulers().add({'type': "arguments", 'group': "staff_duration", 'position':
 repeat.rulers().filter(type="arguments").print().print_lines(0, 15)
 
 
-master.set_tempo(240)
+master.set_tempo(120)
 #master.play([1, 0], [4, 0])
 
 master.add(repeat)
@@ -96,7 +96,7 @@ stage_midi.print_tree()
 stage_midi.json_save("stage_2.json")
 stage_midi.json_load("stage_2.json")
 
-stage_midi.print().filter(names=["note"]).print().disable().print()
+stage_midi.print().filter(names=["note"]).print().disable().print().enable().print()
 stage_midi.print_tree()
 
 stage_midi.play()
