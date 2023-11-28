@@ -11,6 +11,7 @@ Lesser General Public License for more details.'''
 
 import player as PLAYER
 import resources_midi as RESOURCES_MIDI
+import lines_scales as LINES_SCALES
 
 class Clock(PLAYER.Player):
     
@@ -243,11 +244,91 @@ class Arpeggiator(PLAYER.Player):
         def __init__(self, player):
             super().__init__(player) # not self init
             self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
-            self._rate = 0.5 # steps (1/32)
+            self._rate = 1.0 # steps (1/16)
             self._gate = 0.5 # from 0 t0 1
             self._retrig_duration = 4 # steps (1/4)
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1}
-            self._key_pressed = False
+            self._selected_keys = []
+            self._total_selected_keys = 0
+            self._midi_key_pressed = 0
+
+        def add_selected_key(self, midi_key, selected_on_pulse, selected_duration_pulses):
+            new_midi_key = {
+                    'midi_key': midi_key, 'active': False, 'pressed': False,
+                    'selected_on_pulse': selected_on_pulse, 'selected_duration_pulses': selected_duration_pulses,
+                    'activated_on_pulse': 0, 'active_duration_pulses': 0, 'pressed_duration_pulses': 0
+                }
+            if self._total_selected_keys == 0:
+                self._selected_keys.append(new_midi_key)
+                self._total_selected_keys += 1
+            else:
+                for selected_key_index in range(self._total_selected_keys):
+                    if new_midi_key['midi_key'] == self._selected_keys[selected_key_index]['midi_key']: # avoids duplicates
+                        break
+                    if selected_key_index == self._total_selected_keys - 1:
+                        self._selected_keys.append(new_midi_key)
+                        self._total_selected_keys += 1
+                    elif new_midi_key['midi_key'] < self._selected_keys[selected_key_index]['midi_key']:
+                        self._selected_keys.insert(selected_key_index, new_midi_key)
+                        self._total_selected_keys += 1
+                        break
+            return self
+
+        def activate_selected_key(self, midi_key, activated_on_pulse, active_duration_pulses):
+            for selected_key in self._selected_keys:
+                if selected_key['midi_key'] == midi_key:
+                    selected_key['active'] = True
+                    selected_key['activated_on_pulse'] = activated_on_pulse
+                    selected_key['active_duration_pulses'] = active_duration_pulses
+                    break
+            return self
+
+        def deactivate_selected_key(self, midi_key):
+            for selected_key in self._selected_keys:
+                if selected_key['midi_key'] == midi_key:
+                    if selected_key['active']:
+                        self.release_selected_key(midi_key)
+                        selected_key['active'] = False
+                    break
+            return self
+
+        def press_selected_key(self, midi_key, pressed_duration_pulses):
+            for selected_key in self._selected_keys:
+                if selected_key['midi_key'] == midi_key:
+                    selected_key['pressed'] = True
+                    selected_key['pressed_duration_pulses'] = pressed_duration_pulses
+                    break
+            return self
+
+        def release_selected_key(self, midi_key):
+            for selected_key in self._selected_keys:
+                if selected_key['midi_key'] == midi_key:
+                    if selected_key['pressed']:
+                        selected_key['pressed'] = False
+                    break
+            return self
+
+        def pressed_selected_key(self):
+
+            return self
+
+        def remove_selected_key(self, midi_key):
+
+            for selected_key_index in range(self._total_selected_keys):
+                if self._selected_keys[selected_key_index]['midi_key'] == midi_key:
+                    del self._selected_keys[selected_key_index]
+                    self._total_selected_keys -= 1
+                    break
+
+            return self
+
+        def update_selected_keys(self):
+
+            return self
+
+        def next_update_selected_keys_pulse(self):
+
+            return self
 
         ### ACTION ACTIONS ###
 

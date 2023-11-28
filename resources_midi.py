@@ -211,23 +211,28 @@ class Midi(RESOURCES.Resources):
 
 def getMidiNote(note={'key': "C", 'octave': 4}): # middle C by default
     """Octaves range from -1 to 9"""
-    key_str = note['key'].strip().upper()
-    midi_key = 0
-    # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-    str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
+    
+    if isinstance(note['key'], int):
+        midi_key = note['key']
 
-    for index in range(12):
-        if key_str[0] == str_keys[index]:
-            midi_key = index
-            break
+    else:
+        key_str = note['key'].strip().upper()
+        midi_key = 0
+        # ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+        str_keys = ['C', '#', 'D', '#', 'E', 'F', '#', 'G', '#', 'A', '#', 'B']
 
-    midi_key += (note['octave'] + 1) * 12 # first octave is -1
+        for index in range(12):
+            if key_str[0] == str_keys[index]:
+                midi_key = index
+                break
 
-    if (len(key_str) > 1):
-        if key_str[1] == '#':
-            midi_key += 1
-        elif key_str[1] == 'B': # upper b meaning flat
-            midi_key -= 1
+        midi_key += (note['octave'] + 1) * 12 # first octave is -1
+
+        if (len(key_str) > 1):
+            if key_str[1] == '#':
+                midi_key += 1
+            elif key_str[1] == 'B': # upper b meaning flat
+                midi_key -= 1
 
     return min(127, max(0, midi_key))
 
