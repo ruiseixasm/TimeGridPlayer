@@ -77,6 +77,16 @@ class Stage:
 
         return self
     
+    def disable(self):
+        for player_data in self._players_list:
+            player_data['enabled'] = False
+        return self
+
+    def enable(self):
+        for player_data in self._players_list:
+            player_data['enabled'] = True
+        return self
+
     def filter(self, ids = [], types = [], names = [], player = None, enabled = None):
 
         filtered_players = self._players_list.copy()

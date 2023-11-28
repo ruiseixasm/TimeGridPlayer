@@ -144,7 +144,8 @@ class Player:
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
                 time_signature = self._staff.time_signature()
-                pulses_duration = clocked_action['duration'] * time_signature['pulses_per_beat'] / time_signature['steps_per_beat'] # Action pulses per step considered
+                clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
+                pulses_duration = clocked_action['duration'] * clock_pulses_per_step # Converts duration in clock steps to clock pulses
                 clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
                 clocked_action['stack_id'] = len(self._clocked_actions)
                 self._clocked_actions.append(clocked_action)
@@ -183,22 +184,21 @@ class Player:
                 ]
 
             # clocked triggers staked to be called
-            if (self._next_clocked_pulse == tick['pulse']):
+            while (self._next_clocked_pulse == tick['pulse']):
                 clockedActions = [
                     clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
-                ].copy() # To enable deletion of the original list while looping
+                ] # New list enables deletion of the original list while looping
 
                 for clockedAction in clockedActions:
-                    action_object = clockedAction['action']
-                    action_object.actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
+                    clockedAction['action'].actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
+                    self._clocked_actions.remove(clockedAction)
                         
-                self._clocked_actions = [
-                    clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] > tick['pulse']
-                ] # Cleans up pass actions
                 if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
                     self._next_clocked_pulse = self._clocked_actions[0]['pulse']
                     for clocked_action in self._clocked_actions:
                         self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
+                else:
+                    self._next_clocked_pulse = -1
 
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
@@ -510,9 +510,12 @@ class Player:
             {'name': self._name, 'player': self}
         ]
 
-        all_enabled_players = self.lower_group.all_players_group().filter(enabled=True)
+        all_enabled_group_players = self.lower_group.all_players_group().filter(enabled=True)
         if enabled_lower_group_players != None:
-            all_enabled_players += enabled_lower_group_players
+            on_stage_group_players = all_enabled_group_players * enabled_lower_group_players # (*) means intersection (and)
+            all_enabled_players = on_stage_group_players + enabled_lower_group_players
+        else:
+            all_enabled_players = all_enabled_group_players
         
         for enabled_player in all_enabled_players:
             clockable_player = {
@@ -524,7 +527,7 @@ class Player:
 
         for clocked_player in self._clocked_players:
             clocked_player['player']._playable_sub_players = []
-            playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True)
+            playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True) * all_enabled_players # (*) means intersection (and)
             for playable_player in playable_sub_players:
                 playable_player = {
                     'name': playable_player['name'],

@@ -111,6 +111,9 @@ class Staff:
             
             return f"{position_value}"
 
+        def actions(self):
+            return self.type(type="actions")
+
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
             if not self.is_none and ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
@@ -178,6 +181,9 @@ class Staff:
                 
             return self
             
+        def arguments(self):
+            return self.type(type="arguments")
+
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]
             on_staff = self.on_staff()

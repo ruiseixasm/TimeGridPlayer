@@ -29,10 +29,6 @@ class Group:
         self.current_player = 0
 
     @property
-    def owner(self):
-        return self._player
-    
-    @property
     def is_none(self):
         return (self.__class__ == GroupNone)
 
@@ -55,7 +51,50 @@ class Group:
         other_players_list = other.list()
 
         return Group(self._player, self_players_list + other_players_list, self._root_self, self._next_id)
+    
+    def __sub__(self, other):
+        '''Works as exclusion'''
+        self_players_list = self.list()
+        other_players_list = other.list()
+
+        exclusion_list = []
+
+        for self_player in self_players_list:
+            excluded_player = True
+            for other_player in other_players_list:
+                if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
+                    excluded_player = False
+                    break
+            if excluded_player:
+                exclusion_list.append(self_player)
+
+        return Group(self._player, exclusion_list, self._root_self, self._next_id)
+    
+    def __mul__(self, other):
+        '''Works as intersection'''
+        self_players_list = self.list()
+        other_players_list = other.list()
         
+        intersection_list = []
+
+        for self_player in self_players_list:
+            intersected_player = False
+            for other_player in other_players_list:
+                if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
+                    intersected_player = True
+                    break
+            if intersected_player:
+                intersection_list.append(self_player)
+
+        return Group(self._player, intersection_list, self._root_self, self._next_id)
+    
+    def __div__(self, other):
+        '''Works as divergence'''
+        union_players = self.__add__(other)
+        intersection_players = self.__mul__(other)
+
+        return union_players - intersection_players
+    
     def add(self, player):
 
         if player != self._player:

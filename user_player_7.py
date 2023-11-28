@@ -19,6 +19,7 @@ stage_midi.add("master")
 stage_midi.add("note", type="Note")
 stage_midi.add("repeat", type="Master")
 stage_midi.add("clock", type="Clock")
+stage_midi.add("retrig", type="Retrig")
 
 note = stage_midi.print().player("note").print()
 note.use_resource("loop").enable_resource()
@@ -30,11 +31,16 @@ midi_clock.print()
 scales = LINES_SCALES.Scales()
 
 master = stage_midi.player("master")
+retrig = stage_midi.player("retrig")
+retrig.use_resource("loop").enable_resource()
+master.add(retrig)
 
 # MASTER MIDI COMPOSITION
 master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 4], 'lines': ["note"], 'offset': 2})
 master.rulers().add({'type': "actions", 'group': "note", 'position': [3, 4], 'lines': ["note"]})
 master.rulers().add({'type': "actions", 'group': "repeat", 'position': [1, 0], 'lines': ["repeat"]})
+master.rulers().add({'type': "actions", 'group': "retrig", 'position': [4, 0], 'lines': ["retrig"]})
+master.rulers().add({'type': "actions", 'group': "retrig", 'position': [6, 0], 'lines': ["retrig"]})
 master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
@@ -50,7 +56,8 @@ master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 0], 'l
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [2, 2], 'lines': [None, 'c#', None, None, 'e', None]})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [1, 1], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -2})
 master.rulers().add({'type': "arguments", 'group': "key", 'position': [3, 2], 'lines': [None, 'c#', 'd', 'd#', 'e', None]})
-master.rulers().print().group_name_find("staff_").print()
+master.rulers().add({'type': "arguments", 'group': "key", 'position': [4, 0], 'lines': ['a', 'b', 'd', None, 'f', None], 'offset': -4})
+master.rulers().arguments().print().print_lines(0, 15).group_name_find("staff_").print()
 
 repeat = stage_midi.player("repeat")
 # REPEAT MIDI COMPOSITION
@@ -88,8 +95,8 @@ stage_midi.print_tree()
 stage_midi.json_save("stage_2.json")
 stage_midi.json_load("stage_2.json")
 
-stage_midi.print()
+stage_midi.print().filter(names=["note"]).print().disable().print()
 stage_midi.print_tree()
 
-#stage_midi.play()
-stage_midi.play([1, 0], [4, 0])
+stage_midi.play()
+#stage_midi.play([1, 0], [4, 0])
