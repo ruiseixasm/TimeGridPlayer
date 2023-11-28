@@ -46,6 +46,7 @@ master.rulers().filter(type="actions").sort().print().print_lines()
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [2, 0], 'lines': [0.25]})
+master.rulers().add({'type': "arguments", 'group': "retrig_duration", 'position': [2, 0], 'lines': [16]})
 master.rulers().filter(type="arguments").sort().print().print_lines()
 
 scales.scale("major", "A", 5)

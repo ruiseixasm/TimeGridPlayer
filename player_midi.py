@@ -82,6 +82,7 @@ class Note(PLAYER.Player):
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+
             if staff == None: # CLOCKED TRIGGER
 
                 print(f"note OFF:\t{self._note}")
@@ -116,9 +117,7 @@ class Note(PLAYER.Player):
                         if self._player.resource != None:
                             self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
-                        trigger_player_steps_per_beat = staff.time_signature()['steps_per_beat']
-                        clock_player_steps_per_beat = tick['tempo']['steps_per_beat']
-                        clock_duration = self._duration * clock_player_steps_per_beat / trigger_player_steps_per_beat
+                        clock_duration = self._duration * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
                         
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
@@ -142,8 +141,8 @@ class Retrig(PLAYER.Player):
             self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
             self._rate = 0.5 # steps (1/32)
             self._gate = 0.5 # from 0 t0 1
-            self._duration = 4 # steps (1/4)
-            self._remaining_duration = self._duration
+            self._retrig_duration = 4 # steps (1/4)
+            self._remaining_retrig_duration = self._retrig_duration
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1}
             self._key_pressed = False
 
@@ -152,41 +151,40 @@ class Retrig(PLAYER.Player):
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
-            trigger_player_steps_per_beat = staff.time_signature()['steps_per_beat']
-            clock_player_steps_per_beat = tick['tempo']['steps_per_beat']
-                        
             if staff == None: # CLOCKED TRIGGER
 
                 if self._key_pressed:
                     if self._player.resource != None:
                         self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_duration = self._rate * (1 - self._gate) * clock_player_steps_per_beat / trigger_player_steps_per_beat
-                elif self._remaining_duration > 0:
+                    clock_retrig_duration = self._rate * (1 - self._gate) * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                elif self._remaining_retrig_duration > 0:
                     if self._player.resource != None:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_duration = self._rate * self._gate * clock_player_steps_per_beat / trigger_player_steps_per_beat
+                    clock_retrig_duration = self._rate * self._gate * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                else:
+                    clock_retrig_duration = 0
 
                 self._key_pressed = not self._key_pressed # alternates
 
-                clock_duration = min(self._remaining_duration, clock_duration)
+                clock_retrig_duration = min(self._remaining_retrig_duration, clock_retrig_duration)
 
-                if self._remaining_duration > 0:
+                if self._remaining_retrig_duration > 0:
 
                     self.addClockedAction(
                         {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                            'duration': clock_duration, 'action': self}, tick
+                            'duration': clock_retrig_duration, 'action': self}, tick
                     )
 
-                self._remaining_duration -= clock_duration
+                self._remaining_retrig_duration -= clock_retrig_duration
 
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):
 
-                    retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
-                    if (retrig_duration != None):
-                        self._duration = retrig_duration
-                        self._remaining_duration = retrig_duration
+                    retrig_retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "retrig_duration")
+                    if (retrig_retrig_duration != None):
+                        self._retrig_duration = retrig_retrig_duration
+                        self._remaining_retrig_duration = retrig_retrig_duration
 
                     retrig_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
                     if (retrig_gate != None):
@@ -214,15 +212,15 @@ class Retrig(PLAYER.Player):
                     
                         self._key_pressed = True
     
-                        clock_duration = self._rate * self._gate * clock_player_steps_per_beat / trigger_player_steps_per_beat
-                        clock_duration = min(self._remaining_duration, clock_duration)
+                        clock_retrig_duration = self._rate * self._gate * self._clock_player_steps_per_beat / self._trigger_player_steps_per_beat
+                        clock_retrig_duration = min(self._remaining_retrig_duration, clock_retrig_duration)
                         
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                             'duration': clock_duration, 'action': self}, tick
+                             'duration': clock_retrig_duration, 'action': self}, tick
                         )
                         
-                        self._remaining_duration -= clock_duration
+                        self._remaining_retrig_duration -= clock_retrig_duration
 
     def actionFactoryMethod(self):
-        return Note.Action(self)
+        return Retrig.Action(self)

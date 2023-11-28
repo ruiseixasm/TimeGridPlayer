@@ -143,7 +143,6 @@ class Player:
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and clocked_action['action'] != None):
-                time_signature = self._staff.time_signature()
                 clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
                 pulses_duration = clocked_action['duration'] * clock_pulses_per_step # Converts duration in clock steps to clock pulses
                 clocked_action['pulse'] = round(tick['pulse'] + pulses_duration)
@@ -255,7 +254,12 @@ class Player:
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-                pass
+            if staff != None: # EXTERNAL TRIGGER
+                self._trigger_player_steps_per_beat = staff.time_signature()['steps_per_beat']
+                self._clock_player_steps_per_beat = tick['tempo']['steps_per_beat']
+                        
+
+
 
     class Clock():
         def __init__(self, player):
