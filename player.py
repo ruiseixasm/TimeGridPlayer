@@ -153,7 +153,7 @@ class Player:
             self._external_arguments_rulers = self._player.rulers().empty()
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
-            if (clocked_action['duration'] != None and clocked_action['action'] != None):
+            if (clocked_action['duration'] != None and not clocked_action['duration'] < 0 and clocked_action['action'] != None):
                 clocked_action['pulse'] = round(tick['pulse'] + clocked_action['duration'])
                 clocked_action['stack_id'] = len(self._clocked_actions)
                 self._clocked_actions.append(clocked_action)
@@ -192,7 +192,8 @@ class Player:
                 ]
 
             # clocked triggers staked to be called
-            while (self._next_clocked_pulse == tick['pulse']):
+            maximum_while_loops = 100
+            while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
                 clockedActions = [
                     clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
                 ] # New list enables deletion of the original list while looping
@@ -207,6 +208,8 @@ class Player:
                         self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
                 else:
                     self._next_clocked_pulse = -1
+
+                maximum_while_loops -= 1
 
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 

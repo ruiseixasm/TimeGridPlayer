@@ -268,6 +268,8 @@ class Arpeggiator(PLAYER.Player):
             else:
                 for selected_key_index in range(self._total_selected_keys):
                     if new_midi_key['midi_key'] == self._selected_keys[selected_key_index]['midi_key']: # avoids duplicates
+                        self._selected_keys[selected_key_index]['selected_on_pulse'] = selected_on_pulse
+                        self._selected_keys[selected_key_index]['selected_duration_pulses'] = selected_duration_pulses
                         break
                     if selected_key_index == self._total_selected_keys - 1:
                         self._selected_keys.append(new_midi_key)
@@ -276,37 +278,6 @@ class Arpeggiator(PLAYER.Player):
                         self._selected_keys.insert(selected_key_index, new_midi_key)
                         self._total_selected_keys += 1
                         break
-            return self
-
-        def deactivate_selected_key(self, midi_key):
-            for selected_key in self._selected_keys:
-                if selected_key['midi_key'] == midi_key:
-                    if selected_key['active']:
-                        self.release_selected_key(midi_key)
-                        selected_key['active'] = False
-                    break
-            return self
-
-        def active_selected_key(self):
-            
-            return self
-
-        def release_selected_key(self, midi_key):
-            for selected_key in self._selected_keys:
-                if selected_key['midi_key'] == midi_key:
-                    if selected_key['pressed']:
-                        selected_key['pressed'] = False
-                    break
-            return self
-
-        def remove_selected_key(self, midi_key):
-
-            for selected_key_index in range(self._total_selected_keys):
-                if self._selected_keys[selected_key_index]['midi_key'] == midi_key:
-                    del self._selected_keys[selected_key_index]
-                    self._total_selected_keys -= 1
-                    break
-
             return self
 
         def update_selected_keys(self, tick):
@@ -325,7 +296,6 @@ class Arpeggiator(PLAYER.Player):
             # cleans up outdated keys except the active one
             for selected_key in self._selected_keys[:]:
                 if selected_key['selected_on_pulse'] + selected_key['selected_duration_pulses'] <= tick['pulse']:
-
                     if selected_key['midi_key'] != self._active_midi_key:
                         self._selected_keys.remove(selected_key)
                         self._total_selected_keys -= 1
@@ -354,22 +324,25 @@ class Arpeggiator(PLAYER.Player):
 
                             pick_up_index = (selected_key_index + 1) % self._total_selected_keys # PICK UP FORMULA
 
-                            self._active_midi_key = self._selected_keys[pick_up_index]['midi_key']
-                            self._selected_keys[pick_up_index]['active'] = True
-                            self._selected_keys[pick_up_index]['activated_on_pulse'] = tick['pulse']
+                            if pick_up_index != selected_key_index or \
+                                self._selected_keys[pick_up_index]['selected_on_pulse'] + self._selected_keys[pick_up_index]['selected_duration_pulses'] > tick['pulse']:
 
-                            if not self._selected_keys[pick_up_index]['pressed']:
-                                self._selected_keys[pick_up_index]['pressed'] = True
-                                if self._player.resource != None:
-                                    self._note['key'] = self._selected_keys[pick_up_index]['midi_key']
-                                    self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                                self._active_midi_key = self._selected_keys[pick_up_index]['midi_key']
+                                self._selected_keys[pick_up_index]['active'] = True
+                                self._selected_keys[pick_up_index]['activated_on_pulse'] = tick['pulse']
+
+                                if not self._selected_keys[pick_up_index]['pressed']:
+                                    self._selected_keys[pick_up_index]['pressed'] = True
+                                    if self._player.resource != None:
+                                        self._note['key'] = self._selected_keys[pick_up_index]['midi_key']
+                                        self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
                         if self._selected_keys[selected_key_index]['selected_on_pulse'] + self._selected_keys[selected_key_index]['selected_duration_pulses'] <= tick['pulse']:
 
                             del self._selected_keys[selected_key_index]
                             self._total_selected_keys -= 1
 
-                    break
+                        break
             
             if self._total_selected_keys == 0:
                 self._active_midi_key = -1
@@ -399,11 +372,12 @@ class Arpeggiator(PLAYER.Player):
             if staff == None: # CLOCKED TRIGGER
 
                 self.update_selected_keys(tick)
-                next_update_tick_duration = self.next_update_selected_keys_pulse() - tick['pulse']
-                self.addClockedAction(
-                    {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                        'duration': next_update_tick_duration, 'action': self}, tick
-                )
+                if self._total_selected_keys > 0:
+                    next_update_tick_duration = min(1, self.next_update_selected_keys_pulse() - tick['pulse']) # updates at least once per pulse
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                            'duration': next_update_tick_duration, 'action': self}, tick
+                    )
                 
             else: # EXTERNAL TRIGGER
 
@@ -446,11 +420,13 @@ class Arpeggiator(PLAYER.Player):
                         self.add_selected_key(midi_key, tick['pulse'], note_duration_pulses)
                         self.update_selected_keys(tick)
 
-                        next_update_tick_duration = self.next_update_selected_keys_pulse() - tick['pulse']
-                        self.addClockedAction(
-                            {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                             'duration': next_update_tick_duration, 'action': self}, tick
-                        )
+                        # only the first trigger key adds to the internal clock
+                        if self._total_selected_keys == 1:
+                            next_update_tick_duration = min(1, self.next_update_selected_keys_pulse() - tick['pulse']) # updates at least once per pulse
+                            self.addClockedAction(
+                                {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                                'duration': next_update_tick_duration, 'action': self}, tick
+                            )
                         
     def isPlaying(self):
         for triggering_staff in self._triggering_staffs[:]:

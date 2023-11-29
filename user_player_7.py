@@ -48,7 +48,7 @@ master.rulers().add({'type': "actions", 'group': "note", 'position': [3, 4], 'li
 master.rulers().add({'type': "actions", 'group': "repeat", 'position': [1, 0], 'lines': ["repeat"]})
 master.rulers().add({'type': "actions", 'group': "retrig", 'position': [4, 0], 'lines': ["retrig"], 'offset': 4})
 master.rulers().add({'type': "actions", 'group': "retrig", 'position': [6, 0], 'lines': ["retrig"], 'offset': 4})
-master.rulers().add({'type': "actions", 'group': "arpeggio", 'position': [10, 0], 'lines': ["arpeggio", "arpeggio", "arpeggio", "arpeggio"], 'offset': 4})
+master.rulers().add({'type': "actions", 'group': "arpeggio", 'position': [9, 0], 'lines': ["arpeggio", "arpeggio", "arpeggio", "arpeggio"], 'offset': 4})
 master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
@@ -81,7 +81,7 @@ repeat.rulers().add({'type': "arguments", 'group': "staff_duration", 'position':
 repeat.rulers().filter(type="arguments").print().print_lines(0, 15)
 
 
-master.set_tempo(124)
+master.set_tempo(125)
 #master.play([1, 0], [4, 0])
 
 master.add(repeat)
