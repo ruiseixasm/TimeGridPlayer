@@ -17,7 +17,7 @@ class Staff:
 
         self._player = player
         self._rulers = Staff.Rulers(self)
-        self._staff = []
+        self._staff_list = []
         self._time_signature = {}
         self._total_pulses = 0
         self.string_top_lengths = {'measure': 0, 'beat': 0, 'step': 0, 'pulse': 0, 'arguments_enabled': 0, 'arguments_total': 0, 'actions_enabled': 0, 'actions_total': 0}
@@ -1174,7 +1174,7 @@ class Staff:
             if key == 'measure' or key == 'beat' or key == 'step' or key == 'pulse':
                 self.string_top_length = 0
 
-        for staff_pulse in self._staff: # get maximum sizes
+        for staff_pulse in self._staff_list: # get maximum sizes
             for key, value in staff_pulse.items():
                 if key == 'measure' or key == 'beat' or key == 'step' or key == 'pulse':
                     self.string_top_lengths[key] = max(self.string_top_lengths[key], len(f"{value}"))
@@ -1187,7 +1187,7 @@ class Staff:
     
     def _setTopLengths_Sums(self):
 
-        staff_list_sums = self._getStaffSums(self._staff)
+        staff_list_sums = self._getStaffSums(self._staff_list)
         self.string_top_lengths['arguments_enabled'] = \
             max(self.string_top_lengths['arguments_enabled'], len(f"{staff_list_sums['arguments']['enabled']}"))
         self.string_top_lengths['arguments_total'] = \
@@ -1205,7 +1205,7 @@ class Staff:
     
     def actions(self):
         total_actions = {'enabled': 0, 'total': 0}
-        for staff_pulse in self._staff:
+        for staff_pulse in self._staff_list:
             total_actions['enabled'] += staff_pulse['actions']['enabled']
             total_actions['total'] += staff_pulse['actions']['total']
         return total_actions
@@ -1216,13 +1216,13 @@ class Staff:
             if pulses < self.len():
                 if total_one == 1 and ruler['on_staff'] == False:
                     ruler['on_staff'] = True
-                    self._staff[pulses][ruler['type']]['total'] += total_one
+                    self._staff_list[pulses][ruler['type']]['total'] += total_one
                 if ruler['on_staff']:
                     if ruler['enabled'] and enabled_one == 1 or not ruler['enabled'] and enabled_one == -1:
-                        self._staff[pulses][ruler['type']]['enabled'] += enabled_one
+                        self._staff_list[pulses][ruler['type']]['enabled'] += enabled_one
                     if total_one == -1:
                         ruler['on_staff'] = False
-                        self._staff[pulses][ruler['type']]['total'] += total_one
+                        self._staff_list[pulses][ruler['type']]['total'] += total_one
             else:
                 ruler['on_staff'] = False
         
@@ -1238,13 +1238,13 @@ class Staff:
 
     def arguments(self):
         total_arguments = {'enabled': 0, 'total': 0}
-        for staff_pulse in self._staff:
+        for staff_pulse in self._staff_list:
             total_arguments['enabled'] += staff_pulse['arguments']['enabled']
             total_arguments['total'] += staff_pulse['arguments']['total']
         return total_arguments
 
     def clear(self):
-        for staff_pulse in self._staff:
+        for staff_pulse in self._staff_list:
             staff_pulse['arguments'] = {'enabled': 0, 'total': 0}
             staff_pulse['actions'] = {'enabled': 0, 'total': 0}
 
@@ -1267,7 +1267,7 @@ class Staff:
             if pulse != None:
                 filtered_list = [ self.pulse(pulse) ]
             else:
-                filtered_list = self._staff[:]
+                filtered_list = self._staff_list[:]
 
         if measure != None:
             filtered_list = [
@@ -1339,7 +1339,7 @@ class Staff:
         return self._total_pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat']
     
     def list(self):
-        return self._staff
+        return self._staff_list
     
     def playRange(self):
         return self._play_range
@@ -1371,14 +1371,14 @@ class Staff:
         return False
 
     def print(self):
-        if len(self._staff) > 0:
-            if len(self._staff) > 1:
+        if len(self._staff_list) > 0:
+            if len(self._staff_list) > 1:
                 print("§" * (self.string_top_length + 128))
 
-            for staff_pulse in self._staff:
+            for staff_pulse in self._staff_list:
                 self.printSinglePulse(staff_pulse['pulse'])
 
-            if len(self._staff) > 1:
+            if len(self._staff_list) > 1:
                 print("§" * (self.string_top_length + 128))
         else:
             print("[EMPTY]")
@@ -1388,7 +1388,7 @@ class Staff:
 
         spaces_between = 6
 
-        staff_pulse = self._staff[pulse]
+        staff_pulse = self._staff_list[pulse]
         pulse_sums = self.pulseSums(staff_pulse['pulse'], sums)
 
         pulse_str = "{ "
@@ -1423,8 +1423,8 @@ class Staff:
         return self
 
     def pulse(self, pulse):
-        pulse = min(len(self._staff) - 1, pulse)
-        return self._staff[pulse]
+        pulse = min(len(self._staff_list) - 1, pulse)
+        return self._staff_list[pulse]
 
     def pulseRemainders(self, pulse=0):
         return {
@@ -1437,24 +1437,24 @@ class Staff:
     def pulseSums(self, pulse=0, sums='pulse'):
         pulse_sums = {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
 
-        measure = self._staff[pulse]['measure']
-        beat = self._staff[pulse]['beat']
-        step = self._staff[pulse]['step']
+        measure = self._staff_list[pulse]['measure']
+        beat = self._staff_list[pulse]['beat']
+        step = self._staff_list[pulse]['step']
 
         match sums:
             case 'measure':
-                measure = self._staff[pulse]['measure']
+                measure = self._staff_list[pulse]['measure']
                 filtered_list = self.filterList(measure=measure)
             case 'beat':
-                measure = self._staff[pulse]['measure']
-                beat = self._staff[pulse]['beat']
+                measure = self._staff_list[pulse]['measure']
+                beat = self._staff_list[pulse]['beat']
                 filtered_list = self.filterList(measure=measure, beat=beat)
             case 'step':
-                measure = self._staff[pulse]['measure']
-                step = self._staff[pulse]['step']
+                measure = self._staff_list[pulse]['measure']
+                step = self._staff_list[pulse]['step']
                 filtered_list = self.filterList(measure=measure, beat=beat, step=step)
             case default:
-                filtered_list = [ self._staff[pulse] ]
+                filtered_list = [ self._staff_list[pulse] ]
 
         for staff_pulse in filtered_list:
             pulse_sums['arguments']['enabled'] += staff_pulse['arguments']['enabled']
@@ -1505,8 +1505,8 @@ class Staff:
         self._total_pulses = self._time_signature['size_measures'] * \
             self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
 
-        old_staff = self._staff[:]
-        self._staff = []
+        self._rulers.float() # starts by floating all Rulers
+        self._staff_list = []
         for pulse in range(self._total_pulses):
             staff_pulse = {
                 'measure': int(pulse / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure'])),
@@ -1518,38 +1518,23 @@ class Staff:
                 'arguments': {'enabled': 0, 'total': 0},
                 'actions': {'enabled': 0, 'total': 0}
             }
-            self._staff.append(staff_pulse)
+            self._staff_list.append(staff_pulse)
 
-        if self._total_pulses > 0:
-            for staff_pulse in old_staff:
-                for ruler_type in ['arguments', 'actions']:
-                    if staff_pulse[ruler_type]['total'] > 0:
-                        position_pulses = self.pulses([staff_pulse['measure'], staff_pulse['step']])
-                        size_total_pulses = self._time_signature['size_measures'] * \
-                            self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
-                        if not position_pulses < 0 and position_pulses < size_total_pulses:
-                            self._staff[position_pulses][ruler_type]['enabled'] = staff_pulse[ruler_type]['enabled']
-                            self._staff[position_pulses][ruler_type]['total'] = staff_pulse[ruler_type]['total']
-
+        self._rulers.drop() # ends by dropping all Rulers
         return self.set_range()._setTopLengths()
     
     def set_range(self, start=None, finish=None):
         if self._total_pulses > 0:
-            if start == [] or self._play_range[0] == []:
+            if start == None or start == [] or self._play_range[0] == []:
                 self._play_range[0] = [0, 0]
-            elif start == None and self._play_range[0] != []:
-                start_pulses = min(self._total_pulses, self.pulses(self._play_range[0]))
-                self._play_range[0] = self.position(pulses=start_pulses)
             elif start != None:
-                start_pulses = min(self._total_pulses, self.pulses(start))
+                start_pulses = max(0, min(self._total_pulses, self.pulses(start)))
                 self._play_range[0] = self.position(pulses=start_pulses)
 
-            if finish == [] or self._play_range[1] == []:
+
+            if finish == None or finish == [] or self._play_range[1] == []:
                 finish_pulses = self._total_pulses
                 self._play_range[1] = self.position(pulses=finish_pulses)
-            elif finish == None and self._play_range[1] != []:
-                start_pulses = min(self._total_pulses, self.pulses(self._play_range[1]))
-                self._play_range[1] = self.position(pulses=start_pulses)
             elif finish != None:
                 start_pulses = self.pulses(self._play_range[0])
                 finish_pulses = max(start_pulses, min(self._total_pulses, self.pulses(finish)))

@@ -187,10 +187,14 @@ class Retrigger(PLAYER.Player):
 
                 if (not tick['fast_forward']):
 
-                    retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "retrig_duration")
+                    retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
                     if (retrig_duration != None):
                         self._retrig_duration = retrig_duration
                     self._remaining_pulses_duration = self._retrig_duration * self._clock_pulses_per_step
+
+                    retrig_rate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "rate")
+                    if (retrig_rate != None):
+                        self._rate = max(0, retrig_rate)
 
                     retrig_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
                     if (retrig_gate != None):
@@ -244,19 +248,19 @@ class Arpeggiator(PLAYER.Player):
         def __init__(self, player):
             super().__init__(player) # not self init
             self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
+            self._arpeggio_duration = 4 # steps (1/4)
             self._rate = 1.0 # steps (1/16)
             self._gate = 0.5 # from 0 t0 1
-            self._retrig_duration = 4 # steps (1/4)
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1}
             self._selected_keys = []
             self._total_selected_keys = 0
-            self._midi_key_pressed = 0
+            self._active_midi_key = -1
 
         def add_selected_key(self, midi_key, selected_on_pulse, selected_duration_pulses):
             new_midi_key = {
                     'midi_key': midi_key, 'active': False, 'pressed': False,
                     'selected_on_pulse': selected_on_pulse, 'selected_duration_pulses': selected_duration_pulses,
-                    'activated_on_pulse': 0, 'active_duration_pulses': 0, 'pressed_duration_pulses': 0
+                    'activated_on_pulse': 0
                 }
             if self._total_selected_keys == 0:
                 self._selected_keys.append(new_midi_key)
@@ -274,15 +278,6 @@ class Arpeggiator(PLAYER.Player):
                         break
             return self
 
-        def activate_selected_key(self, midi_key, activated_on_pulse, active_duration_pulses):
-            for selected_key in self._selected_keys:
-                if selected_key['midi_key'] == midi_key:
-                    selected_key['active'] = True
-                    selected_key['activated_on_pulse'] = activated_on_pulse
-                    selected_key['active_duration_pulses'] = active_duration_pulses
-                    break
-            return self
-
         def deactivate_selected_key(self, midi_key):
             for selected_key in self._selected_keys:
                 if selected_key['midi_key'] == midi_key:
@@ -292,12 +287,8 @@ class Arpeggiator(PLAYER.Player):
                     break
             return self
 
-        def press_selected_key(self, midi_key, pressed_duration_pulses):
-            for selected_key in self._selected_keys:
-                if selected_key['midi_key'] == midi_key:
-                    selected_key['pressed'] = True
-                    selected_key['pressed_duration_pulses'] = pressed_duration_pulses
-                    break
+        def active_selected_key(self):
+            
             return self
 
         def release_selected_key(self, midi_key):
@@ -306,10 +297,6 @@ class Arpeggiator(PLAYER.Player):
                     if selected_key['pressed']:
                         selected_key['pressed'] = False
                     break
-            return self
-
-        def pressed_selected_key(self):
-
             return self
 
         def remove_selected_key(self, midi_key):
@@ -322,95 +309,149 @@ class Arpeggiator(PLAYER.Player):
 
             return self
 
-        def update_selected_keys(self):
+        def update_selected_keys(self, tick):
+
+            # releases outdated pressed keys
+            for selected_key in self._selected_keys:
+                if selected_key['pressed']:
+                    if selected_key['selected_on_pulse'] + selected_key['selected_duration_pulses'] <= tick['pulse'] or \
+                        selected_key['activated_on_pulse'] + self._pressed_duration_pulses <= tick['pulse']:
+
+                        selected_key['pressed'] = False
+                        if self._player.resource != None:
+                            self._note['key'] = selected_key['midi_key']
+                            self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+
+            # cleans up outdated keys except the active one
+            for selected_key in self._selected_keys[:]:
+                if selected_key['selected_on_pulse'] + selected_key['selected_duration_pulses'] <= tick['pulse']:
+
+                    if selected_key['midi_key'] != self._active_midi_key:
+                        self._selected_keys.remove(selected_key)
+                        self._total_selected_keys -= 1
+
+            # follows the active key to the next one
+            if self._active_midi_key == -1:
+                if self._total_selected_keys > 0:
+                    self._active_midi_key = self._selected_keys[0]['midi_key']
+                    self._selected_keys[0]['active'] = True
+                    self._selected_keys[0]['activated_on_pulse'] = tick['pulse']
+
+                    if not self._selected_keys[0]['pressed']:
+                        self._selected_keys[0]['pressed'] = True
+                        if self._player.resource != None:
+                            self._note['key'] = self._selected_keys[0]['midi_key']
+                            self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+
+            else:
+                for selected_key_index in range(self._total_selected_keys):
+                    if self._selected_keys[selected_key_index]['midi_key'] == self._active_midi_key:
+
+                        if self._selected_keys[selected_key_index]['selected_on_pulse'] + self._selected_keys[selected_key_index]['selected_duration_pulses'] <= tick['pulse'] or \
+                            self._selected_keys[selected_key_index]['activated_on_pulse'] + self._active_duration_pulses <= tick['pulse']:
+
+                            self._selected_keys[selected_key_index]['active'] = False
+
+                            pick_up_index = (selected_key_index + 1) % self._total_selected_keys # PICK UP FORMULA
+
+                            self._active_midi_key = self._selected_keys[pick_up_index]['midi_key']
+                            self._selected_keys[pick_up_index]['active'] = True
+                            self._selected_keys[pick_up_index]['activated_on_pulse'] = tick['pulse']
+
+                            if not self._selected_keys[pick_up_index]['pressed']:
+                                self._selected_keys[pick_up_index]['pressed'] = True
+                                if self._player.resource != None:
+                                    self._note['key'] = self._selected_keys[pick_up_index]['midi_key']
+                                    self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+
+                        if self._selected_keys[selected_key_index]['selected_on_pulse'] + self._selected_keys[selected_key_index]['selected_duration_pulses'] <= tick['pulse']:
+
+                            del self._selected_keys[selected_key_index]
+                            self._total_selected_keys -= 1
+
+                    break
+            
+            if self._total_selected_keys == 0:
+                self._active_midi_key = -1
 
             return self
 
         def next_update_selected_keys_pulse(self):
 
-            return self
+            next_update_pulse = -1
+            if self._total_selected_keys > 0:
+                next_update_pulse = self._selected_keys[0]['selected_on_pulse'] + self._selected_keys[0]['selected_duration_pulses']
+
+            for selected_key in self._selected_keys:
+                next_update_pulse = min(next_update_pulse, selected_key['selected_on_pulse'] + selected_key['selected_duration_pulses'])
+                if selected_key['active']:
+                    next_update_pulse = min(next_update_pulse, selected_key['activated_on_pulse'] + self._active_duration_pulses)
+                if selected_key['pressed']:
+                    next_update_pulse = min(next_update_pulse, selected_key['activated_on_pulse'] + self._pressed_duration_pulses)
+
+            return next_update_pulse
 
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
-            self_rate_pulses = self._rate * self._clock_pulses_per_step
-            clock_rate_pulses = self_rate_pulses * self._clock_trigger_steps_per_beat_ratio
-
             if staff == None: # CLOCKED TRIGGER
 
-                if self._key_pressed:
-                    if self._player.resource != None:
-                        self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_trigger_steps_per_beat_ratio
-                elif self._remaining_pulses_duration > 0:
-                    if self._player.resource != None:
-                        self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
-                else:
-                    clock_retrig_duration = 0
-
-                self._key_pressed = not self._key_pressed # alternates
-
-                clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
-
-                if self._remaining_pulses_duration > 0:
-
-                    self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                            'duration': clock_retrig_duration, 'action': self}, tick
-                    )
-                else:
-                    print(f"retrigger OFF:\t{self._note}\tduration: {self._retrig_duration}")
-
-                self._remaining_pulses_duration -= clock_retrig_duration
-
+                self.update_selected_keys(tick)
+                next_update_tick_duration = self.next_update_selected_keys_pulse() - tick['pulse']
+                self.addClockedAction(
+                    {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                        'duration': next_update_tick_duration, 'action': self}, tick
+                )
+                
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):
 
-                    retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "retrig_duration")
-                    if (retrig_duration != None):
-                        self._retrig_duration = retrig_duration
-                    self._remaining_pulses_duration = self._retrig_duration * self._clock_pulses_per_step
+                    arpeggio_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
+                    if (arpeggio_duration != None):
+                        self._arpeggio_duration = arpeggio_duration
 
-                    retrig_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
-                    if (retrig_gate != None):
-                        self._gate = min(1, max(0, retrig_gate))
+                    arpeggio_rate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "rate")
+                    if (arpeggio_rate != None):
+                        self._rate = max(0, arpeggio_rate)
 
-                    retrig_channel = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "channel")
-                    if (retrig_channel != None):
-                        self._note['channel'] = retrig_channel
+                    arpeggio_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
+                    if (arpeggio_gate != None):
+                        self._gate = max(0, arpeggio_gate)
 
-                    retrig_velocity = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "velocity")
-                    if (retrig_velocity != None):
-                        self._note['velocity'] = retrig_velocity
+                    arpeggio_channel = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "channel")
+                    if (arpeggio_channel != None):
+                        self._note['channel'] = arpeggio_channel
 
-                    retrig_octave = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "octave")
-                    if (retrig_octave != None):
-                        self._note['octave'] = retrig_octave
+                    arpeggio_velocity = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "velocity")
+                    if (arpeggio_velocity != None):
+                        self._note['velocity'] = arpeggio_velocity
 
-                    retrig_key = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "key")
-                    if (retrig_key != None):
-                        self._note['key'] = retrig_key
+                    arpeggio_octave = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "octave")
+                    if (arpeggio_octave != None):
+                        self._note['octave'] = arpeggio_octave
 
-                        print(f"retrigger ON:\t{self._note}\tduration: {self._retrig_duration}")
-                        if self._player.resource != None:
-                            self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    
-                        self._key_pressed = True
-    
-                        clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
-                        clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
-                        
+                    self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
+                    self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
+
+                    arpeggio_key = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "key")
+                    if (arpeggio_key != None):
+                        self._note['key'] = arpeggio_key
+
+                        midi_key = RESOURCES_MIDI.getMidiNote(self._note)
+
+                        note_duration_pulses = round(self._arpeggio_duration * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
+                        self.add_selected_key(midi_key, tick['pulse'], note_duration_pulses)
+                        self.update_selected_keys(tick)
+
+                        next_update_tick_duration = self.next_update_selected_keys_pulse() - tick['pulse']
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                             'duration': clock_retrig_duration, 'action': self}, tick
+                             'duration': next_update_tick_duration, 'action': self}, tick
                         )
                         
-                        self._remaining_pulses_duration -= clock_retrig_duration
-
     def isPlaying(self):
         for triggering_staff in self._triggering_staffs[:]:
             if not triggering_staff['action'].isPlaying():

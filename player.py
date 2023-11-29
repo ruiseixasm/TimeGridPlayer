@@ -609,6 +609,8 @@ class Player:
         self._clock.set(beats_per_minute=None, steps_per_beat=steps_per_beat, pulses_per_quarter_note=pulses_per_quarter_note)
         self._staff.set(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
 
+        return self
+
     def staff(self):
         return self._staff
     

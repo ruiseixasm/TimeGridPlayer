@@ -19,7 +19,6 @@ stage_midi.add("master")
 stage_midi.add("note", type="Note")
 stage_midi.add("repeat", type="Master")
 stage_midi.add("clock", type="Clock")
-stage_midi.add("retrig", type="Retrigger")
 
 note = stage_midi.print().player("note").print()
 note.use_resource("loop").enable_resource()
@@ -31,22 +30,31 @@ midi_clock.print()
 scales = LINES_SCALES.Scales()
 
 master = stage_midi.player("master")
+master.set_time_signature(size_measures=12)
+# Retrigger
+stage_midi.add("retrig", type="Retrigger")
 retrig = stage_midi.player("retrig")
 retrig.use_resource("loop").enable_resource()
 master.add(retrig)
+# Arpeggiator
+stage_midi.add("arpeggio", type="Arpeggiator")
+arpeggio = stage_midi.player("arpeggio")
+arpeggio.use_resource("loop").enable_resource()
+master.add(arpeggio)
 
 # MASTER MIDI COMPOSITION
 master.rulers().add({'type': "actions", 'group': "note", 'position': [2, 4], 'lines': ["note"], 'offset': 2})
 master.rulers().add({'type': "actions", 'group': "note", 'position': [3, 4], 'lines': ["note"]})
 master.rulers().add({'type': "actions", 'group': "repeat", 'position': [1, 0], 'lines': ["repeat"]})
-master.rulers().add({'type': "actions", 'group': "retrig", 'position': [4, 0], 'lines': ["retrig"]})
-master.rulers().add({'type': "actions", 'group': "retrig", 'position': [6, 0], 'lines': ["retrig"]})
+master.rulers().add({'type': "actions", 'group': "retrig", 'position': [4, 0], 'lines': ["retrig"], 'offset': 4})
+master.rulers().add({'type': "actions", 'group': "retrig", 'position': [6, 0], 'lines': ["retrig"], 'offset': 4})
+master.rulers().add({'type': "actions", 'group': "arpeggio", 'position': [10, 0], 'lines': ["arpeggio", "arpeggio", "arpeggio", "arpeggio"], 'offset': 4})
 master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [2, 0], 'lines': [0.25]})
-master.rulers().add({'type': "arguments", 'group': "retrig_duration", 'position': [2, 0], 'lines': [24]})
+master.rulers().add({'type': "arguments", 'group': "duration", 'position': [2, 0], 'lines': [24, 24, 24, 24], 'offset': 4})
 master.rulers().filter(type="arguments").sort().print().print_lines()
 
 scales.scale("major", "A", 5)
@@ -73,7 +81,7 @@ repeat.rulers().add({'type': "arguments", 'group': "staff_duration", 'position':
 repeat.rulers().filter(type="arguments").print().print_lines(0, 15)
 
 
-master.set_tempo(120)
+master.set_tempo(124)
 #master.play([1, 0], [4, 0])
 
 master.add(repeat)
@@ -97,6 +105,7 @@ stage_midi.json_save("stage_2.json")
 stage_midi.json_load("stage_2.json")
 
 stage_midi.print().filter(names=["note"]).print().disable().print().enable().print()
+stage_midi.filter(names=["retrig"]).disable().print()
 stage_midi.print_tree()
 
 stage_midi.play()
