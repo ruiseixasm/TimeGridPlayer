@@ -55,16 +55,18 @@ class Group:
         self_players_list = self.list()
         other_players_list = other.list()
 
-        exclusion_list = []
+        exclusion_list = [ player for player in self_players_list if player not in other_players_list ]
 
-        for self_player in self_players_list:
-            excluded_player = True
-            for other_player in other_players_list:
-                if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
-                    excluded_player = False
-                    break
-            if excluded_player:
-                exclusion_list.append(self_player)
+        # exclusion_list = []
+
+        # for self_player in self_players_list:
+        #     excluded_player = True
+        #     for other_player in other_players_list:
+        #         if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
+        #             excluded_player = False
+        #             break
+        #     if excluded_player:
+        #         exclusion_list.append(self_player)
 
         return Group(self._player, exclusion_list, self._root_self)
     
@@ -73,16 +75,18 @@ class Group:
         self_players_list = self.list()
         other_players_list = other.list()
         
-        intersection_list = []
+        intersection_list = [ player for player in self_players_list if player in other_players_list ]
 
-        for self_player in self_players_list:
-            intersected_player = False
-            for other_player in other_players_list:
-                if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
-                    intersected_player = True
-                    break
-            if intersected_player:
-                intersection_list.append(self_player)
+        # intersection_list = []
+
+        # for self_player in self_players_list:
+        #     intersected_player = False
+        #     for other_player in other_players_list:
+        #         if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
+        #             intersected_player = True
+        #             break
+        #     if intersected_player:
+        #         intersection_list.append(self_player)
 
         return Group(self._player, intersection_list, self._root_self)
     
