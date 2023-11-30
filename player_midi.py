@@ -15,8 +15,8 @@ import lines_scales as LINES_SCALES
 
 class Clock(PLAYER.Player):
     
-    def __init__(self, name, description="Sends clock midi messages", resources=None):
-        super().__init__(name, description, resources) # not self init
+    def __init__(self, stage, name, description="Sends clock midi messages", resources=None):
+        super().__init__(stage, name, description, resources) # not self init
         self._clock = Clock.Clock(self)
         self._internal_clock = True
         if resources == None:
@@ -59,18 +59,18 @@ class Clock(PLAYER.Player):
 
 class Master(PLAYER.Player):
     
-    def __init__(self, name, description="A conductor of multiple Players"):
-        super().__init__(name, description) # not self init
+    def __init__(self, stage, name, description="A conductor of multiple Players"):
+        super().__init__(stage, name, description) # not self init
         
 class Automation(PLAYER.Player):
     
-    def __init__(self, name, description="Applies only for automation parameters"):
-        super().__init__(name, description) # not self init
+    def __init__(self, stage, name, description="Applies only for automation parameters"):
+        super().__init__(stage, name, description) # not self init
         
 class Note(PLAYER.Player):
     
-    def __init__(self, name, description="Plays notes on a given Synth", resources=None):
-        super().__init__(name, description, resources) # not self init
+    def __init__(self, stage, name, description="Plays notes on a given Synth", resources=None):
+        super().__init__(stage, name, description, resources) # not self init
         if resources == None:
             self._resources = RESOURCES_MIDI.Midi()
 
@@ -137,8 +137,8 @@ class Note(PLAYER.Player):
 
 class Retrigger(PLAYER.Player):
     
-    def __init__(self, name, description="Retrigs a given note along a given duration", resources=None):
-        super().__init__(name, description, resources) # not self init
+    def __init__(self, stage, name, description="Retrigs a given note along a given duration", resources=None):
+        super().__init__(stage, name, description, resources) # not self init
         if resources == None:
             self._resources = RESOURCES_MIDI.Midi()
 
@@ -246,8 +246,8 @@ class Retrigger(PLAYER.Player):
 
 class Arpeggiator(PLAYER.Player):
     
-    def __init__(self, name, description="Retrigs a given note along a given duration", resources=None):
-        super().__init__(name, description, resources) # not self init
+    def __init__(self, stage, name, description="Retrigs a given note along a given duration", resources=None):
+        super().__init__(stage, name, description, resources) # not self init
         if resources == None:
             self._resources = RESOURCES_MIDI.Midi()
         self._triggering_staffs = []
@@ -393,7 +393,7 @@ class Arpeggiator(PLAYER.Player):
                                 start_line = min(auto_ruler['offset'], self._automation_rate_ruler['offset'])
                                 last_line = max(auto_ruler['offset'] + auto_ruler_length, self._automation_rate_ruler['offset'] + rate_ruler_length)
 
-                                
+
                                 
             else: # EXTERNAL TRIGGER
 

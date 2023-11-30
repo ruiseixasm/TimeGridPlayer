@@ -24,37 +24,37 @@ class StageMidi(STAGE.Stage):
             case "Clock":
                 if resources == None:
                     if description == None:
-                        return PLAYER_MIDI.Clock(name, resources=self._resources)
-                    return PLAYER_MIDI.Clock(name, description, self._resources)
+                        return PLAYER_MIDI.Clock(self, name, resources=self._resources)
+                    return PLAYER_MIDI.Clock(self, name, description, self._resources)
                 if description == None:
-                    return PLAYER_MIDI.Clock(name, resources=resources)
-                return PLAYER_MIDI.Clock(name, description, resources)
+                    return PLAYER_MIDI.Clock(self, name, resources=resources)
+                return PLAYER_MIDI.Clock(self, name, description, resources)
             case "Master":
                 if description == None:
-                    return PLAYER_MIDI.Master(name)
-                return PLAYER_MIDI.Master(name, description)
+                    return PLAYER_MIDI.Master(self, name)
+                return PLAYER_MIDI.Master(self, name, description)
             case "Note":
                 if resources == None:
                     if description == None:
-                        return PLAYER_MIDI.Note(name, resources=self._resources)
-                    return PLAYER_MIDI.Note(name, description, self._resources)
+                        return PLAYER_MIDI.Note(self, name, resources=self._resources)
+                    return PLAYER_MIDI.Note(self, name, description, self._resources)
                 if description == None:
-                    return PLAYER_MIDI.Note(name, resources=resources)
-                return PLAYER_MIDI.Note(name, description, resources)
+                    return PLAYER_MIDI.Note(self, name, resources=resources)
+                return PLAYER_MIDI.Note(self, name, description, resources)
             case "Retrigger":
                 if resources == None:
                     if description == None:
-                        return PLAYER_MIDI.Retrigger(name, resources=self._resources)
-                    return PLAYER_MIDI.Retrigger(name, description, self._resources)
+                        return PLAYER_MIDI.Retrigger(self, name, resources=self._resources)
+                    return PLAYER_MIDI.Retrigger(self, name, description, self._resources)
                 if description == None:
-                    return PLAYER_MIDI.Retrigger(name, resources=resources)
-                return PLAYER_MIDI.Retrigger(name, description, resources)
+                    return PLAYER_MIDI.Retrigger(self, name, resources=resources)
+                return PLAYER_MIDI.Retrigger(self, name, description, resources)
             case "Arpeggiator":
                 if resources == None:
                     if description == None:
-                        return PLAYER_MIDI.Arpeggiator(name, resources=self._resources)
-                    return PLAYER_MIDI.Arpeggiator(name, description, self._resources)
+                        return PLAYER_MIDI.Arpeggiator(self, name, resources=self._resources)
+                    return PLAYER_MIDI.Arpeggiator(self, name, description, self._resources)
                 if description == None:
-                    return PLAYER_MIDI.Arpeggiator(name, resources=resources)
-                return PLAYER_MIDI.Arpeggiator(name, description, resources)
+                    return PLAYER_MIDI.Arpeggiator(self, name, resources=resources)
+                return PLAYER_MIDI.Arpeggiator(self, name, description, resources)
         return super().playerFactoryMethod(name, description, resources, type)

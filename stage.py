@@ -49,16 +49,16 @@ class Stage:
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
         if resources == None:
             if description == None:
-                return PLAYER.Player(name, resources=self._resources)
-            return PLAYER.Player(name, description, self._resources)
+                return PLAYER.Player(self, name, resources=self._resources)
+            return PLAYER.Player(self, name, description, self._resources)
         if description == None:
-            return PLAYER.Player(name, resources=resources)
-        return PLAYER.Player(name, description, resources)
+            return PLAYER.Player(self, name, resources=resources)
+        return PLAYER.Player(self, name, description, resources)
 
     def add(self, name, description=None, resources=None, type=None):
         if type == None:
             type = "Player"
-        existent_player = self._root_self.filter(types=[type], names=[name])
+        existent_player = self._root_self.filter(names=[name]) # name is the identifier
         if existent_player.len() == 0:
             player = self.playerFactoryMethod(name, description, resources, type) # Factory Method
             player_data = {
@@ -216,7 +216,7 @@ class Stage:
         selected_player = self.filter(names=[name], ids=[id], types=[type])
         if selected_player.len() > 0:
             return selected_player.list()[0]['player']
-        return PLAYER.PlayerNone()
+        return PLAYER.PlayerNone(self)
 
     def print(self):
 

@@ -331,7 +331,7 @@ class Group:
     def player(self):
         if len(self._players_list) > 0:
             return self._players_list[0]['player']
-        return PLAYER.PlayerNone()
+        return PLAYER.PlayerNone(self._player.stage)
 
     def print(self):
 

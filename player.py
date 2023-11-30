@@ -17,8 +17,9 @@ import group as GROUP
 
 class Player:
 
-    def __init__(self, name, description="A Player of actions based on arguments", resources=None):
+    def __init__(self, stage, name, description="A Player of actions based on arguments", resources=None):
 
+        self._stage = stage
         self._name = name
         self._description = description
 
@@ -43,17 +44,13 @@ class Player:
         self.discard_resource()
 
     @property
+    def stage(self):
+        return self._stage
+            
+    @property
     def name(self):
         return self._name
             
-    @name.setter
-    def name(self, name):
-        self._name = name
-            
-    @name.deleter
-    def name(self):
-        self._name = None
-
     @property
     def description(self):
         return self._description
@@ -687,8 +684,8 @@ class Player:
 
 class Trigger(Player):
     
-    def __init__(self, name, description="A simple trigger action"):
-        super().__init__(name, description) # not self init
+    def __init__(self, stage, name, description="A simple trigger action"):
+        super().__init__(stage, name, description) # not self init
         
     class Action(Player.Action):
         
@@ -710,8 +707,8 @@ class Trigger(Player):
 
 class PlayerNone(Player):
 
-    def __init__(self):
-        super().__init__("None", "Player considered as None!")
+    def __init__(self, stage):
+        super().__init__(stage, "None", "Player considered as None!")
 
         self._staff = STAFF.StaffNone(self)
         self._lower_group = GROUP.GroupNone()
