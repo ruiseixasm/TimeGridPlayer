@@ -55,8 +55,10 @@ master.rulers().add({'type': "arguments", 'group': "staff_channel", 'position': 
 master.rulers().add({'type': "arguments", 'group': "staff_velocity", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'type': "arguments", 'group': "staff_duration", 'position': [2, 0], 'lines': [0.25]})
 master.rulers().add({'type': "arguments", 'group': "duration", 'position': [2, 0], 'lines': [16, 24, 28, 20], 'offset': 4})
-master.rulers().add({'type': "arguments", 'group': "auto_gate", 'position': [9, 0], 'lines': [.25, .10, .25, .10, .25, .10], 'offset': 3})
-master.rulers().add({'type': "arguments", 'group': "auto_gate", 'position': [10, 0], 'lines': [.75, .90, .50, .80], 'offset': 4})
+master.rulers().add({'type': "arguments", 'group': "auto_arpeggio_gate", 'position': [9, 0], 'lines': [.25, .10, .25, .10, .25, .10], 'offset': 3})
+master.rulers().add({'type': "arguments", 'group': "auto_arpeggio_gate", 'position': [10, 0], 'lines': [.75, .90, .50, .80], 'offset': 4})
+master.rulers().add({'type': "arguments", 'group': "auto_arpeggio_rate", 'position': [9, 0], 'lines': [.25, 4, 1, .5, 2, 8], 'offset': 3})
+master.rulers().add({'type': "arguments", 'group': "auto_arpeggio_rate", 'position': [10, 0], 'lines': [.5, 4, 4, 1], 'offset': 4})
 master.rulers().filter(type="arguments").sort().print().print_lines()
 
 scales.scale("major", "A", 5)

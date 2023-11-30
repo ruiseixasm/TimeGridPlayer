@@ -102,6 +102,10 @@ class Player:
     def playable_sub_players(self):
         return self._playable_sub_players
             
+    @property
+    def automation_rulers(self):
+        return self._automation_rulers
+            
     class Action():
 
         def __init__(self, player):
@@ -191,26 +195,6 @@ class Player:
                     playable_player for playable_player in playable_sub_players if playable_player['name'] == action_name
                 ]
 
-            # clocked triggers staked to be called
-            maximum_while_loops = 100
-            while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
-                clockedActions = [
-                    clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
-                ] # New list enables deletion of the original list while looping
-
-                for clockedAction in clockedActions:
-                    clockedAction['action'].actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
-                    self._clocked_actions.remove(clockedAction)
-                        
-                if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
-                    self._next_clocked_pulse = self._clocked_actions[0]['pulse']
-                    for clocked_action in self._clocked_actions:
-                        self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
-                else:
-                    self._next_clocked_pulse = -1
-
-                maximum_while_loops -= 1
-
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                 if first_pulse:
@@ -235,6 +219,16 @@ class Player:
                         pulse_reset_arguments_rulers = pulse_arguments_rulers.group_name_find("reset_").group_name_strip("reset_")
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
+                        # FEED AUTOMATIONS HERE
+                        pulse_automation_rulers = self._player.automation_rulers.filter(positions=[position])
+                        if pulse_automation_rulers.len() > 0:
+                            for pulse_automation_ruler_dict in pulse_automation_rulers:
+                                pulse_automation_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
+                                action_name = pulse_automation_ruler_dict['action']
+                                action_players = getActionPlayers(self._player.playable_sub_players, action_name)
+                                for action_player in action_players:
+                                    action_player['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+
                     if (pulse_data['actions']['enabled'] > 0):
                         
                         pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
@@ -257,7 +251,29 @@ class Player:
                     self._play_pulse += 1
                     self._next_clock_pulse += 1
 
-            elif len(self._clocked_actions) == 0:
+            if len(self._clocked_actions) > 0:
+
+                # clocked triggers staked to be called
+                maximum_while_loops = 100
+                while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
+                    clockedActions = [
+                        clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
+                    ] # New list enables deletion of the original list while looping
+
+                    for clockedAction in clockedActions:
+                        clockedAction['action'].actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
+                        self._clocked_actions.remove(clockedAction)
+                            
+                    if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
+                        self._next_clocked_pulse = self._clocked_actions[0]['pulse']
+                        for clocked_action in self._clocked_actions:
+                            self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
+                    else:
+                        self._next_clocked_pulse = -1
+
+                    maximum_while_loops -= 1
+
+            if not self._play_pulse < self._finish_pulse and len(self._clocked_actions) == 0:
                 self._play_mode = False
                 self._play_pulse = self._start_pulse
 
@@ -561,7 +577,7 @@ class Player:
         tick = self._clock.start(non_fast_forward_range)
         for player in self._clocked_players:
             player['player'].start(tick)
-        self.actionTrigger(None, self.rulers().empty(), self._staff, tick)
+        self.actionTrigger({ None }, self.rulers().empty(), self._staff, tick)
 
         still_playing = True
         while still_playing:
@@ -618,7 +634,7 @@ class Player:
         return self._staff
     
     def start(self, tick):
-        self._staff.rulers().automation_rulers_generator()
+        self._automation_rulers = self._staff.rulers().automation_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self
@@ -649,14 +665,18 @@ class Player:
         return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-        player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
-        if player_action not in self._actions:
-            self._actions.append(player_action)
-        else:
-            player_action.play_mode = True
-        player_action.external_arguments_rulers = merged_staff_arguments
-        player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
-        player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
+        if triggered_action != None:
+            player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
+            if player_action not in self._actions:
+                self._actions.append(player_action)
+            else:
+                player_action.play_mode = True
+            player_action.external_arguments_rulers = merged_staff_arguments
+            player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+            player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
+        else: # for automation "_auto" arguments only!
+            for player_action in self._actions:
+                player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
         return self
 

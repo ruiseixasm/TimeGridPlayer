@@ -62,18 +62,11 @@ class Master(PLAYER.Player):
     def __init__(self, name, description="A conductor of multiple Players"):
         super().__init__(name, description) # not self init
         
-
-class Master(PLAYER.Player):
-    
-    def __init__(self, name, description="A conductor of multiple Players"):
-        super().__init__(name, description) # not self init
-        
 class Automation(PLAYER.Player):
     
     def __init__(self, name, description="Applies only for automation parameters"):
         super().__init__(name, description) # not self init
         
-
 class Note(PLAYER.Player):
     
     def __init__(self, name, description="Plays notes on a given Synth", resources=None):
@@ -99,6 +92,9 @@ class Note(PLAYER.Player):
                 print(f"note OFF:\t{self._note}")
                 if self._player.resource != None:
                     self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+
+            elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
+                pass
 
             else: # EXTERNAL TRIGGER
 
@@ -193,6 +189,9 @@ class Retrigger(PLAYER.Player):
 
                 self._remaining_pulses_duration -= clock_retrig_duration
 
+            elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
+                pass
+
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):
@@ -265,6 +264,12 @@ class Arpeggiator(PLAYER.Player):
             self._selected_keys = []
             self._total_selected_keys = 0
             self._active_midi_key = -1
+
+            # AUTOMATIONS
+            self._automation_data = {
+                'rate': None,
+                'gate': None
+            }
 
         def add_selected_key(self, midi_key, selected_on_pulse, selected_duration_pulses):
             new_midi_key = {
@@ -364,7 +369,7 @@ class Arpeggiator(PLAYER.Player):
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
-            if staff == None: # CLOCKED TRIGGER
+            if staff == None: # INTERNAL CLOCKED TRIGGER
 
                 self.update_selected_keys(tick)
                 if self._total_selected_keys > 0:
@@ -373,6 +378,23 @@ class Arpeggiator(PLAYER.Player):
                             'duration': 1, 'action': self}, tick # updates at least once per pulse
                     )
                 
+            elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
+
+                for auto_ruler in merged_staff_arguments:
+
+                    if auto_ruler['group'] == "rate" or auto_ruler['group'] == "gate":
+                        auto_ruler_length = len(auto_ruler['lines'][0])
+                        if auto_ruler_length > 0:
+                            if self._automation_data[auto_ruler['group']] == None:
+                                auto_ruler['lines'] += [ tick['pulse'] ] * auto_ruler_length # the 4th line of starting pulse
+                                self._automation_rate_ruler = auto_ruler
+                            else:
+                                rate_ruler_length = len(self._automation_rate_ruler['lines'][0])
+                                start_line = min(auto_ruler['offset'], self._automation_rate_ruler['offset'])
+                                last_line = max(auto_ruler['offset'] + auto_ruler_length, self._automation_rate_ruler['offset'] + rate_ruler_length)
+
+                                
+                                
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):

@@ -9,6 +9,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+import re
 import json
 
 class Staff:
@@ -36,11 +37,10 @@ class Staff:
             
     class Rulers():
 
-        def __init__(self, staff, rulers_list=None, root_self=None, start_id=0, automation_rulers_list=None):
+        def __init__(self, staff, rulers_list=None, root_self=None, start_id=0):
 
             self._staff = staff
             self._rulers_list = []
-            self._automation_rulers_list = []
             if rulers_list != None:
                 self._rulers_list = rulers_list
             self._root_self = self
@@ -187,44 +187,57 @@ class Staff:
 
         def automation_rulers_generator(self):
             
-            self._root_self._automation_rulers_list = []
-            auto_rulers = self._root_self.on_staff().enabled().group_name_find("auto_").unique().sort(key="position")
-            following_rulers = auto_rulers
-            for auto_ruler in auto_rulers:
-                new_auto_ruler = {
-                    'id': auto_ruler['id'],
-                    'type': auto_ruler['type'],
-                    'group': auto_ruler['group'],
-                    'position': auto_ruler['position'],
-                    'lines': {
-                        'start': auto_ruler['lines'],
-                        'finish': [ None ] * len(auto_ruler['lines']),
-                        'pulses': [ 0 ] * len(auto_ruler['lines'])
-                    },
-                    'offset': auto_ruler['offset'],
-                    'enabled': True,
-                    'on_staff': True
-                }
+            automation_rulers_list = []
+            auto_rulers = self._root_self.arguments().on_staff().enabled().group_name_find("auto_").unique().sort(key="position")
+            auto_rulers_merged = auto_rulers.merge()
 
-                if following_rulers.len() > 1:
-                    following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
-                    for following_ruler in following_rulers:
-                        distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
-                        for auto_ruler_line in range(len(auto_ruler['lines'])):
-                            incomplete_new_auto_ruler = False
-                            if new_auto_ruler['lines']['finish'][auto_ruler_line] == None:
-                                incomplete_new_auto_ruler = True
-                                new_auto_ruler['lines']['pulses'][auto_ruler_line] += distance_pulses
-                                if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
-                                    not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
+            for auto_group_merged in auto_rulers_merged:
+                auto_rulers_group = auto_rulers.group(auto_group_merged['group'])
+                following_rulers = auto_rulers_group
+                for auto_ruler in auto_rulers_group:
+                    # [a-zA-Z0-9]
+                    auto_argument_group = re.search(r"auto_([a-zA-Z0-9]+)_(.+)", auto_ruler['group'])
+                    if auto_argument_group != None:
+                        action_name = auto_argument_group.group(1)
+                        argument_group = auto_argument_group.group(2)
+                        new_auto_ruler = {
+                            'id': auto_ruler['id'],
+                            'type': auto_ruler['type'],
+                            'group': argument_group,
+                            'position': auto_ruler['position'],
+                            'lines': [
+                                auto_ruler['lines'],                    # start     (0)
+                                [ None ] * len(auto_ruler['lines']),    # finish    (1)
+                                [ 0 ] * len(auto_ruler['lines'])        # pulses    (2)
+                            ],
+                            'offset': auto_ruler['offset'],
+                            'enabled': False, # not intended to be processed by the Staff
+                            'on_staff': False, # not intended to be on the Staff
+                            'action': action_name
+                        }
 
-                                    new_auto_ruler['lines']['finish'][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
-                            if not incomplete_new_auto_ruler:
-                                break
+                        line_finish = 1
+                        line_pulses = 2
 
-                self._root_self._automation_rulers_list.append(new_auto_ruler)
+                        if following_rulers.len() > 1:
+                            following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
+                            for following_ruler in following_rulers:
+                                distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
+                                for auto_ruler_line in range(len(auto_ruler['lines'])):
+                                    complete_new_auto_ruler = True
+                                    if new_auto_ruler['lines'][line_finish][auto_ruler_line] == None:
+                                        complete_new_auto_ruler = False
+                                        new_auto_ruler['lines'][line_pulses][auto_ruler_line] += distance_pulses
+                                        if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
+                                            not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
+
+                                            new_auto_ruler['lines'][line_finish][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
+                                    if complete_new_auto_ruler:
+                                        break
+
+                        automation_rulers_list.append(new_auto_ruler)
             
-            return self
+            return Staff.Rulers(self._staff, automation_rulers_list, self._root_self, self._next_id)
 
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]
@@ -449,38 +462,6 @@ class Staff:
                     ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
                 ]
             return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id)
-        
-        def filter_automation(self, ids = [], type = None, groups = [], positions = [], position_range = []):
-
-            filtered_rulers = self._automation_rulers_list.copy()
-
-            if (len(ids) > 0 and ids != [None]):
-                filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['id'] in ids
-                ]
-            if (type != None):
-                if "actions".find(type) != -1:
-                    type = "actions"
-                else:
-                    type = "arguments"
-                filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['type'] == type
-                ]
-            if (len(groups) > 0 and groups != [None]):
-                filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['group'] in groups
-                ]
-            if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
-                filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['position'] in positions
-                ]
-            if (len(position_range) == 2 and len(position_range[0]) == 2 and len(position_range[1]) == 2):
-                # Using list comprehension
-                filtered_rulers = [
-                    ruler for ruler in filtered_rulers
-                            if not (position_lt(ruler['position'], position_range[0]) and position_lt(ruler['position'], position_range[1]))
-                ]
-            return Staff.Rulers(self._staff, self._rulers_list, self._root_self, self._next_id, filtered_rulers)
         
         def group(self, group):
             return self.filter(groups=[group])
