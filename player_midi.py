@@ -61,8 +61,18 @@ class Master(PLAYER.Player):
     
     def __init__(self, name, description="A conductor of multiple Players"):
         super().__init__(name, description) # not self init
+        
 
-        # implement midi clock here
+class Master(PLAYER.Player):
+    
+    def __init__(self, name, description="A conductor of multiple Players"):
+        super().__init__(name, description) # not self init
+        
+class Automation(PLAYER.Player):
+    
+    def __init__(self, name, description="Applies only for automation parameters"):
+        super().__init__(name, description) # not self init
+        
 
 class Note(PLAYER.Player):
     
@@ -349,21 +359,6 @@ class Arpeggiator(PLAYER.Player):
 
             return self
 
-        def next_update_selected_keys_pulse(self):
-
-            next_update_pulse = -1
-            if self._total_selected_keys > 0:
-                next_update_pulse = self._selected_keys[0]['selected_on_pulse'] + self._selected_keys[0]['selected_duration_pulses']
-
-            for selected_key in self._selected_keys:
-                next_update_pulse = min(next_update_pulse, selected_key['selected_on_pulse'] + selected_key['selected_duration_pulses'])
-                if selected_key['active']:
-                    next_update_pulse = min(next_update_pulse, selected_key['activated_on_pulse'] + self._active_duration_pulses)
-                if selected_key['pressed']:
-                    next_update_pulse = min(next_update_pulse, selected_key['activated_on_pulse'] + self._pressed_duration_pulses)
-
-            return next_update_pulse
-
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
@@ -373,10 +368,9 @@ class Arpeggiator(PLAYER.Player):
 
                 self.update_selected_keys(tick)
                 if self._total_selected_keys > 0:
-                    next_update_tick_duration = min(1, self.next_update_selected_keys_pulse() - tick['pulse']) # updates at least once per pulse
                     self.addClockedAction(
                         {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                            'duration': next_update_tick_duration, 'action': self}, tick
+                            'duration': 1, 'action': self}, tick # updates at least once per pulse
                     )
                 
             else: # EXTERNAL TRIGGER
@@ -422,10 +416,9 @@ class Arpeggiator(PLAYER.Player):
 
                         # only the first trigger key adds to the internal clock
                         if self._total_selected_keys == 1:
-                            next_update_tick_duration = min(1, self.next_update_selected_keys_pulse() - tick['pulse']) # updates at least once per pulse
                             self.addClockedAction(
                                 {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
-                                'duration': next_update_tick_duration, 'action': self}, tick
+                                'duration': 1, 'action': self}, tick # updates at least once per pulse
                             )
                         
     def isPlaying(self):

@@ -618,6 +618,7 @@ class Player:
         return self._staff
     
     def start(self, tick):
+        self._staff.rulers().automation_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self

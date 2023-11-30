@@ -40,6 +40,7 @@ class Staff:
 
             self._staff = staff
             self._rulers_list = []
+            self._automation_rulers_list = []
             if rulers_list != None:
                 self._rulers_list = rulers_list
             self._root_self = self
@@ -183,6 +184,47 @@ class Staff:
             
         def arguments(self):
             return self.type(type="arguments")
+
+        def automation_rulers_generator(self):
+            
+            self._root_self._automation_rulers_list = []
+            auto_rulers = self._root_self.on_staff().enabled().group_name_find("auto_").unique().sort(key="position")
+            following_rulers = auto_rulers
+            for auto_ruler in auto_rulers:
+                new_auto_ruler = {
+                    'id': auto_ruler['id'],
+                    'type': auto_ruler['type'],
+                    'group': auto_ruler['group'],
+                    'position': auto_ruler['position'],
+                    'lines': {
+                        'start': auto_ruler['lines'],
+                        'finish': [ None ] * len(auto_ruler['lines']),
+                        'pulses': [ 0 ] * len(auto_ruler['lines'])
+                    },
+                    'offset': auto_ruler['offset'],
+                    'enabled': True,
+                    'on_staff': True
+                }
+
+                if following_rulers.len() > 1:
+                    following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
+                    for following_ruler in following_rulers:
+                        distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
+                        for auto_ruler_line in range(len(auto_ruler['lines'])):
+                            incomplete_new_auto_ruler = False
+                            if new_auto_ruler['lines']['finish'][auto_ruler_line] == None:
+                                incomplete_new_auto_ruler = True
+                                new_auto_ruler['lines']['pulses'][auto_ruler_line] += distance_pulses
+                                if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
+                                    not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
+
+                                    new_auto_ruler['lines']['finish'][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
+                            if not incomplete_new_auto_ruler:
+                                break
+
+                self._root_self._automation_rulers_list.append(new_auto_ruler)
+            
+            return self
 
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]
