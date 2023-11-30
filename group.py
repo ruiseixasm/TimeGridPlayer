@@ -14,7 +14,7 @@ import player as PLAYER
 
 class Group:
 
-    def __init__(self, player, players_list=None, root_self=None, start_id=0):
+    def __init__(self, player, players_list=None, root_self=None):
 
         self._players_list = []
         if players_list != None:
@@ -23,8 +23,6 @@ class Group:
         if root_self != None:
             self._root_self = root_self
         self._player = player # When working as lower group, None when main group
-
-        self._next_id = start_id
 
         self.current_player = 0
 
@@ -50,7 +48,7 @@ class Group:
         self_players_list = self.list()
         other_players_list = other.list()
 
-        return Group(self._player, self_players_list + other_players_list, self._root_self, self._next_id)
+        return Group(self._player, self_players_list + other_players_list, self._root_self)
     
     def __sub__(self, other):
         '''Works as exclusion'''
@@ -68,7 +66,7 @@ class Group:
             if excluded_player:
                 exclusion_list.append(self_player)
 
-        return Group(self._player, exclusion_list, self._root_self, self._next_id)
+        return Group(self._player, exclusion_list, self._root_self)
     
     def __mul__(self, other):
         '''Works as intersection'''
@@ -86,7 +84,7 @@ class Group:
             if intersected_player:
                 intersection_list.append(self_player)
 
-        return Group(self._player, intersection_list, self._root_self, self._next_id)
+        return Group(self._player, intersection_list, self._root_self)
     
     def __div__(self, other):
         '''Works as divergence'''
@@ -99,13 +97,9 @@ class Group:
 
         if player != self._player:
 
-            player_data = {
-                'id': self._next_id,
-                'type': player.__class__.__name__,
-                'name': player.name,
-                'player': player,
-                'enabled': True
-            }
+            stage = self._player.stage
+
+            player_data = stage.filter(player=player).list()[0]
 
             if self._root_self == self._player.lower_group: # add as lower player
 
@@ -125,11 +119,9 @@ class Group:
                 if player_already_added.len() == 0 and not player.is_none:
                     
                     # Updates self LOWER Group (self)
-                    self._root_self._next_id += 1
                     self._root_self._players_list.append(player_data)
                     if self != self._root_self:
                         self._players_list.append(player_data)
-                        self._next_id = self._root_self._next_id
                     # Updates player UPPER Group
                     player.upper_group.add(self._player)
 
@@ -151,11 +143,9 @@ class Group:
                 if player_already_added.len() == 0 and not player.is_none:
                     
                     # Updates self UPPER Group (self)
-                    self._root_self._next_id += 1
                     self._root_self._players_list.append(player_data)
                     if self != self._root_self:
                         self._players_list.append(player_data)
-                        self._next_id = self._root_self._next_id
                     # Updates player LOWER Group
                     player.lower_group.add(self._player)
 
@@ -248,13 +238,12 @@ class Group:
                 filtered_player for filtered_player in filtered_players if filtered_player['enabled'] == enabled
             ]
 
-        return Group(self._player, filtered_players, self._root_self, self._next_id)
+        return Group(self._player, filtered_players, self._root_self)
 
     def json_dictionnaire(self):
         group = {
                 'part': "group",
                 'type': self._root_self.__class__.__name__,
-                'next_id': self._root_self._next_id,
                 'players': []
             }
         
@@ -280,7 +269,6 @@ class Group:
 
         for group_dictionnaire in json_object:
             if group_dictionnaire['part'] == "group":
-                self._root_self._next_id = group_dictionnaire['next_id']
                 # where each Player is loaded
                 for player_dictionnaire in group_dictionnaire['players']:
                     player_type = player_dictionnaire['type']
@@ -440,7 +428,7 @@ class Group:
             if player not in unique_rulers_list:
                 unique_rulers_list.append(player)
 
-        return Group(self._player, unique_rulers_list, self._root_self, self._next_id)
+        return Group(self._player, unique_rulers_list, self._root_self)
         
 class GroupNone(Group):
 
