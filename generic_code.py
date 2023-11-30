@@ -188,9 +188,16 @@ import lines_scales as L_SCALES
 # test = Test()
 # test.print_outer()
 
-number_1 = 3
-list_1 = []
-dict_1 = {}
-print (isinstance(number_1, int))
-print (isinstance(list_1, list))
-print (isinstance(dict_1, dict))
+# number_1 = 3
+# list_1 = []
+# dict_1 = {}
+# print (isinstance(number_1, int))
+# print (isinstance(list_1, list))
+# print (isinstance(dict_1, dict))
+
+
+dict1 = { 'name': "yes", 'active': True }
+dict2 = dict1
+dict1['active'] = False
+print (dict1)
+print (dict2)

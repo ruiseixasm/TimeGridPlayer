@@ -278,18 +278,10 @@ class Group:
                     player_type = player_dictionnaire['type']
                     player_name = player_dictionnaire['name']
                     if stage != None:
-                        player_staged = stage.filter(types=[player_type], names=[player_name])
+                        player_staged = stage.filter(names=[player_name])
                         if player_staged.len() > 0:
-                            player = player_staged.list()[0]['player']
-                            if player != None:
-                                player_data = {
-                                    'id': player_dictionnaire['id'],
-                                    'type': player_type,
-                                    'name': player_name,
-                                    'player': player,
-                                    'enabled': player_dictionnaire['enabled']
-                                }
-                                self._root_self._players_list.append(player_data)
+                            player_data = player_staged.list()[0]
+                            self._root_self._players_list.append(player_data)
                 break
 
         return self

@@ -534,17 +534,15 @@ class Player:
 
     def play(self, start=None, finish=None, enabled_lower_group_players=None):
 
-        self._clocked_players = [
-            {'name': self._name, 'player': self}
-        ]
+        self_player = {'name': self._name, 'player': self}
 
-        all_enabled_group_players = self.lower_group.all_players_group().filter(enabled=True)
+        self._clocked_players = [ self_player ]
+
+        all_enabled_players = self.lower_group.all_players_group().filter(enabled=True)
         if enabled_lower_group_players != None:
-            on_stage_group_players = all_enabled_group_players * enabled_lower_group_players # (*) means intersection (and)
-            all_enabled_players = on_stage_group_players + enabled_lower_group_players
-        else:
-            all_enabled_players = all_enabled_group_players
+            all_enabled_players += enabled_lower_group_players
         
+        # Assembling of clockable players           (STEP 1)
         for enabled_player in all_enabled_players:
             clockable_player = {
                 'name': enabled_player['name'],
@@ -553,9 +551,10 @@ class Player:
             if not clockable_player in self._clocked_players:
                 self._clocked_players.append(clockable_player)
 
+        # Assembling of enabled/playable players    (STEP 2)
         for clocked_player in self._clocked_players:
             clocked_player['player']._playable_sub_players = []
-            playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True) * all_enabled_players # (*) means intersection (and)
+            playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True)
             for playable_player in playable_sub_players:
                 playable_player = {
                     'name': playable_player['name'],
