@@ -29,7 +29,7 @@ class Clock(PLAYER.Player):
 
         def stop(self, tick = None):
             self._tick = super().stop(tick)
-            if self._player.resource != None:
+            if self._player.resource != None and not self._player.resource.is_none:
                 # print(f"\tclock stop")
                 self._player.resource.clockStop()
                 # print(f"\tclock position start")
@@ -44,7 +44,7 @@ class Clock(PLAYER.Player):
             self._tick = super().tick(tick)
 
             if self._tick['pulse'] != None: # a pulse of this clock
-                if self._player.resource != None:
+                if self._player.resource != None and not self._player.resource.is_none:
                     if self._next_pulse == 1:
                         #print(f"\tclock start")
                         self._player.resource.clockStart() # WERE THE MIDI START IS SENT
@@ -90,7 +90,7 @@ class Note(PLAYER.Player):
             if staff == None: # CLOCKED TRIGGER
 
                 print(f"note OFF:\t{self._note}")
-                if self._player.resource != None:
+                if self._player.resource != None and not self._player.resource.is_none:
                     self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
@@ -121,7 +121,7 @@ class Note(PLAYER.Player):
                         self._note['key'] = note_key
 
                         print(f"note ON:\t{self._note}")
-                        if self._player.resource != None:
+                        if self._player.resource != None and not self._player.resource.is_none:
                             self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
                         self_duration_pulses = self._duration * self._clock_pulses_per_step
@@ -164,11 +164,11 @@ class Retrigger(PLAYER.Player):
             if staff == None: # CLOCKED TRIGGER
 
                 if self._key_pressed:
-                    if self._player.resource != None:
+                    if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_trigger_steps_per_beat_ratio
                 elif self._remaining_pulses_duration > 0:
-                    if self._player.resource != None:
+                    if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
                 else:
@@ -226,7 +226,7 @@ class Retrigger(PLAYER.Player):
                         self._note['key'] = retrig_key
 
                         print(f"retrigger ON:\t{self._note}\tduration: {self._retrig_duration}")
-                        if self._player.resource != None:
+                        if self._player.resource != None and not self._player.resource.is_none:
                             self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                     
                         self._key_pressed = True
@@ -304,7 +304,7 @@ class Arpeggiator(PLAYER.Player):
                         selected_key['activated_on_pulse'] + self._pressed_duration_pulses <= tick['pulse']:
 
                         selected_key['pressed'] = False
-                        if self._player.resource != None:
+                        if self._player.resource != None and not self._player.resource.is_none:
                             self._note['key'] = selected_key['midi_key']
                             self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
@@ -324,7 +324,7 @@ class Arpeggiator(PLAYER.Player):
 
                     if not self._selected_keys[0]['pressed']:
                         self._selected_keys[0]['pressed'] = True
-                        if self._player.resource != None:
+                        if self._player.resource != None and not self._player.resource.is_none:
                             self._note['key'] = self._selected_keys[0]['midi_key']
                             self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
@@ -348,7 +348,7 @@ class Arpeggiator(PLAYER.Player):
 
                                 if not self._selected_keys[pick_up_index]['pressed']:
                                     self._selected_keys[pick_up_index]['pressed'] = True
-                                    if self._player.resource != None:
+                                    if self._player.resource != None and not self._player.resource.is_none:
                                         self._note['key'] = self._selected_keys[pick_up_index]['midi_key']
                                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
