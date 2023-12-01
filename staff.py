@@ -129,9 +129,7 @@ class Staff:
                     'offset': None,
                     'enabled': True,
                     'on_staff': False, # at the beginning it's not on the Staff
-                    'action': None,
-                    'player': None,
-                    'players': None
+                    'player': None
                 }
                 self._root_self._next_id += 1
 
@@ -197,14 +195,15 @@ class Staff:
                 # if link_name_re != None:
 
             action_rulers = self._root_self.actions().enabled()
-            for ruler_data in action_rulers:
-                ruler_lines_length = len(ruler_data['lines'])
-                if ruler_lines_length > 0:
-                    ruler_data['players'] = [ PLAYER.PlayerNone(self.player.stage) ] * ruler_lines_length
-                    lower_enabled_players_group = self.player.lower_group.all_players_group().filter(enabled=True)
-                    for ruler_line_index in range(ruler_lines_length):
-                        if ruler_data['lines'][ruler_line_index] != None:
-                            ruler_data['players'][ruler_line_index] = lower_enabled_players_group.player(name=ruler_data['lines'][ruler_line_index])
+            for action_ruler_data in action_rulers:
+                action_ruler_data['player'] = self.player.lower_group.all_players_group().filter(enabled=True).player(name=action_ruler_data['link'])
+                # ruler_lines_length = len(ruler_data['lines'])
+                # if ruler_lines_length > 0:
+                #     ruler_data['players'] = [ PLAYER.PlayerNone(self.player.stage) ] * ruler_lines_length
+                #     lower_enabled_players_group = self.player.lower_group.all_players_group().filter(enabled=True)
+                #     for ruler_line_index in range(ruler_lines_length):
+                #         if ruler_data['lines'][ruler_line_index] != None:
+                #             ruler_data['players'][ruler_line_index] = lower_enabled_players_group.player(name=ruler_data['lines'][ruler_line_index])
 
             return self
 
@@ -231,7 +230,6 @@ class Staff:
                         'offset': auto_ruler['offset'],
                         'enabled': False, # not intended to be processed by the Staff
                         'on_staff': False, # not intended to be on the Staff
-                        'action': auto_ruler['action'],
                         'player': auto_ruler['player']
                     }
 
@@ -553,7 +551,6 @@ class Staff:
             # cleans the rulers list from any player (objects aren't serializable) (makes it equal to None)
             for ruler_data in self._root_self._rulers_list:
                 ruler_data['player'] = None
-                ruler_data['players'] = None
             return {
                     'part': "rulers",
                     'type': self.__class__.__name__,

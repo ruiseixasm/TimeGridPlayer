@@ -217,7 +217,7 @@ class Player:
                         if pulse_automation_rulers.len() > 0:
                             for pulse_automation_ruler_dict in pulse_automation_rulers:
                                 pulse_automation_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
-                                action_name = pulse_automation_ruler_dict['action']
+                                # action_name = pulse_automation_ruler_dict['action']
                                 # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
                                 # for action_player in action_players:
                                 #     action_player['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
@@ -236,7 +236,7 @@ class Player:
                                         if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
-                                    triggered_action['players'][action_line].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                                    triggered_action['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                                     # action_name = triggered_action['lines'][action_line]
                                     # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
