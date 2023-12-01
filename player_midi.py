@@ -382,10 +382,10 @@ class Arpeggiator(PLAYER.Player):
 
                 for auto_ruler in merged_staff_arguments:
 
-                    if auto_ruler['group'] == "rate" or auto_ruler['group'] == "gate":
+                    if auto_ruler['link'] == "rate" or auto_ruler['link'] == "gate":
                         auto_ruler_length = len(auto_ruler['lines'][0])
                         if auto_ruler_length > 0:
-                            if self._automation_data[auto_ruler['group']] == None:
+                            if self._automation_data[auto_ruler['link']] == None:
                                 auto_ruler['lines'] += [ tick['pulse'] ] * auto_ruler_length # the 4th line of starting pulse
                                 self._automation_rate_ruler = auto_ruler
                             else:

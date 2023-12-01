@@ -168,14 +168,14 @@ class Player:
         def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_name):
             line_argument_value = None
 
-            line_argument_ruler = merged_staff_arguments.group(argument_name)
+            line_argument_ruler = merged_staff_arguments.link(argument_name)
             if line_argument_ruler.len() > 0 and line_argument_ruler.list()[0]['line'] != None and \
                     line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']] != None:
                 
                 line_argument_value = line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']]
 
             else:
-                line_argument_ruler = merged_staff_arguments.group("staff_" + argument_name)
+                line_argument_ruler = merged_staff_arguments.link("staff_" + argument_name)
                 if line_argument_ruler.len() > 0:
                     line_argument_value = line_argument_ruler.list()[0]['lines'][0]
 
@@ -209,7 +209,7 @@ class Player:
                         
                         pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
                         self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
-                        pulse_reset_arguments_rulers = pulse_arguments_rulers.group_name_find("reset_").group_name_strip("reset_")
+                        pulse_reset_arguments_rulers = pulse_arguments_rulers.link_name_find("reset_").link_name_strip("reset_")
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                         # FEED AUTOMATIONS HERE

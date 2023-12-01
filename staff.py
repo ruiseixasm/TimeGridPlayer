@@ -123,7 +123,7 @@ class Staff:
                 structured_ruler = {
                     'id': self._root_self._next_id,
                     'type': ruler['type'],
-                    'group': "default",
+                    'link': "default",
                     'position': [0, 0],
                     'lines': [],
                     'offset': None,
@@ -135,8 +135,8 @@ class Staff:
                 }
                 self._root_self._next_id += 1
 
-                if 'group' in ruler and ruler['group'] != None:
-                    structured_ruler['group'] = ruler['group']
+                if 'link' in ruler and ruler['link'] != None:
+                    structured_ruler['link'] = ruler['link']
                 if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
                     structured_ruler['position'] = ruler['position']
                 if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
@@ -192,9 +192,9 @@ class Staff:
         def allocate_action_players(self):
                 
                 # if ruler_data['type'] == "actions":
-                #     group_name += "_" + group_name
-                # group_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", group_name)
-                # if group_name_re != None:
+                #     link_name += "_" + link_name
+                # link_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", link_name)
+                # if link_name_re != None:
 
             action_rulers = self._root_self.actions().enabled()
             for ruler_data in action_rulers:
@@ -211,17 +211,17 @@ class Staff:
         def automation_rulers_generator(self):
             
             automation_rulers_list = []
-            auto_rulers = self._root_self.arguments().on_staff().enabled().group_name_find("auto_").unique().sort(key="position")
+            auto_rulers = self._root_self.arguments().on_staff().enabled().link_name_find("auto_").unique().sort(key="position")
             auto_rulers_merged = auto_rulers.merge()
 
-            for auto_group_merged in auto_rulers_merged:
-                auto_rulers_group = auto_rulers.group(auto_group_merged['group'])
-                following_rulers = auto_rulers_group
-                for auto_ruler in auto_rulers_group:
+            for auto_link_merged in auto_rulers_merged:
+                auto_rulers_link = auto_rulers.link(auto_link_merged['link'])
+                following_rulers = auto_rulers_link
+                for auto_ruler in auto_rulers_link:
                     new_auto_ruler = {
                         'id': auto_ruler['id'],
                         'type': auto_ruler['type'],
-                        'group': auto_ruler['group'],
+                        'link': auto_ruler['link'],
                         'position': auto_ruler['position'],
                         'lines': [
                             auto_ruler['lines'],                    # start     (0)
@@ -266,7 +266,7 @@ class Staff:
                 if rulers.len() > 1:
                     first_ruler = rulers.list()[0]
                     for ruler in rulers:
-                        ruler['group'] = first_ruler['group']
+                        ruler['link'] = first_ruler['link']
                         ruler['position'] = first_ruler['position'].copy()
                         ruler['lines'] = first_ruler['lines'].copy()
                         ruler['offset'] = first_ruler['offset']
@@ -442,7 +442,7 @@ class Staff:
                 ruler_list['on_staff'] = False
             return self
         
-        def filter(self, ids = [], type = None, groups = [], positions = [], position_range = [], enabled = None, on_staff = None, player=None):
+        def filter(self, ids = [], type = None, links = [], positions = [], position_range = [], enabled = None, on_staff = None, player=None):
 
             filtered_rulers = self._rulers_list.copy()
 
@@ -458,9 +458,9 @@ class Staff:
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['type'] == type
                 ]
-            if (len(groups) > 0 and groups != [None]):
+            if (len(links) > 0 and links != [None]):
                 filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['group'] in groups
+                    ruler for ruler in filtered_rulers if ruler['link'] in links
                 ]
             if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
                 filtered_rulers = [
@@ -486,35 +486,35 @@ class Staff:
                 ]
             return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id)
         
-        def group(self, group):
-            return self.filter(groups=[group])
+        def link(self, link):
+            return self.filter(links=[link])
         
-        def group_name_find(self, name):
-            group_name_found = []
+        def link_name_find(self, name):
+            link_name_found = []
             for ruler in self._rulers_list:
-                if ruler['group'].find(name) != -1:
-                    group_name_found.append(ruler)
-            return Staff.Rulers(self._staff, group_name_found, self._root_self, self._next_id)
+                if ruler['link'].find(name) != -1:
+                    link_name_found.append(ruler)
+            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id)
             
-        def group_name_prefix(self, prefix):
+        def link_name_prefix(self, prefix):
             for ruler in self._rulers_list:
-                original_group_name = ruler['group']
-                prefixed_group_name = prefix + original_group_name
-                ruler['group'] = prefixed_group_name
+                original_link_name = ruler['link']
+                prefixed_link_name = prefix + original_link_name
+                ruler['link'] = prefixed_link_name
             return self
 
-        def group_name_strip(self, strip):
+        def link_name_strip(self, strip):
             for ruler in self._rulers_list:
-                original_group_name = ruler['group']
-                stripped_group_name = original_group_name.strip(strip)
-                ruler['group'] = stripped_group_name
+                original_link_name = ruler['link']
+                stripped_link_name = original_link_name.strip(strip)
+                ruler['link'] = stripped_link_name
             return self
 
-        def group_name_suffix(self, suffix):
+        def link_name_suffix(self, suffix):
             for ruler in self._rulers_list:
-                original_group_name = ruler['group']
-                suffixed_group_name = original_group_name + suffix
-                ruler['group'] = suffixed_group_name
+                original_link_name = ruler['link']
+                suffixed_link_name = original_link_name + suffix
+                ruler['link'] = suffixed_link_name
             return self
 
         def head(self, elements=1):
@@ -636,18 +636,18 @@ class Staff:
 
         def merge(self, merge_none=False):
 
-            type_groups = [] # merge agregates rulers by type and gorup
+            type_links = [] # merge agregates rulers by type and gorup
 
             for ruler in self._rulers_list:
-                ruler_type_group = {'type': ruler['type'], 'group': ruler['group']}
-                if ruler_type_group not in type_groups:
-                    type_groups.append(ruler_type_group)
+                ruler_type_link = {'type': ruler['type'], 'link': ruler['link']}
+                if ruler_type_link not in type_links:
+                    type_links.append(ruler_type_link)
 
             merged_rulers = []
 
-            for type_group in type_groups:
+            for type_link in type_links:
 
-                subject_rulers_list = self.filter(type=type_group['type'], groups=[type_group['group']]).list()
+                subject_rulers_list = self.filter(type=type_link['type'], links=[type_link['link']]).list()
                                     
                 head_offset = None
                 tail_offset = None
@@ -659,8 +659,8 @@ class Staff:
 
                 merged_ruler = {
                     'id': subject_rulers_list[0]['id'],
-                    'type': type_group['type'],
-                    'group': type_group['group'],
+                    'type': type_link['type'],
+                    'link': type_link['link'],
                     'position': subject_rulers_list[0]['position'],
                     'lines': [None] * (tail_offset - head_offset + 1), # list
                     'offset': head_offset,
@@ -746,7 +746,7 @@ class Staff:
             
             header_char = "'"
             if len(self._rulers_list) > 0:
-                string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'group': 0, 'position': 0, 'lines': 0, 'offset': 0, 'enabled': 0, 'on_staff': 0}
+                string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'link': 0, 'position': 0, 'lines': 0, 'offset': 0, 'enabled': 0, 'on_staff': 0}
                 sequence_index = 0
                 for ruler in self._rulers_list: # get maximum sizes
                     
@@ -773,7 +773,7 @@ class Staff:
 
                 spaces_between = 4
 
-                header_char_length = full_string_top_length + 95
+                header_char_length = full_string_top_length + 94
 
                 header_type = "  " + self.player.name + "  "
                 header_type_length = len(header_type)
