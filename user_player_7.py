@@ -112,5 +112,6 @@ stage_midi.print().filter(names=["note"]).print().disable().print().enable().pri
 stage_midi.filter(names=["retrig"]).disable().print()
 stage_midi.print_tree()
 
+print("\n\nPLAY NOW\n\n")
 stage_midi.play()
 #stage_midi.play([1, 0], [4, 0])

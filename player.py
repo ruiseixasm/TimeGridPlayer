@@ -96,10 +96,6 @@ class Player:
         return self._actions
             
     @property
-    def playable_sub_players(self):
-        return self._playable_sub_players
-            
-    @property
     def automation_rulers(self):
         return self._automation_rulers
             
@@ -187,10 +183,10 @@ class Player:
 
         def pulse(self, tick, first_pulse=False):
 
-            def getActionPlayers(playable_sub_players, action_name):
-                return [
-                    playable_player for playable_player in playable_sub_players if playable_player['name'] == action_name
-                ]
+            # def getActionPlayers(playable_sub_players, action_name):
+            #     return [
+            #         playable_player for playable_player in playable_sub_players if playable_player['name'] == action_name
+            #     ]
 
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
@@ -222,9 +218,9 @@ class Player:
                             for pulse_automation_ruler_dict in pulse_automation_rulers:
                                 pulse_automation_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
                                 action_name = pulse_automation_ruler_dict['action']
-                                action_players = getActionPlayers(self._player.playable_sub_players, action_name)
-                                for action_player in action_players:
-                                    action_player['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+                                # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
+                                # for action_player in action_players:
+                                #     action_player['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
@@ -553,17 +549,17 @@ class Player:
             if not clockable_player in self._clocked_players:
                 self._clocked_players.append(clockable_player)
 
-        # Assembling of enabled/playable players    (STEP 2)
-        for clocked_player in self._clocked_players:
-            clocked_player['player']._playable_sub_players = []
-            playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True)
-            for playable_player in playable_sub_players:
-                playable_player = {
-                    'name': playable_player['name'],
-                    'player': playable_player['player']
-                }
-                if not playable_player in clocked_player['player']._playable_sub_players:
-                    clocked_player['player']._playable_sub_players.append(playable_player)
+        # # Assembling of enabled/playable players    (STEP 2)
+        # for clocked_player in self._clocked_players:
+        #     clocked_player['player']._playable_sub_players = []
+        #     playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True)
+        #     for playable_player in playable_sub_players:
+        #         playable_player = {
+        #             'name': playable_player['name'],
+        #             'player': playable_player['player']
+        #         }
+        #         if not playable_player in clocked_player['player']._playable_sub_players:
+        #             clocked_player['player']._playable_sub_players.append(playable_player)
 
         non_fast_forward_range = [None, None]
         if start != None:
