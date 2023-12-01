@@ -212,8 +212,8 @@ class Stage:
                 self._players_list[0]['player'].play(start=start, finish=finish, enabled_lower_group_players=self.filter(enabled=True))
         return self
             
-    def player(self, name=None, id=None, type=None, enabled=None) -> (PLAYER.Player | PLAYER.PlayerNone):
-        selected_player = self.filter(names=[name], ids=[id], types=[type], enabled=enabled)
+    def player(self, name=None, enabled=None) -> (PLAYER.Player | PLAYER.PlayerNone):
+        selected_player = self.filter(names=[name], enabled=enabled)
         if selected_player.len() > 0:
             return selected_player.list()[0]['player']
         return PLAYER.PlayerNone(self)

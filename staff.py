@@ -196,14 +196,15 @@ class Staff:
                 # group_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", group_name)
                 # if group_name_re != None:
 
-            action_rulers = self._root_self.actions()
+            action_rulers = self._root_self.actions().enabled()
             for ruler_data in action_rulers:
                 ruler_lines_length = len(ruler_data['lines'])
                 if ruler_lines_length > 0:
                     ruler_data['players'] = [ PLAYER.PlayerNone(self.player.stage) ] * ruler_lines_length
+                    lower_enabled_players_group = self.player.lower_group.all_players_group().filter(enabled=True)
                     for ruler_line_index in range(ruler_lines_length):
                         if ruler_data['lines'][ruler_line_index] != None:
-                            ruler_data['players'][ruler_line_index] = self.player.stage.player(name=ruler_data['lines'][ruler_line_index], enabled=True)
+                            ruler_data['players'][ruler_line_index] = lower_enabled_players_group.player(name=ruler_data['lines'][ruler_line_index])
 
             return self
 
