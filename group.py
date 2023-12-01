@@ -428,8 +428,8 @@ class Group:
         
 class GroupNone(Group):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, player):
+        super().__init__(player)
 
 # GLOBAL CLASS METHODS
 

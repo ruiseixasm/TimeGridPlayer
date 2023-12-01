@@ -246,7 +246,7 @@ class Retrigger(PLAYER.Player):
 
 class Arpeggiator(PLAYER.Player):
     
-    def __init__(self, stage, name, description="Retrigs a given note along a given duration", resources=None):
+    def __init__(self, stage, name, description="Starts an Arpeggiator during a given duration", resources=None):
         super().__init__(stage, name, description, resources) # not self init
         if resources == None:
             self._resources = RESOURCES_MIDI.Midi()

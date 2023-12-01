@@ -11,6 +11,7 @@ Lesser General Public License for more details.'''
 
 import re
 import json
+import player as PLAYER
 
 class Staff:
 
@@ -127,7 +128,10 @@ class Staff:
                     'lines': [],
                     'offset': None,
                     'enabled': True,
-                    'on_staff': False # at the beginning it's not on the Staff
+                    'on_staff': False, # at the beginning it's not on the Staff
+                    'action': None,
+                    'player': None,
+                    'players': None
                 }
                 self._root_self._next_id += 1
 
@@ -185,6 +189,24 @@ class Staff:
         def arguments(self):
             return self.type(type="arguments")
 
+        def allocate_action_players(self):
+                
+                # if ruler_data['type'] == "actions":
+                #     group_name += "_" + group_name
+                # group_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", group_name)
+                # if group_name_re != None:
+
+            action_rulers = self._root_self.actions()
+            for ruler_data in action_rulers:
+                ruler_lines_length = len(ruler_data['lines'])
+                if ruler_lines_length > 0:
+                    ruler_data['players'] = [ PLAYER.PlayerNone(self.player.stage) ] * ruler_lines_length
+                    for ruler_line_index in range(ruler_lines_length):
+                        if ruler_data['lines'][ruler_line_index] != None:
+                            ruler_data['players'][ruler_line_index] = self.player.stage.player(name=ruler_data['lines'][ruler_line_index], enabled=True)
+
+            return self
+
         def automation_rulers_generator(self):
             
             automation_rulers_list = []
@@ -195,47 +217,43 @@ class Staff:
                 auto_rulers_group = auto_rulers.group(auto_group_merged['group'])
                 following_rulers = auto_rulers_group
                 for auto_ruler in auto_rulers_group:
-                    # [a-zA-Z0-9]
-                    auto_argument_group = re.search(r"auto_([a-zA-Z0-9]+)_(.+)", auto_ruler['group'])
-                    if auto_argument_group != None:
-                        action_name = auto_argument_group.group(1)
-                        argument_group = auto_argument_group.group(2)
-                        new_auto_ruler = {
-                            'id': auto_ruler['id'],
-                            'type': auto_ruler['type'],
-                            'group': argument_group,
-                            'position': auto_ruler['position'],
-                            'lines': [
-                                auto_ruler['lines'],                    # start     (0)
-                                [ None ] * len(auto_ruler['lines']),    # finish    (1)
-                                [ 0 ] * len(auto_ruler['lines'])        # pulses    (2)
-                            ],
-                            'offset': auto_ruler['offset'],
-                            'enabled': False, # not intended to be processed by the Staff
-                            'on_staff': False, # not intended to be on the Staff
-                            'action': action_name
-                        }
+                    new_auto_ruler = {
+                        'id': auto_ruler['id'],
+                        'type': auto_ruler['type'],
+                        'group': auto_ruler['group'],
+                        'position': auto_ruler['position'],
+                        'lines': [
+                            auto_ruler['lines'],                    # start     (0)
+                            [ None ] * len(auto_ruler['lines']),    # finish    (1)
+                            [ 0 ] * len(auto_ruler['lines'])        # pulses    (2)
+                        ],
+                        'offset': auto_ruler['offset'],
+                        'enabled': False, # not intended to be processed by the Staff
+                        'on_staff': False, # not intended to be on the Staff
+                        'action': auto_ruler['action'],
+                        'player': auto_ruler['player']
+                    }
 
-                        line_finish = 1
-                        line_pulses = 2
+                    line_finish = 1
+                    line_pulses = 2
 
-                        if following_rulers.len() > 1:
-                            following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
-                            for following_ruler in following_rulers:
-                                distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
-                                for auto_ruler_line in range(len(auto_ruler['lines'])):
-                                    complete_new_auto_ruler = True
-                                    if new_auto_ruler['lines'][line_finish][auto_ruler_line] == None:
-                                        complete_new_auto_ruler = False
-                                        new_auto_ruler['lines'][line_pulses][auto_ruler_line] += distance_pulses
-                                        if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
-                                            not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
+                    if following_rulers.len() > 1:
+                        following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
+                        for following_ruler in following_rulers:
+                            distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
+                            for auto_ruler_line in range(len(auto_ruler['lines'])):
+                                complete_new_auto_ruler = True
+                                if new_auto_ruler['lines'][line_finish][auto_ruler_line] == None:
+                                    complete_new_auto_ruler = False
+                                    new_auto_ruler['lines'][line_pulses][auto_ruler_line] += distance_pulses
+                                    if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
+                                        not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
 
-                                            new_auto_ruler['lines'][line_finish][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
-                                    if complete_new_auto_ruler:
-                                        break
+                                        new_auto_ruler['lines'][line_finish][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
+                                if complete_new_auto_ruler:
+                                    break
 
-                        automation_rulers_list.append(new_auto_ruler)
+                    automation_rulers_list.append(new_auto_ruler)
             
             return Staff.Rulers(self._staff, automation_rulers_list, self._root_self, self._next_id)
 
@@ -423,7 +441,7 @@ class Staff:
                 ruler_list['on_staff'] = False
             return self
         
-        def filter(self, ids = [], type = None, groups = [], positions = [], position_range = [], enabled = None, on_staff = None):
+        def filter(self, ids = [], type = None, groups = [], positions = [], position_range = [], enabled = None, on_staff = None, player=None):
 
             filtered_rulers = self._rulers_list.copy()
 
@@ -460,6 +478,10 @@ class Staff:
             if (on_staff != None):
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['on_staff'] == on_staff
+                ]
+            if (player != None):
+                filtered_rulers = [
+                    ruler for ruler in filtered_rulers if ruler['player'] == player
                 ]
             return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id)
         
@@ -527,11 +549,15 @@ class Staff:
             return self
        
         def json_dictionnaire(self):
+            # cleans the rulers list from any player (objects aren't serializable) (makes it equal to None)
+            for ruler_data in self._root_self._rulers_list:
+                ruler_data['player'] = None
+                ruler_data['players'] = None
             return {
                     'part': "rulers",
                     'type': self.__class__.__name__,
-                    'rulers_list': self.root().list(),
-                    'next_id': self.next_id()
+                    'rulers_list': self._root_self._rulers_list,
+                    'next_id': self._next_id
                 }
      
         def json_load(self, file_name="rulers.json", json_object=None):
@@ -554,6 +580,7 @@ class Staff:
                     on_staff.float()
                     self._staff.clear() # specific staff reset method
                     on_staff.drop()
+
                     break
 
             return self

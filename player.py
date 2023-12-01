@@ -240,10 +240,12 @@ class Player:
                                         if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
-                                    action_name = triggered_action['lines'][action_line]
-                                    action_players = getActionPlayers(self._player.playable_sub_players, action_name)
-                                    for action_player in action_players:
-                                        action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                                    triggered_action['players'][action_line].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+
+                                    # action_name = triggered_action['lines'][action_line]
+                                    # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
+                                    # for action_player in action_players:
+                                    #     action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                     self._play_pulse += 1
                     self._next_clock_pulse += 1
@@ -630,7 +632,7 @@ class Player:
         return self._staff
     
     def start(self, tick):
-        self._automation_rulers = self._staff.rulers().automation_rulers_generator()
+        self._automation_rulers = self._staff.rulers().allocate_action_players().automation_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self
@@ -709,8 +711,13 @@ class PlayerNone(Player):
     def __init__(self, stage):
         super().__init__(stage, "None", "Player considered as None!")
 
+        self._resources = RESOURCES.ResourcesNone()
         self._staff = STAFF.StaffNone(self)
-        self._lower_group = GROUP.GroupNone()
+        self._upper_group = GROUP.GroupNone(self)
+        self._lower_group = GROUP.GroupNone(self)
+
+    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        pass # does nothing
 
 # GLOBAL CLASS METHODS
 
