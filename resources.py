@@ -109,6 +109,7 @@ class Resources:
     class ResourceNone(Resource):
         def __init__(self):
             super().__init__()
+            print ("Some needed resources were not allocated!")
 
 
 class ResourcesNone(Resources):
