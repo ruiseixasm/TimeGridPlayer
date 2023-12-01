@@ -52,6 +52,14 @@ class Staff:
 
             self.current_ruler = 0
 
+        def action_lines_formattor(action_lines):
+            for action_line_index in range(len(action_lines)):
+                if action_lines[action_line_index] == None or action_lines[action_line_index] == False or action_lines[action_line_index] == 0:
+                    action_lines[action_line_index] = None
+                else:
+                    action_lines[action_line_index] = "•"
+            return action_lines
+
         @property
         def is_none(self):
             return (self.__class__ == Staff.RulersNone)
@@ -118,12 +126,17 @@ class Staff:
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
-            if not self.is_none and ruler != None and len(ruler) > 0 and 'type' in ruler and ruler['type'] in ['arguments', 'actions']:
+            if not self.is_none and ruler != None and len(ruler) > 0 and 'link' in ruler and ruler['link'] != None:
+
+                link_list = ruler['link'].split(".")
+                ruler_type = "arguments"
+                if len(link_list) == 1:
+                    ruler_type = "actions"
 
                 structured_ruler = {
                     'id': self._root_self._next_id,
-                    'type': ruler['type'],
-                    'link': "default",
+                    'type': ruler_type,
+                    'link': ruler['link'],
                     'position': [0, 0],
                     'lines': [],
                     'offset': None,
@@ -133,8 +146,6 @@ class Staff:
                 }
                 self._root_self._next_id += 1
 
-                if 'link' in ruler and ruler['link'] != None:
-                    structured_ruler['link'] = ruler['link']
                 if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
                     structured_ruler['position'] = ruler['position']
                 if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
@@ -143,6 +154,8 @@ class Staff:
                         structured_ruler['offset'] = ruler['lines']['offset']
                     else:
                         structured_ruler['lines'] = ruler['lines']
+                    if structured_ruler['type'] == "actions":
+                        structured_ruler['lines'] = Staff.Rulers.action_lines_formattor(structured_ruler['lines'])
                 if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
                     structured_ruler['offset'] = ruler['offset']
                 if (structured_ruler['offset'] == None):
@@ -181,6 +194,8 @@ class Staff:
                             new_lines[line_index + amount] = ruler['lines'][line_index]
 
                     ruler['lines'] = new_lines
+                    if ruler['type'] == "action":
+                        ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines'])
                 
             return self
             
@@ -197,20 +212,13 @@ class Staff:
             action_rulers = self._root_self.actions().enabled()
             for action_ruler_data in action_rulers:
                 action_ruler_data['player'] = self.player.lower_group.all_players_group().filter(enabled=True).player(name=action_ruler_data['link'])
-                # ruler_lines_length = len(ruler_data['lines'])
-                # if ruler_lines_length > 0:
-                #     ruler_data['players'] = [ PLAYER.PlayerNone(self.player.stage) ] * ruler_lines_length
-                #     lower_enabled_players_group = self.player.lower_group.all_players_group().filter(enabled=True)
-                #     for ruler_line_index in range(ruler_lines_length):
-                #         if ruler_data['lines'][ruler_line_index] != None:
-                #             ruler_data['players'][ruler_line_index] = lower_enabled_players_group.player(name=ruler_data['lines'][ruler_line_index])
 
             return self
 
         def automation_rulers_generator(self):
             
             automation_rulers_list = []
-            auto_rulers = self._root_self.arguments().on_staff().enabled().link_name_find("auto_").unique().sort(key="position")
+            auto_rulers = self._root_self.arguments().on_staff().enabled().link_name_find(".auto").unique().sort(key="position")
             auto_rulers_merged = auto_rulers.merge()
 
             for auto_link_merged in auto_rulers_merged:
@@ -544,6 +552,8 @@ class Staff:
                             new_lines[line_index] = ruler['lines'][line_index - len(lines)]
 
                     ruler['lines'] = new_lines
+                    if ruler['type'] == "action":
+                        ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines'])
 
             return self
        
@@ -1110,7 +1120,9 @@ class Staff:
             for ruler in self._rulers_list:
                 ruler['lines'] = lines
                 ruler['offset'] = offset
-
+                if ruler['type'] == "action":
+                    ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines'])
+                
             return self
 
         def set_position(self, position=[None, None]):

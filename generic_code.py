@@ -196,8 +196,17 @@ import lines_scales as L_SCALES
 # print (isinstance(dict_1, dict))
 
 
-dict1 = { 'name': "yes", 'active': True }
-dict2 = dict1
-dict1['active'] = False
-print (dict1)
-print (dict2)
+# dict1 = { 'name': "yes", 'active': True }
+# dict2 = dict1
+# dict1['active'] = False
+# print (dict1)
+# print (dict2)
+
+
+string1 = "link"
+string2 = "link.new"
+
+x1 = string1.split(".")
+print(x1)
+x2 = string2.split(".")
+print(x2)
