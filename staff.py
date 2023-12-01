@@ -851,7 +851,7 @@ class Staff:
 
                 total_lines = tail_offset - head_offset + 1
                 
-                string_top_length = {'sequence': 0, 'id': 0, 'lines': [0] * total_lines}
+                string_top_length = {'sequence': 0, 'id': 0, 'link': 0, 'lines': [0] * total_lines}
 
                 # TOTALS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -886,7 +886,7 @@ class Staff:
 
                                         string_top_length['lines'][line_index - head_offset] = max(string_top_length['lines'][line_index - head_offset], key_value_length)
 
-                            else: # id
+                            else: # id and link
                                 lines_value = ruler[key]
 
                                 key_value_length = len(f"{lines_value}")
@@ -907,7 +907,7 @@ class Staff:
 
                 spaces_between = 4
 
-                header_char_length = ((full_string_top_length - 3) + 4 * (total_lines + 3))
+                header_char_length = ((full_string_top_length + 6) + 4 * (total_lines + 3))
 
                 header_type = "  " + self.player.name + "  "
                 header_type_length = len(header_type)
@@ -916,7 +916,7 @@ class Staff:
 
                 print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
 
-                lines_str_header = " " * (string_top_length['sequence'] + 1) + "lines:" + " " * (string_top_length['id'] + 4)
+                lines_str_header = " " * (string_top_length['sequence'] + 1) + "lines:" + " " * (string_top_length['id'] + string_top_length['link'] + 13)
                 lines_str_tail = ""
 
                 for line_index in range(head_offset, head_offset + total_lines):
@@ -967,7 +967,7 @@ class Staff:
                                         lines_str += " " * (string_top_length['lines'][line_index - head_offset] + 4)
                                     else:
                                         lines_str += " " * (string_top_length['lines'][line_index - head_offset] + 0)
-                            else: # id
+                            else: # id and link
                                 lines_value = ruler[key]
                                 key_value_str = f"{key}: {lines_value}   "
 
