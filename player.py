@@ -166,16 +166,19 @@ class Player:
             return self._play_mode
 
         def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_link):
+            
             line_argument_value = None
             full_argument_link = self._player.name + "." + argument_link
-            line_argument_ruler = merged_staff_arguments.link(full_argument_link)
+            self_merged_staff_arguments = merged_staff_arguments.filter(player=self._player)
+            line_argument_ruler = self_merged_staff_arguments.link(full_argument_link)
+
             if line_argument_ruler.len() > 0 and line_argument_ruler.list()[0]['line'] != None and \
                     line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']] != None:
                 
                 line_argument_value = line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']]
 
             else:
-                line_argument_ruler = merged_staff_arguments.link(full_argument_link + ".staff")
+                line_argument_ruler = self_merged_staff_arguments.link(full_argument_link + ".staff")
                 if line_argument_ruler.len() > 0:
                     line_argument_value = line_argument_ruler.list()[0]['lines'][0]
 

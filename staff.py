@@ -646,7 +646,7 @@ class Staff:
 
         def merge(self, merge_none=False):
 
-            type_links = [] # merge agregates rulers by type and gorup
+            type_links = [] # merge agregates rulers by type and link
 
             for ruler in self._rulers_list:
                 ruler_type_link = {'type': ruler['type'], 'link': ruler['link']}
@@ -675,7 +675,8 @@ class Staff:
                     'lines': [None] * (tail_offset - head_offset + 1), # list
                     'offset': head_offset,
                     'enabled': subject_rulers_list[0]['enabled'],
-                    'on_staff': False
+                    'on_staff': False,
+                    'player': subject_rulers_list[0]['player']
                 }
                 
                 subject_head_offset = None
