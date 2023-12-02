@@ -366,6 +366,7 @@ class Arpeggiator(PLAYER.Player):
 
         def automate_parameters(self, tick):
 
+            auto_remaining_duration_pulses = 0
             for parameter, lines in self._automation_ruler_lines.items():
                 if lines != None:
                     start_value = lines[0][0]
@@ -376,6 +377,7 @@ class Arpeggiator(PLAYER.Player):
                     calculated_value = start_value
                     if finish_value != None:
                         calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
+                        auto_remaining_duration_pulses = max(auto_remaining_duration_pulses, distance_pulses - (actual_pulse - start_pulse))
                     else:
                         self._automation_ruler_lines[parameter] = None
                     if parameter == "rate":
@@ -383,7 +385,7 @@ class Arpeggiator(PLAYER.Player):
                     elif parameter == "gate":
                         self._gate = calculated_value
 
-            return self
+            return auto_remaining_duration_pulses
 
         ### ACTION ACTIONS ###
 
@@ -392,7 +394,7 @@ class Arpeggiator(PLAYER.Player):
 
             if staff == None: # INTERNAL CLOCKED TRIGGER
 
-                self.automate_parameters(tick)
+                auto_remaining_duration_pulses = self.automate_parameters(tick)
                 
                 self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
                 self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
@@ -402,6 +404,11 @@ class Arpeggiator(PLAYER.Player):
                     self.addClockedAction(
                         {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
                             'duration': 1, 'action': self}, tick # updates at least once per pulse
+                    )
+                elif auto_remaining_duration_pulses > 0:
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                            'duration': auto_remaining_duration_pulses, 'action': self}, tick # updates at least once per pulse
                     )
                 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
@@ -416,8 +423,13 @@ class Arpeggiator(PLAYER.Player):
                                 # adds a 4th line for the starting pulse
                                 self._automation_ruler_lines[ruler_argument] = auto_ruler['lines'] + [ [ tick['pulse'] ] * auto_ruler_length ]
 
-                self.automate_parameters(tick)
-
+                auto_remaining_duration_pulses = self.automate_parameters(tick)
+                if auto_remaining_duration_pulses > 0:
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                            'duration': auto_remaining_duration_pulses, 'action': self}, tick # updates at least once per pulse
+                    )
+                
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):
