@@ -180,7 +180,7 @@ class Stage:
                     if player_staged.len() > 0:
 
                         # Rewires Players with their Groups
-                        player_staged.list()[0]['player'].json_load(file_name, [ player_dictionnaire ], stage=self._root_self) # injects stage in the dictionnaire
+                        player_staged.list()[0]['player'].json_load(file_name, [ player_dictionnaire ])
                         
                 break
 

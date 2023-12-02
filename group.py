@@ -57,17 +57,6 @@ class Group:
 
         exclusion_list = [ player for player in self_players_list if player not in other_players_list ]
 
-        # exclusion_list = []
-
-        # for self_player in self_players_list:
-        #     excluded_player = True
-        #     for other_player in other_players_list:
-        #         if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
-        #             excluded_player = False
-        #             break
-        #     if excluded_player:
-        #         exclusion_list.append(self_player)
-
         return Group(self._player, exclusion_list, self._root_self)
     
     def __mul__(self, other):
@@ -76,17 +65,6 @@ class Group:
         other_players_list = other.list()
         
         intersection_list = [ player for player in self_players_list if player in other_players_list ]
-
-        # intersection_list = []
-
-        # for self_player in self_players_list:
-        #     intersected_player = False
-        #     for other_player in other_players_list:
-        #         if self_player['type'] == other_player['type'] and self_player['name'] == other_player['name']:
-        #             intersected_player = True
-        #             break
-        #     if intersected_player:
-        #         intersection_list.append(self_player)
 
         return Group(self._player, intersection_list, self._root_self)
     
@@ -261,7 +239,7 @@ class Group:
 
         return group
     
-    def json_load(self, file_name="group.json", json_object=None, stage=None):
+    def json_load(self, file_name="group.json", json_object=None):
 
         if json_object == None:
             # Opening JSON file
@@ -275,13 +253,11 @@ class Group:
             if group_dictionnaire['part'] == "group":
                 # where each Player is loaded
                 for player_dictionnaire in group_dictionnaire['players']:
-                    player_type = player_dictionnaire['type']
                     player_name = player_dictionnaire['name']
-                    if stage != None:
-                        player_staged = stage.filter(names=[player_name])
-                        if player_staged.len() > 0:
-                            player_data = player_staged.list()[0]
-                            self._root_self._players_list.append(player_data)
+                    player_staged = self._player.stage.filter(names=[player_name])
+                    if player_staged.len() > 0:
+                        player_data = player_staged.list()[0]
+                        self._root_self._players_list.append(player_data)
                 break
 
         return self
@@ -318,10 +294,6 @@ class Group:
             return selected_player.list()[0]['player']
         return PLAYER.PlayerNone(self)
     
-        if len(self._players_list) > 0:
-            return self._players_list[0]['player']
-        return PLAYER.PlayerNone(self._player.stage)
-
     def print(self):
 
         header_char = "^"

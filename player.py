@@ -165,28 +165,23 @@ class Player:
         def isPlaying(self):
             return self._play_mode
 
-        def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_name):
+        def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_link):
             line_argument_value = None
-
-            line_argument_ruler = merged_staff_arguments.link(argument_name)
+            full_argument_link = self._player.name + "." + argument_link
+            line_argument_ruler = merged_staff_arguments.link(full_argument_link)
             if line_argument_ruler.len() > 0 and line_argument_ruler.list()[0]['line'] != None and \
                     line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']] != None:
                 
                 line_argument_value = line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']]
 
             else:
-                line_argument_ruler = merged_staff_arguments.link(".staff" + argument_name)
+                line_argument_ruler = merged_staff_arguments.link(full_argument_link + ".staff")
                 if line_argument_ruler.len() > 0:
                     line_argument_value = line_argument_ruler.list()[0]['lines'][0]
 
             return line_argument_value
 
         def pulse(self, tick, first_pulse=False):
-
-            # def getActionPlayers(playable_sub_players, action_name):
-            #     return [
-            #         playable_player for playable_player in playable_sub_players if playable_player['name'] == action_name
-            #     ]
 
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
@@ -237,11 +232,6 @@ class Player:
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
                                     triggered_action['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
-
-                                    # action_name = triggered_action['lines'][action_line]
-                                    # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
-                                    # for action_player in action_players:
-                                    #     action_player['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                     self._play_pulse += 1
                     self._next_clock_pulse += 1
@@ -485,7 +475,7 @@ class Player:
                 'lower_group': [ self._lower_group.json_dictionnaire() ]
             }
 
-    def json_load(self, file_name="player.json", json_object=None, stage=None):
+    def json_load(self, file_name="player.json", json_object=None):
 
         if json_object == None:
             # Opening JSON file
@@ -501,8 +491,8 @@ class Player:
 
                 self._clock.json_load(file_name, dictionnaire['clock'])
                 self._staff.json_load(file_name, dictionnaire['staff'])
-                self._upper_group.json_load(file_name, dictionnaire['upper_group'], stage)
-                self._lower_group.json_load(file_name, dictionnaire['lower_group'], stage)
+                self._upper_group.json_load(file_name, dictionnaire['upper_group'])
+                self._lower_group.json_load(file_name, dictionnaire['lower_group'])
 
                 break
 
@@ -540,7 +530,7 @@ class Player:
         if enabled_lower_group_players != None:
             all_enabled_players += enabled_lower_group_players
         
-        # Assembling of clockable players           (STEP 1)
+        # Assembling of clockable players
         for enabled_player in all_enabled_players:
             clockable_player = {
                 'name': enabled_player['name'],
@@ -548,18 +538,6 @@ class Player:
             }
             if not clockable_player in self._clocked_players:
                 self._clocked_players.append(clockable_player)
-
-        # # Assembling of enabled/playable players    (STEP 2)
-        # for clocked_player in self._clocked_players:
-        #     clocked_player['player']._playable_sub_players = []
-        #     playable_sub_players = clocked_player['player'].lower_group.all_players_group().filter(enabled=True)
-        #     for playable_player in playable_sub_players:
-        #         playable_player = {
-        #             'name': playable_player['name'],
-        #             'player': playable_player['player']
-        #         }
-        #         if not playable_player in clocked_player['player']._playable_sub_players:
-        #             clocked_player['player']._playable_sub_players.append(playable_player)
 
         non_fast_forward_range = [None, None]
         if start != None:
@@ -628,7 +606,7 @@ class Player:
         return self._staff
     
     def start(self, tick):
-        self._automation_rulers = self._staff.rulers().allocate_action_players().automation_rulers_generator()
+        self._automation_rulers = self._staff.rulers().allocate_players().automation_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self

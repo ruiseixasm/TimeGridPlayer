@@ -202,16 +202,19 @@ class Staff:
         def arguments(self):
             return self.type(type="arguments")
 
-        def allocate_action_players(self):
+        def allocate_players(self):
                 
                 # if ruler_data['type'] == "actions":
                 #     link_name += "_" + link_name
                 # link_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", link_name)
                 # if link_name_re != None:
 
-            action_rulers = self._root_self.actions().enabled()
-            for action_ruler_data in action_rulers:
-                action_ruler_data['player'] = self.player.lower_group.all_players_group().filter(enabled=True).player(name=action_ruler_data['link'])
+            enabled_rulers = self._root_self.enabled()
+            for enabled_ruler_data in enabled_rulers:
+                link_list = enabled_ruler_data['link'].split(".")
+                if len(link_list) > 0:
+                    player_name = link_list[0]
+                    enabled_ruler_data['player'] = self.player.lower_group.all_players_group().filter(enabled=True).player(name=player_name)
 
             return self
 
