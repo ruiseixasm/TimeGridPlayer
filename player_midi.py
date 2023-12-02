@@ -376,6 +376,8 @@ class Arpeggiator(PLAYER.Player):
                     calculated_value = start_value
                     if finish_value != None:
                         calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
+                    else:
+                        self._automation_ruler_lines[parameter] = None
                     if parameter == "rate":
                         self._rate = calculated_value
                     elif parameter == "gate":
