@@ -757,7 +757,7 @@ class Staff:
             
             header_char = "'"
             if len(self._rulers_list) > 0:
-                string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'link': 0, 'position': 0, 'lines': 0, 'offset': 0, 'enabled': 0, 'on_staff': 0}
+                string_top_length = {'sequence': 0, 'id': 0, 'link': 0, 'type': 0, 'position': 0, 'lines': 0, 'offset': 0, 'enabled': 0, 'on_staff': 0}
                 sequence_index = 0
                 for ruler in self._rulers_list: # get maximum sizes
                     
@@ -911,7 +911,7 @@ class Staff:
 
                 spaces_between = 4
 
-                header_char_length = ((full_string_top_length + 6) + 4 * (total_lines + 3))
+                header_char_length = ((full_string_top_length + 8) + 4 * (total_lines + 3))
 
                 header_type = "  " + self.player.name + "  "
                 header_type_length = len(header_type)
@@ -920,7 +920,7 @@ class Staff:
 
                 print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
 
-                lines_str_header = " " * (string_top_length['sequence'] + 1) + "lines:" + " " * (string_top_length['id'] + string_top_length['link'] + 13)
+                lines_str_header = " " * (string_top_length['sequence'] + 1) + "lines:" + " " * (string_top_length['id'] + string_top_length['link'] + 15)
                 lines_str_tail = ""
 
                 for line_index in range(head_offset, head_offset + total_lines):
@@ -973,7 +973,7 @@ class Staff:
                                         lines_str += " " * (string_top_length['lines'][line_index - head_offset] + 0)
                             else: # id and link
                                 lines_value = ruler[key]
-                                key_value_str = f"{key}: {lines_value}   "
+                                key_value_str = f"{key}: {lines_value}    "
 
                                 key_value_length = len(f"{lines_value}")
                                 lines_str += key_value_str + (" " * (string_top_length[key] - key_value_length))

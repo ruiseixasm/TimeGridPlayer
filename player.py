@@ -166,7 +166,7 @@ class Player:
             return self._play_mode
 
         def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_link):
-            
+
             line_argument_value = None
             full_argument_link = self._player.name + "." + argument_link
             self_merged_staff_arguments = merged_staff_arguments.filter(player=self._player)
@@ -215,6 +215,10 @@ class Player:
                         if pulse_automation_rulers.len() > 0:
                             for pulse_automation_ruler_dict in pulse_automation_rulers:
                                 pulse_automation_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
+
+                                pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+
+
                                 # action_name = pulse_automation_ruler_dict['action']
                                 # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
                                 # for action_player in action_players:
@@ -640,16 +644,16 @@ class Player:
         return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
     def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
+        if player_action not in self._actions:
+            self._actions.append(player_action)
+        else:
+            player_action.play_mode = True
         if triggered_action != None:
-            player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
-            if player_action not in self._actions:
-                self._actions.append(player_action)
-            else:
-                player_action.play_mode = True
             player_action.external_arguments_rulers = merged_staff_arguments
             player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
             player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
-        else: # for automation "_auto" arguments only!
+        else: # for automation ".auto" arguments only!
             for player_action in self._actions:
                 player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 

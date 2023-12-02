@@ -266,7 +266,7 @@ class Arpeggiator(PLAYER.Player):
             self._active_midi_key = -1
 
             # AUTOMATIONS
-            self._automation_data = {
+            self._automation_ruler_lines = {
                 'rate': None,
                 'gate': None
             }
@@ -364,12 +364,36 @@ class Arpeggiator(PLAYER.Player):
 
             return self
 
+        def automate_parameters(self, tick):
+
+            for parameter, lines in self._automation_ruler_lines.items():
+                if lines != None:
+                    start_value = lines[0][0]
+                    finish_value = lines[1][0]
+                    distance_pulses = lines[2][0]
+                    start_pulse = lines[3][0]
+                    actual_pulse = tick['pulse']
+                    calculated_value = start_value
+                    if finish_value != None:
+                        calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
+                    if parameter == "rate":
+                        self._rate = calculated_value
+                    elif parameter == "gate":
+                        self._gate = calculated_value
+
+            return self
+
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
 
             if staff == None: # INTERNAL CLOCKED TRIGGER
+
+                self.automate_parameters(tick)
+                
+                self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
+                self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
                 self.update_selected_keys(tick)
                 if self._total_selected_keys > 0:
@@ -381,20 +405,17 @@ class Arpeggiator(PLAYER.Player):
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
 
                 for auto_ruler in merged_staff_arguments:
+                    link_list = auto_ruler['link'].split(".")
+                    if len(link_list) > 1:
+                        ruler_argument = link_list[1]
+                        if ruler_argument == "rate" or ruler_argument == "gate":
+                            auto_ruler_length = len(auto_ruler['lines'][0])
+                            if auto_ruler_length > 0:
+                                # adds a 4th line for the starting pulse
+                                self._automation_ruler_lines[ruler_argument] = auto_ruler['lines'] + [ [ tick['pulse'] ] * auto_ruler_length ]
 
-                    if auto_ruler['link'] == "rate" or auto_ruler['link'] == "gate":
-                        auto_ruler_length = len(auto_ruler['lines'][0])
-                        if auto_ruler_length > 0:
-                            if self._automation_data[auto_ruler['link']] == None:
-                                auto_ruler['lines'] += [ tick['pulse'] ] * auto_ruler_length # the 4th line of starting pulse
-                                self._automation_rate_ruler = auto_ruler
-                            else:
-                                rate_ruler_length = len(self._automation_rate_ruler['lines'][0])
-                                start_line = min(auto_ruler['offset'], self._automation_rate_ruler['offset'])
-                                last_line = max(auto_ruler['offset'] + auto_ruler_length, self._automation_rate_ruler['offset'] + rate_ruler_length)
+                self.automate_parameters(tick)
 
-
-                                
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):

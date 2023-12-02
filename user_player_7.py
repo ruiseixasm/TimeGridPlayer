@@ -30,7 +30,7 @@ midi_clock.print()
 scales = LINES_SCALES.Scales()
 
 master = stage_midi.player("master")
-master.set_time_signature(size_measures=12)
+master.set_time_signature(size_measures=16)
 # Retrigger
 stage_midi.add("retrig", type="Retrigger")
 retrig = stage_midi.player("retrig")
@@ -57,11 +57,11 @@ master.rulers().add({'link': "note.duration.staff", 'position': [2, 0], 'lines':
 master.rulers().add({'link': "note.duration.staff", 'position': [9, 0], 'lines': [28]})
 master.rulers().add({'link': "arpeggio.channel.staff", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'link': "arpeggio.velocity.staff", 'position': [0, 0], 'lines': [120]})
-master.rulers().add({'link': "arpeggio.duration", 'position': [2, 0], 'lines': [16, 24, 28, 20], 'offset': 4})
+master.rulers().add({'link': "arpeggio.duration", 'position': [2, 0], 'lines': [100, 108, 112, 104], 'offset': 4})
 master.rulers().add({'link': "arpeggio.gate.auto", 'position': [9, 0], 'lines': [.25, .10, .25, .10, .25, .10], 'offset': 3})
-master.rulers().add({'link': "arpeggio.gate.auto", 'position': [10, 0], 'lines': [.75, .90, .50, .80], 'offset': 4})
+master.rulers().add({'link': "arpeggio.gate.auto", 'position': [14, 0], 'lines': [1, .90, .50, .80], 'offset': 3})
 master.rulers().add({'link': "arpeggio.rate.auto", 'position': [9, 0], 'lines': [.25, 4, 1, .5, 2, 8], 'offset': 3})
-master.rulers().add({'link': "arpeggio.rate.auto", 'position': [10, 0], 'lines': [.5, 4, 4, 1], 'offset': 4})
+master.rulers().add({'link': "arpeggio.rate.auto", 'position': [14, 0], 'lines': [4, 4, 4, 1], 'offset': 3})
 master.rulers().filter(type="arguments").sort().print().print_lines()
 
 scales.scale("major", "A", 5)
