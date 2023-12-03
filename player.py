@@ -165,17 +165,18 @@ class Player:
         def isPlaying(self):
             return self._play_mode
 
-        def pickTriggeredLineArgumentValue(self, merged_staff_arguments, argument_link):
+        def pickTriggeredLineArgumentValue(self, self_merged_staff_arguments, argument_link, global_argument=False):
 
             line_argument_value = None
             full_argument_link = self._player.name + "." + argument_link
-            self_merged_staff_arguments = merged_staff_arguments.filter(player=self._player)
             line_argument_ruler = self_merged_staff_arguments.link(full_argument_link)
 
-            if line_argument_ruler.len() > 0 and line_argument_ruler.list()[0]['line'] != None and \
-                    line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']] != None:
+            if line_argument_ruler.len() > 0 and (global_argument or line_argument_ruler.list()[0]['line'] != None):
                 
-                line_argument_value = line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']]
+                if global_argument:
+                    line_argument_value = line_argument_ruler.list()[0]['lines'][0] # lines[0]
+                else:
+                    line_argument_value = line_argument_ruler.list()[0]['lines'][line_argument_ruler.list()[0]['line']] # lines['line']
 
             else:
                 line_argument_ruler = self_merged_staff_arguments.link(full_argument_link + ".staff")
@@ -218,27 +219,22 @@ class Player:
 
                                 pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
-
-                                # action_name = pulse_automation_ruler_dict['action']
-                                # action_players = getActionPlayers(self._player.playable_sub_players, action_name)
-                                # for action_player in action_players:
-                                #     action_player['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
-
                     if (pulse_data['actions']['enabled'] > 0):
                         
                         pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
                         merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge() # Where external arguments are merged
 
                         for triggered_action in pulse_actions_rulers: # single ruler actions
+                            player_merged_staff_arguments = merged_staff_arguments.filter(player=triggered_action['player'])
                             for action_line in range(len(triggered_action['lines'])):
                                 if (triggered_action['lines'][action_line] != None):
                                     triggered_action['line'] = action_line
-                                    for arguments_ruler in merged_staff_arguments:
+                                    for arguments_ruler in player_merged_staff_arguments:
                                         arguments_ruler['line'] = action_line + triggered_action['offset'] - arguments_ruler['offset']
                                         if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
-                                    triggered_action['player'].actionTrigger(triggered_action, merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                                    triggered_action['player'].actionTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                     self._play_pulse += 1
                     self._next_clock_pulse += 1
@@ -273,7 +269,7 @@ class Player:
         
         ### ACTION ACTIONS ###
 
-        def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+        def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             if staff != None: # EXTERNAL TRIGGER
                 self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
             self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
@@ -640,22 +636,22 @@ class Player:
 
     ### PLAYER ACTIONS ###
 
-    def actionFactoryMethod(self, triggered_action, merged_staff_arguments, staff, tick): # Factory Method Pattern
+    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick): # Factory Method Pattern
         return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-        player_action = self.actionFactoryMethod(triggered_action, merged_staff_arguments, staff, tick) # Factory Method Pattern
+    def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+        player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
         if player_action not in self._actions:
             self._actions.append(player_action)
         else:
             player_action.play_mode = True
         if triggered_action != None:
-            player_action.external_arguments_rulers = merged_staff_arguments
-            player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+            player_action.external_arguments_rulers = self_merged_staff_arguments
+            player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
             player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
         else: # for automation ".auto" arguments only!
             for player_action in self._actions:
-                player_action.actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+                player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
         return self
 
@@ -676,14 +672,14 @@ class Trigger(Player):
 
         ### ACTION ACTIONS ###
 
-        def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-            super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+        def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+            super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
             if staff == None: # CLOCKED TRIGGER
                 print("CLOCKED TRIGGERED OFF")
             else: # EXTERNAL TRIGGER
                 print("EXTERNALLY TRIGGERED ON")
                 self.addClockedAction(
-                    {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments, 'duration': 16, 'action': self},
+                    {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments, 'duration': 16, 'action': self},
                     tick
                 )
 
@@ -697,7 +693,7 @@ class PlayerNone(Player):
         self._upper_group = GROUP.GroupNone(self)
         self._lower_group = GROUP.GroupNone(self)
 
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+    def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         pass # does nothing
 
 # GLOBAL CLASS METHODS

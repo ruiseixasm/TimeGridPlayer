@@ -54,7 +54,7 @@ class Clock(PLAYER.Player):
 
             return self._tick
 
-    def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
+    def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return self # No trigger actions for Clock Player
 
 class Master(PLAYER.Player):
@@ -84,8 +84,8 @@ class Note(PLAYER.Player):
 
         ### ACTION ACTIONS ###
 
-        def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-            super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+        def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+            super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
             if staff == None: # CLOCKED TRIGGER
 
@@ -100,23 +100,23 @@ class Note(PLAYER.Player):
 
                 if (not tick['fast_forward']):
 
-                    note_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
+                    note_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                     if (note_duration != None):
                         self._duration = note_duration
 
-                    note_channel = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "channel")
+                    note_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
                     if (note_channel != None):
                         self._note['channel'] = note_channel
 
-                    note_velocity = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "velocity")
+                    note_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
                     if (note_velocity != None):
                         self._note['velocity'] = note_velocity
 
-                    note_octave = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "octave")
+                    note_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
                     if (note_octave != None):
                         self._note['octave'] = note_octave
 
-                    note_key = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "key") # key is mandatory
+                    note_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key") # key is mandatory
                     if (note_key != None):
                         self._note['key'] = note_key
 
@@ -128,11 +128,11 @@ class Note(PLAYER.Player):
                         clock_duration = self_duration_pulses * self._clock_trigger_steps_per_beat_ratio
                         
                         self.addClockedAction(
-                            {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                            {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                              'duration': clock_duration, 'action': self}, tick
                         )
     
-    def actionFactoryMethod(self, triggered_action, merged_staff_arguments, staff, tick):
+    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Note.Action(self)
 
 class Retrigger(PLAYER.Player):
@@ -155,8 +155,8 @@ class Retrigger(PLAYER.Player):
 
         ### ACTION ACTIONS ###
 
-        def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-            super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+        def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+            super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
             self_rate_pulses = self._rate * self._clock_pulses_per_step
             clock_rate_pulses = self_rate_pulses * self._clock_trigger_steps_per_beat_ratio
@@ -181,7 +181,7 @@ class Retrigger(PLAYER.Player):
                 if self._remaining_pulses_duration > 0:
 
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                             'duration': clock_retrig_duration, 'action': self}, tick
                     )
                 else:
@@ -196,32 +196,32 @@ class Retrigger(PLAYER.Player):
 
                 if (not tick['fast_forward']):
 
-                    retrig_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
+                    retrig_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                     if (retrig_duration != None):
                         self._retrig_duration = retrig_duration
                     self._remaining_pulses_duration = self._retrig_duration * self._clock_pulses_per_step
 
-                    retrig_rate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "rate")
+                    retrig_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate")
                     if (retrig_rate != None):
                         self._rate = max(0, retrig_rate)
 
-                    retrig_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
+                    retrig_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate")
                     if (retrig_gate != None):
                         self._gate = min(1, max(0, retrig_gate))
 
-                    retrig_channel = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "channel")
+                    retrig_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
                     if (retrig_channel != None):
                         self._note['channel'] = retrig_channel
 
-                    retrig_velocity = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "velocity")
+                    retrig_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
                     if (retrig_velocity != None):
                         self._note['velocity'] = retrig_velocity
 
-                    retrig_octave = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "octave")
+                    retrig_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
                     if (retrig_octave != None):
                         self._note['octave'] = retrig_octave
 
-                    retrig_key = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "key")
+                    retrig_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
                     if (retrig_key != None):
                         self._note['key'] = retrig_key
 
@@ -235,13 +235,13 @@ class Retrigger(PLAYER.Player):
                         clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
                         
                         self.addClockedAction(
-                            {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                            {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                              'duration': clock_retrig_duration, 'action': self}, tick
                         )
                         
                         self._remaining_pulses_duration -= clock_retrig_duration
 
-    def actionFactoryMethod(self, triggered_action, merged_staff_arguments, staff, tick):
+    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Retrigger.Action(self)
 
 class Arpeggiator(PLAYER.Player):
@@ -389,8 +389,8 @@ class Arpeggiator(PLAYER.Player):
 
         ### ACTION ACTIONS ###
 
-        def actionTrigger(self, triggered_action, merged_staff_arguments, staff, tick):
-            super().actionTrigger(triggered_action, merged_staff_arguments, staff, tick)
+        def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+            super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
             if staff == None: # INTERNAL CLOCKED TRIGGER
 
@@ -402,18 +402,18 @@ class Arpeggiator(PLAYER.Player):
                 self.update_selected_keys(tick)
                 if self._total_selected_keys > 0:
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                             'duration': 1, 'action': self}, tick # updates at least once per pulse
                     )
                 elif auto_remaining_duration_pulses > 0:
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                             'duration': auto_remaining_duration_pulses, 'action': self}, tick # updates at least once per pulse
                     )
                 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
 
-                for auto_ruler in merged_staff_arguments:
+                for auto_ruler in self_merged_staff_arguments:
                     link_list = auto_ruler['link'].split(".")
                     if len(link_list) > 1:
                         ruler_argument = link_list[1]
@@ -426,7 +426,7 @@ class Arpeggiator(PLAYER.Player):
                 auto_remaining_duration_pulses = self.automate_parameters(tick)
                 if auto_remaining_duration_pulses > 0:
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                             'duration': auto_remaining_duration_pulses, 'action': self}, tick # updates at least once per pulse
                     )
                 
@@ -434,34 +434,34 @@ class Arpeggiator(PLAYER.Player):
 
                 if (not tick['fast_forward']):
 
-                    arpeggio_duration = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "duration")
+                    arpeggio_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                     if (arpeggio_duration != None):
                         self._arpeggio_duration = arpeggio_duration
 
-                    arpeggio_rate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "rate")
+                    arpeggio_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate", global_argument=True)
                     if (arpeggio_rate != None):
                         self._rate = max(0, arpeggio_rate)
 
-                    arpeggio_gate = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "gate")
+                    arpeggio_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate", global_argument=True)
                     if (arpeggio_gate != None):
                         self._gate = max(0, arpeggio_gate)
 
-                    arpeggio_channel = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "channel")
+                    arpeggio_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel", global_argument=True)
                     if (arpeggio_channel != None):
                         self._note['channel'] = arpeggio_channel
 
-                    arpeggio_velocity = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "velocity")
+                    arpeggio_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
                     if (arpeggio_velocity != None):
                         self._note['velocity'] = arpeggio_velocity
 
-                    arpeggio_octave = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "octave")
+                    arpeggio_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
                     if (arpeggio_octave != None):
                         self._note['octave'] = arpeggio_octave
 
                     self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
                     self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
-                    arpeggio_key = self.pickTriggeredLineArgumentValue(merged_staff_arguments, "key")
+                    arpeggio_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
                     if (arpeggio_key != None):
                         self._note['key'] = arpeggio_key
 
@@ -474,7 +474,7 @@ class Arpeggiator(PLAYER.Player):
                         # only the first trigger key adds to the internal clock
                         if self._total_selected_keys == 1:
                             self.addClockedAction(
-                                {'triggered_action': triggered_action, 'staff_arguments': merged_staff_arguments,
+                                {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                                 'duration': 1, 'action': self}, tick # updates at least once per pulse
                             )
                         
@@ -484,7 +484,7 @@ class Arpeggiator(PLAYER.Player):
                 self._triggering_staffs.remove(triggering_staff)
         return super().isPlaying()
 
-    def actionFactoryMethod(self, triggered_action, merged_staff_arguments, staff, tick):
+    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         for triggering_staff in self._triggering_staffs:
             if staff == triggering_staff['staff']:
                 return triggering_staff['action']
