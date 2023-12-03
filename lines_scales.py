@@ -9,6 +9,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 Lesser General Public License for more details.'''
 
+import math
 import lines as LINES
 
 class Scales(LINES.Lines):
@@ -137,3 +138,54 @@ def int_to_key(key_int=0):
     if isinstance(key_int, int):
         return chromatic_keys[ key_int % 12 ]
     return key_int
+
+def note_to_steps(note="1/4"):
+    match note:
+        case "1": return 16
+        case "1T": return 12
+        case "1/2": return 8
+        case "1/2T": return 6
+        case "1/4": return 4
+        case "1/4T": return 3
+        case "1/8": return 2
+        case "1/8T": return 1.5
+        case "1/16": return 1
+        case "1/16T": return 0.75
+        case "1/32": return 0.5
+        case "1/32T": return 0.375
+        case "1/64": return 0.25
+        case "1/64T": return 0.1875
+        case "1/128": return 0.125
+        case "1/128T": return 0.09375
+        case default: return 4
+        
+def steps_to_note(steps=4):
+    match steps:
+        case 16: return "1"
+        case 12: return "1T"
+        case 8: return "1/2"
+        case 6: return "1/2T"
+        case 4: return "1/4"
+        case 3: return "1/4T"
+        case 2: return "1/8"
+        case 1.5: return "1/8T"
+        case 1: return "1/16"
+        case 0.75: return "1/16T"
+        case 0.5: return "1/32"
+        case 0.375: return "1/32T"
+        case 0.25: return "1/64"
+        case 0.1875: return "1/64T"
+        case 0.125: return "1/128"
+        case 0.09375: return "1/128T"
+        case default: return "1/4"
+
+def round_steps(steps=4, triplets=False):
+    steps_log = math.log2(steps)
+    if steps >= 16:
+        return round(steps / 8) * 8
+    if steps >= 8:
+        return round(steps / 4) * 4
+    if steps >= 4:
+        return round(steps / 2) * 2
+
+    return 4
