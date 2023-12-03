@@ -97,7 +97,7 @@ class Player:
             
     @property
     def automation_rulers(self):
-        return self._automation_rulers
+        return self._automation_set_rulers
             
     class Action():
 
@@ -212,12 +212,12 @@ class Player:
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                         # FEED AUTOMATIONS HERE
-                        pulse_automation_rulers = self._player.automation_rulers.filter(positions=[position])
-                        if pulse_automation_rulers.len() > 0:
-                            for pulse_automation_ruler_dict in pulse_automation_rulers:
-                                pulse_automation_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
+                        pulse_automation_set_rulers = self._player.automation_rulers.filter(positions=[position])
+                        if pulse_automation_set_rulers.len() > 0:
+                            for pulse_automation_ruler_dict in pulse_automation_set_rulers:
+                                pulse_automation_set_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
 
-                                pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_automation_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+                                pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_automation_set_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
@@ -609,7 +609,7 @@ class Player:
         return self._staff
     
     def start(self, tick):
-        self._automation_rulers = self._staff.rulers().allocate_players().automation_rulers_generator()
+        self._automation_set_rulers = self._staff.rulers().allocate_players().automation_set_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self

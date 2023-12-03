@@ -271,6 +271,12 @@ class Arpeggiator(PLAYER.Player):
                 'gate': None
             }
 
+            # SETS
+            self._set_ruler_lines = {
+                'rate': None,
+                'gate': None
+            }
+
         def add_selected_key(self, midi_key, selected_on_pulse, selected_duration_pulses):
             new_midi_key = {
                     'midi_key': midi_key, 'active': False, 'pressed': False,
@@ -370,22 +376,37 @@ class Arpeggiator(PLAYER.Player):
             for parameter, lines in self._automation_ruler_lines.items():
                 if lines != None:
                     start_value = lines[0][0]
-                    finish_value = lines[1][0]
-                    distance_pulses = lines[2][0]
-                    start_pulse = lines[3][0]
-                    actual_pulse = tick['pulse']
-                    calculated_value = start_value
-                    if finish_value != None:
-                        calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
-                        auto_remaining_duration_pulses = max(auto_remaining_duration_pulses, distance_pulses - (actual_pulse - start_pulse))
-                    else:
-                        self._automation_ruler_lines[parameter] = None
-                    if parameter == "rate":
-                        self._rate = calculated_value
-                    elif parameter == "gate":
-                        self._gate = calculated_value
+                    if isinstance(start_value, int) or isinstance(start_value, float):
+                        finish_value = lines[1][0]
+                        distance_pulses = lines[2][0]
+                        start_pulse = lines[3][0]
+                        actual_pulse = tick['pulse']
+                        calculated_value = start_value
+                        if finish_value != None and (isinstance(finish_value, int) or isinstance(finish_value, float)):
+                            calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
+                            auto_remaining_duration_pulses = max(auto_remaining_duration_pulses, distance_pulses - (actual_pulse - start_pulse))
+                        else:
+                            self._automation_ruler_lines[parameter] = None
+                        if parameter == "rate":
+                            self._rate = calculated_value
+                        elif parameter == "gate":
+                            self._gate = calculated_value
 
             return auto_remaining_duration_pulses
+
+        def set_parameters(self):
+
+            for parameter, lines in self._set_ruler_lines.items():
+                if lines != None:
+                    set_value = lines[0][0]
+                    if isinstance(set_value, int) or isinstance(set_value, float):
+                        
+                        if parameter == "rate":
+                            self._rate = set_value
+                        elif parameter == "gate":
+                            self._gate = set_value
+
+            return self
 
         ### ACTION ACTIONS ###
 
@@ -413,16 +434,20 @@ class Arpeggiator(PLAYER.Player):
                 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
 
-                for auto_ruler in self_merged_staff_arguments:
-                    link_list = auto_ruler['link'].split(".")
+                for auto_set_ruler in self_merged_staff_arguments:
+                    link_list = auto_set_ruler['link'].split(".")
                     if len(link_list) > 1:
                         ruler_argument = link_list[1]
                         if ruler_argument == "rate" or ruler_argument == "gate":
-                            auto_ruler_length = len(auto_ruler['lines'][0])
-                            if auto_ruler_length > 0:
-                                # adds a 4th line for the starting pulse
-                                self._automation_ruler_lines[ruler_argument] = auto_ruler['lines'] + [ [ tick['pulse'] ] * auto_ruler_length ]
+                            auto_set_ruler_length = len(auto_set_ruler['lines'][0])
+                            if auto_set_ruler_length > 0:
+                                if len(auto_set_ruler['lines']) == 3: # .auto has 3 sublines
+                                    # adds a 4th line for the starting pulse
+                                    self._automation_ruler_lines[ruler_argument] = auto_set_ruler['lines'] + [ [ tick['pulse'] ] * auto_set_ruler_length ]
+                                elif len(auto_set_ruler['lines']) == 1: # .set has just 1 sublines
+                                    self._set_ruler_lines[ruler_argument] = auto_set_ruler['lines']
 
+                self.set_parameters()
                 auto_remaining_duration_pulses = self.automate_parameters(tick)
                 if auto_remaining_duration_pulses > 0:
                     self.addClockedAction(

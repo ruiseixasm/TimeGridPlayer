@@ -218,12 +218,13 @@ class Staff:
 
             return self
 
-        def automation_rulers_generator(self):
+        def automation_set_rulers_generator(self):
             
-            automation_rulers_list = []
-            auto_rulers = self._root_self.arguments().on_staff().enabled().link_name_find(".auto").unique().sort(key="position")
-            auto_rulers_merged = auto_rulers.merge()
+            automation_set_rulers_list = []
+            auto_set_rulers = self._root_self.arguments().on_staff().enabled().unique().sort(key="position")
 
+            auto_rulers = auto_set_rulers.link_name_find(".auto")
+            auto_rulers_merged = auto_rulers.merge()
             for auto_link_merged in auto_rulers_merged:
                 auto_rulers_link = auto_rulers.link(auto_link_merged['link'])
                 following_rulers = auto_rulers_link
@@ -263,9 +264,28 @@ class Staff:
                                 if complete_new_auto_ruler:
                                     break
 
-                    automation_rulers_list.append(new_auto_ruler)
+                    automation_set_rulers_list.append(new_auto_ruler)
             
-            return Staff.Rulers(self._staff, automation_rulers_list, self._root_self, self._next_id)
+            set_rulers = auto_set_rulers.link_name_find(".set")
+            set_rulers_merged = set_rulers.merge()
+            for set_link_merged in set_rulers_merged:
+                new_set_ruler = {
+                    'id': set_link_merged['id'],
+                    'type': set_link_merged['type'],
+                    'link': set_link_merged['link'],
+                    'position': set_link_merged['position'],
+                    'lines': [
+                        set_link_merged['lines']
+                    ],
+                    'offset': set_link_merged['offset'],
+                    'enabled': False, # not intended to be processed by the Staff
+                    'on_staff': False, # not intended to be on the Staff
+                    'player': set_link_merged['player']
+                }
+
+                automation_set_rulers_list.append(new_set_ruler)
+            
+            return Staff.Rulers(self._staff, automation_set_rulers_list, self._root_self, self._next_id)
 
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]
