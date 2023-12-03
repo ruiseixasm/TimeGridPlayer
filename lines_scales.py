@@ -180,12 +180,16 @@ def steps_to_note(steps=4):
         case default: return "1/4"
 
 def round_steps(steps=4, triplets=False):
-    steps_log = math.log2(steps)
-    if steps >= 16:
-        return round(steps / 8) * 8
-    if steps >= 8:
-        return round(steps / 4) * 4
-    if steps >= 4:
-        return round(steps / 2) * 2
+    rounded_steps = round(math.log2(steps))**2
+    if triplets:
+        distance_rounded_steps = abs(rounded_steps - steps)
+        lower_triplet_steps = rounded_steps * 3/4
+        distance_lower_triplet_steps = abs(lower_triplet_steps - steps)
+        if distance_lower_triplet_steps < distance_rounded_steps:
+            rounded_steps = lower_triplet_steps
+        upper_triplet_steps = lower_triplet_steps * 2
+        distance_upper_triplet_steps = abs(upper_triplet_steps - steps)
+        if distance_upper_triplet_steps < distance_rounded_steps:
+            rounded_steps = upper_triplet_steps
 
-    return 4
+    return rounded_steps
