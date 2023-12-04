@@ -113,6 +113,91 @@ class Staff:
 
             return union_rulers - intersection_rulers
         
+        def _allocate_players(self):
+                
+                # if ruler_data['type'] == "actions":
+                #     link_name += "_" + link_name
+                # link_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", link_name)
+                # if link_name_re != None:
+
+            enabled_rulers = self._root_self.enabled()
+            for enabled_ruler_data in enabled_rulers:
+                link_list = enabled_ruler_data['link'].split(".")
+                if len(link_list) > 0:
+                    player_name = link_list[0]
+                    enabled_ruler_data['player'] = self.player.lower_group.all_players_group().filter(enabled=True).player(name=player_name)
+
+            return self
+
+        def _automation_set_rulers_generator(self):
+            
+            automation_set_rulers_list = []
+            auto_set_rulers = self._root_self.arguments().on_staff().enabled().unique().sort(key="position")
+
+            auto_rulers = auto_set_rulers.link_name_find(".auto")
+            auto_rulers_merged = auto_rulers.merge()
+            for auto_link_merged in auto_rulers_merged:
+                auto_rulers_link = auto_rulers.link(auto_link_merged['link'])
+                following_rulers = auto_rulers_link
+                for auto_ruler in auto_rulers_link:
+                    new_auto_ruler = {
+                        'id': auto_ruler['id'],
+                        'type': auto_ruler['type'],
+                        'link': auto_ruler['link'],
+                        'position': auto_ruler['position'],
+                        'lines': [
+                            auto_ruler['lines'],                    # start     (0)
+                            [ None ] * len(auto_ruler['lines']),    # finish    (1)
+                            [ 0 ] * len(auto_ruler['lines'])        # pulses    (2)
+                        ],
+                        'offset': auto_ruler['offset'],
+                        'enabled': False, # not intended to be processed by the Staff
+                        'on_staff': False, # not intended to be on the Staff
+                        'player': auto_ruler['player']
+                    }
+
+                    line_finish = 1
+                    line_pulses = 2
+
+                    if following_rulers.len() > 1:
+                        following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
+                        for following_ruler in following_rulers:
+                            distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
+                            for auto_ruler_line in range(len(auto_ruler['lines'])):
+                                complete_new_auto_ruler = True
+                                if new_auto_ruler['lines'][line_finish][auto_ruler_line] == None:
+                                    complete_new_auto_ruler = False
+                                    new_auto_ruler['lines'][line_pulses][auto_ruler_line] += distance_pulses
+                                    if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
+                                        not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
+
+                                        new_auto_ruler['lines'][line_finish][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
+                                if complete_new_auto_ruler:
+                                    break
+
+                    automation_set_rulers_list.append(new_auto_ruler)
+            
+            set_rulers = auto_set_rulers.link_name_find(".set")
+            set_rulers_merged = set_rulers.merge()
+            for set_link_merged in set_rulers_merged:
+                new_set_ruler = {
+                    'id': set_link_merged['id'],
+                    'type': set_link_merged['type'],
+                    'link': set_link_merged['link'],
+                    'position': set_link_merged['position'],
+                    'lines': [
+                        set_link_merged['lines']
+                    ],
+                    'offset': set_link_merged['offset'],
+                    'enabled': False, # not intended to be processed by the Staff
+                    'on_staff': False, # not intended to be on the Staff
+                    'player': set_link_merged['player']
+                }
+
+                automation_set_rulers_list.append(new_set_ruler)
+            
+            return Staff.Rulers(self._staff, automation_set_rulers_list, self._root_self, self._next_id)
+
         def _str_position(self, position):
             
             position_value = [position[0], round(position[1], 3)]
@@ -201,91 +286,6 @@ class Staff:
             
         def arguments(self):
             return self.type(type="arguments")
-
-        def allocate_players(self):
-                
-                # if ruler_data['type'] == "actions":
-                #     link_name += "_" + link_name
-                # link_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", link_name)
-                # if link_name_re != None:
-
-            enabled_rulers = self._root_self.enabled()
-            for enabled_ruler_data in enabled_rulers:
-                link_list = enabled_ruler_data['link'].split(".")
-                if len(link_list) > 0:
-                    player_name = link_list[0]
-                    enabled_ruler_data['player'] = self.player.lower_group.all_players_group().filter(enabled=True).player(name=player_name)
-
-            return self
-
-        def automation_set_rulers_generator(self):
-            
-            automation_set_rulers_list = []
-            auto_set_rulers = self._root_self.arguments().on_staff().enabled().unique().sort(key="position")
-
-            auto_rulers = auto_set_rulers.link_name_find(".auto")
-            auto_rulers_merged = auto_rulers.merge()
-            for auto_link_merged in auto_rulers_merged:
-                auto_rulers_link = auto_rulers.link(auto_link_merged['link'])
-                following_rulers = auto_rulers_link
-                for auto_ruler in auto_rulers_link:
-                    new_auto_ruler = {
-                        'id': auto_ruler['id'],
-                        'type': auto_ruler['type'],
-                        'link': auto_ruler['link'],
-                        'position': auto_ruler['position'],
-                        'lines': [
-                            auto_ruler['lines'],                    # start     (0)
-                            [ None ] * len(auto_ruler['lines']),    # finish    (1)
-                            [ 0 ] * len(auto_ruler['lines'])        # pulses    (2)
-                        ],
-                        'offset': auto_ruler['offset'],
-                        'enabled': False, # not intended to be processed by the Staff
-                        'on_staff': False, # not intended to be on the Staff
-                        'player': auto_ruler['player']
-                    }
-
-                    line_finish = 1
-                    line_pulses = 2
-
-                    if following_rulers.len() > 1:
-                        following_rulers -= following_rulers.filter(ids=[auto_ruler['id']])
-                        for following_ruler in following_rulers:
-                            distance_pulses = self._staff.pulses(following_ruler['position']) - self._staff.pulses(auto_ruler['position'])
-                            for auto_ruler_line in range(len(auto_ruler['lines'])):
-                                complete_new_auto_ruler = True
-                                if new_auto_ruler['lines'][line_finish][auto_ruler_line] == None:
-                                    complete_new_auto_ruler = False
-                                    new_auto_ruler['lines'][line_pulses][auto_ruler_line] += distance_pulses
-                                    if not auto_ruler['offset'] + auto_ruler_line < following_ruler['offset'] and \
-                                        not auto_ruler['offset'] + auto_ruler_line > following_ruler['offset'] + len(following_ruler['lines']) - 1:
-
-                                        new_auto_ruler['lines'][line_finish][auto_ruler_line] = following_ruler['lines'][auto_ruler_line + auto_ruler['offset'] - following_ruler['offset']]
-                                if complete_new_auto_ruler:
-                                    break
-
-                    automation_set_rulers_list.append(new_auto_ruler)
-            
-            set_rulers = auto_set_rulers.link_name_find(".set")
-            set_rulers_merged = set_rulers.merge()
-            for set_link_merged in set_rulers_merged:
-                new_set_ruler = {
-                    'id': set_link_merged['id'],
-                    'type': set_link_merged['type'],
-                    'link': set_link_merged['link'],
-                    'position': set_link_merged['position'],
-                    'lines': [
-                        set_link_merged['lines']
-                    ],
-                    'offset': set_link_merged['offset'],
-                    'enabled': False, # not intended to be processed by the Staff
-                    'on_staff': False, # not intended to be on the Staff
-                    'player': set_link_merged['player']
-                }
-
-                automation_set_rulers_list.append(new_set_ruler)
-            
-            return Staff.Rulers(self._staff, automation_set_rulers_list, self._root_self, self._next_id)
 
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]

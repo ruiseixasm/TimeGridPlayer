@@ -96,7 +96,15 @@ class Player:
         return self._actions
             
     @property
-    def automation_rulers(self):
+    def arguments_rulers(self):
+        return self._arguments_rulers
+            
+    @property
+    def actions_rulers(self):
+        return self._actions_rulers
+            
+    @property
+    def automation_set_rulers(self):
         return self._automation_set_rulers
             
     class Action():
@@ -206,13 +214,13 @@ class Player:
                     pulse_data = self._staff.pulse(pulse=self._play_pulse)
                     if (pulse_data['arguments']['enabled'] > 0):
                         
-                        pulse_arguments_rulers = self._player.rulers().filter(type='arguments', positions=[position], enabled=True)
+                        pulse_arguments_rulers = self._player.arguments_rulers.filter(positions=[position])
                         self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
                         pulse_reset_arguments_rulers = pulse_arguments_rulers.link_name_find(".reset").link_name_strip(".reset")
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                         # FEED AUTOMATIONS HERE
-                        pulse_automation_set_rulers = self._player.automation_rulers.filter(positions=[position])
+                        pulse_automation_set_rulers = self._player.automation_set_rulers.filter(positions=[position])
                         if pulse_automation_set_rulers.len() > 0:
                             for pulse_automation_ruler_dict in pulse_automation_set_rulers:
                                 pulse_automation_set_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
@@ -221,7 +229,7 @@ class Player:
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
-                        pulse_actions_rulers = self._player.rulers().filter(type='actions', positions=[position], enabled=True)
+                        pulse_actions_rulers = self._player.actions_rulers.filter(positions=[position])
                         merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge() # Where external arguments are merged
 
                         for triggered_action in pulse_actions_rulers: # single ruler actions
@@ -609,7 +617,9 @@ class Player:
         return self._staff
     
     def start(self, tick):
-        self._automation_set_rulers = self._staff.rulers().allocate_players().automation_set_rulers_generator()
+        self._arguments_rulers = self.rulers().filter(type='arguments', enabled=True)
+        self._actions_rulers = self.rulers().filter(type='actions', enabled=True)
+        self._automation_set_rulers = self._staff.rulers()._allocate_players()._automation_set_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self
