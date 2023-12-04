@@ -126,7 +126,7 @@ class Staff:
                 if len(link_list) > 0:
                     player_name = link_list[0]
                     enabled_ruler_data['player'] = self.player.stage.filter(enabled=True).player(name=player_name)
-                    if enabled_ruler_data['player'] == self.player:
+                    if enabled_ruler_data['player'] == self.player and enabled_ruler_data['type'] == "actions":
                         enabled_ruler_data['player'] = PLAYER.PlayerNone(self.player.stage)
 
             return self

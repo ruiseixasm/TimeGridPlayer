@@ -397,8 +397,8 @@ class Player:
     def _finish(self, tick):
         if self == tick['player']:
             self._clock.stop()
-        elif self._internal_clock:
-            self._clock.stop(tick)
+        elif self._internal_clock and self != tick['player']:
+                self._clock.stop(tick)
 
     def _start(self, tick):
         self._arguments_rulers = self.rulers().filter(type='arguments', enabled=True)
@@ -407,6 +407,13 @@ class Player:
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self
+
+    def _tick(self, tick):
+        if self._internal_clock and self != tick['player']:
+            tick = self._clock.tick(tick) # changes the tick for the internal clock one | WHERE INTERNAL CLOCK IS USED
+        if tick['pulse'] != None:
+            for action in self._actions:
+                action.pulse(tick)
 
     def use_resource(self, name=None):
         if self._resources != None and name != self._resource_name:
@@ -542,12 +549,13 @@ class Player:
             tick = self._clock.tick() # where it ticks
             still_playing = False
             for player in self._clocked_players:
-                player['player'].tick(tick)
+                player['player']._tick(tick)
                 if player['player'].isPlaying():
                     still_playing = True
         
         for player in self._clocked_players:
             player['player']._finish(tick)
+        self._clock.stop(tick)
 
         return self
 
@@ -594,13 +602,6 @@ class Player:
     
     def tempo(self):
         return self._clock.getClockTempo()['beats_per_minute']
-
-    def tick(self, tick):
-        if self._internal_clock and self != tick['player']:
-            tick = self._clock.tick(tick) # changes the tick for the internal clock one
-        if tick['pulse'] != None:
-            for action in self._actions:
-                action.pulse(tick)
 
         return self        
 
