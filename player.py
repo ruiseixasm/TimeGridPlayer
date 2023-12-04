@@ -13,7 +13,6 @@ import time
 import json
 import resources as RESOURCES
 import staff as STAFF
-import group as GROUP
 
 class Player:
 
@@ -34,10 +33,6 @@ class Player:
         self._clock = Player.Clock(self)
         self._internal_clock = False
 
-        # Iterator & Composite patterns for managing aggregates (net graph)
-        self._upper_group = GROUP.Group(self)
-        self._lower_group = GROUP.Group(self)
-        
         self._actions = []
 
     def __del__(self):
@@ -83,14 +78,6 @@ class Player:
     def is_none(self):
         return (self.__class__ == PlayerNone)
 
-    @property
-    def upper_group(self):
-        return self._upper_group
-            
-    @property
-    def lower_group(self):
-        return self._lower_group
-            
     @property
     def actions(self):
         return self._actions
@@ -434,14 +421,6 @@ class Player:
             self._resource_name = None
         return self
 
-    def add(self, player):
-        self._lower_group.add(player)
-        return self
-
-    def remove(self, player):
-        self._lower_group.filter(player=player).remove()
-        return self
-    
     def finish(self, tick):
         if self == tick['player']:
             self._clock.stop()
@@ -481,9 +460,7 @@ class Player:
                 'resource_enabled': self._resource_enabled,
                 'internal_clock': self._internal_clock,
                 'clock': [ self._clock.json_dictionnaire() ],
-                'staff': [ self._staff.json_dictionnaire() ],
-                'upper_group': [ self._upper_group.json_dictionnaire() ],
-                'lower_group': [ self._lower_group.json_dictionnaire() ]
+                'staff': [ self._staff.json_dictionnaire() ]
             }
 
     def json_load(self, file_name="player.json", json_object=None):
@@ -502,8 +479,6 @@ class Player:
 
                 self._clock.json_load(file_name, dictionnaire['clock'])
                 self._staff.json_load(file_name, dictionnaire['staff'])
-                self._upper_group.json_load(file_name, dictionnaire['upper_group'])
-                self._lower_group.json_load(file_name, dictionnaire['lower_group'])
 
                 break
 
@@ -521,25 +496,17 @@ class Player:
     def print(self):
 
         print("{ type: " + f"{self.__class__.__name__}    name: {self._name}    " + \
-              f"description: {trimString(self.description)}    sub-players: {self.lower_group.all_players_count()}    " + \
+              f"description: {trimString(self.description)}    " + \
               f"resources_type: {self._resources.__class__.__name__}    resource_name: {self._resource_name}    resource_enabled: {self._resource_enabled}" + " }")
 
         return self
 
-    def print_lower_group(self):
-        self._lower_group.print()
-
-        return self
-
-    def play(self, start=None, finish=None, enabled_lower_group_players=None):
+    def play(self, start=None, finish=None):
 
         self_player = {'name': self._name, 'player': self}
-
         self._clocked_players = [ self_player ]
 
-        all_enabled_players = self.lower_group.all_players_group().filter(enabled=True)
-        if enabled_lower_group_players != None:
-            all_enabled_players += enabled_lower_group_players
+        all_enabled_players = self._stage.filter(enabled=True)
         
         # Assembling of clockable players
         for enabled_player in all_enabled_players:
@@ -700,8 +667,6 @@ class PlayerNone(Player):
 
         self._resources = RESOURCES.ResourcesNone()
         self._staff = STAFF.StaffNone(self)
-        self._upper_group = GROUP.GroupNone(self)
-        self._lower_group = GROUP.GroupNone(self)
 
     def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         pass # does nothing

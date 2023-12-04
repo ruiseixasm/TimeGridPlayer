@@ -35,12 +35,10 @@ master.set_time_signature(size_measures=16)
 stage_midi.add("retrig", type="Retrigger")
 retrig = stage_midi.player("retrig")
 retrig.use_resource("loop").enable_resource()
-master.add(retrig)
 # Arpeggiator
 stage_midi.add("arpeggio", type="Arpeggiator")
 arpeggio = stage_midi.player("arpeggio")
 arpeggio.use_resource("loop").enable_resource()
-master.add(arpeggio)
 
 # MASTER MIDI COMPOSITION
 master.rulers().add({'link': "note", 'position': [2, 4], 'lines': [1], 'offset': 2})
@@ -92,29 +90,21 @@ repeat.rulers().filter(type="arguments").print().print_lines(0, 15)
 master.set_tempo(125)
 #master.play([1, 0], [4, 0])
 
-master.add(repeat)
-
 #master.play([1, 0], [4, 0])
 
-master.add(note)
-
 #master.play([1, 0], [4, 0])
-
-repeat.add(note)
 
 #master.play([1, 0], [4, 0])
 
 #stage_midi.play([1, 0], [4, 0])
 
 stage_midi.print()
-stage_midi.print_tree()
 
 stage_midi.json_save("stage_2.json")
 stage_midi.json_load("stage_2.json")
 
 stage_midi.print().filter(names=["note"]).print().disable().print().enable().print()
 stage_midi.filter(names=["retrig"]).disable().print()
-stage_midi.print_tree()
 
 print("\n\nPLAY NOW\n\n")
 stage_midi.play()
