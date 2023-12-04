@@ -75,7 +75,7 @@ class Stage:
                 self._players_list.append(player_data)
                 self._next_id = self._root_self._next_id
 
-        return self
+        return player
     
     def disable(self):
         for player_data in self._players_list:
