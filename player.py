@@ -203,7 +203,7 @@ class Player:
                         
                         pulse_arguments_rulers = self._player.arguments_rulers.filter(positions=[position])
                         self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
-                        pulse_reset_arguments_rulers = pulse_arguments_rulers.link_name_find(".reset").link_name_strip(".reset")
+                        pulse_reset_arguments_rulers = pulse_arguments_rulers.find_link(".reset").link_name_strip(".reset")
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                         # FEED AUTOMATIONS HERE

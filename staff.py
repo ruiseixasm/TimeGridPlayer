@@ -12,6 +12,7 @@ Lesser General Public License for more details.'''
 import re
 import json
 import player as PLAYER
+import lines_scales as LINES_SCALES
 
 class Staff:
 
@@ -134,9 +135,9 @@ class Staff:
         def _automation_set_rulers_generator(self):
             
             automation_set_rulers_list = []
-            auto_set_rulers = self._root_self.arguments().on_staff().enabled().unique().sort(key="position")
+            auto_set_rulers = self._root_self.arguments().on_staff().enabled().sort(key="position")
 
-            auto_rulers = auto_set_rulers.link_name_find(".auto")
+            auto_rulers = auto_set_rulers.find_link(".auto")
             auto_rulers_merged = auto_rulers.merge()
             for auto_link_merged in auto_rulers_merged:
                 auto_rulers_link = auto_rulers.link(auto_link_merged['link'])
@@ -179,7 +180,7 @@ class Staff:
 
                     automation_set_rulers_list.append(new_auto_ruler)
             
-            set_rulers = auto_set_rulers.link_name_find(".set")
+            set_rulers = auto_set_rulers.find_link(".set")
             set_rulers_merged = set_rulers.merge()
             for set_link_merged in set_rulers_merged:
                 new_set_ruler = {
@@ -256,7 +257,7 @@ class Staff:
                     self._next_id = self._root_self._next_id
                 self._staff.add([structured_ruler])
 
-            return self
+            return Staff.Rulers(self._staff, [structured_ruler], self._root_self, self._next_id)
         
         def add_lines(self, line, amount=1, id=None):
             """Add new empty lines lines"""
@@ -341,7 +342,7 @@ class Staff:
         def disabled(self):
             return self.filter(enabled=False)
         
-        def distribute_position(self, range_steps=None, range_positions=[[None, None], [None, None]]):
+        def distribute(self, range_steps=None, range_positions=[[None, None], [None, None]]):
             sorted_rulers = self.unique().sort()
             number_intervals = sorted_rulers.len()
             if number_intervals > 1:
@@ -350,6 +351,8 @@ class Staff:
                     start_pulses = self._staff.pulses(range_positions[0])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
                 elif range_steps != None:
+                    if isinstance(range_steps, str):
+                        range_steps = LINES_SCALES.note_to_steps(range_steps)
                     distance_pulses = self._staff.pulses([0, range_steps]) # total distance
                     start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
@@ -466,6 +469,13 @@ class Staff:
             on_staff.drop()
             return self
         
+        def find_link(self, name):
+            link_name_found = []
+            for ruler in self._rulers_list:
+                if ruler['link'].find(name) != -1:
+                    link_name_found.append(ruler)
+            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id)
+            
         def float(self):
             self._staff.remove(self.unique().list())
             # updates on_staff for all remaining rulers not on staff
@@ -520,13 +530,6 @@ class Staff:
         def link(self, link):
             return self.filter(links=[link])
         
-        def link_name_find(self, name):
-            link_name_found = []
-            for ruler in self._rulers_list:
-                if ruler['link'].find(name) != -1:
-                    link_name_found.append(ruler)
-            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id)
-            
         def link_name_prefix(self, prefix):
             for ruler in self._rulers_list:
                 original_link_name = ruler['link']
