@@ -394,6 +394,20 @@ class Player:
 
 # Player METHODS ###############################################################################################################################
 
+    def _finish(self, tick):
+        if self == tick['player']:
+            self._clock.stop()
+        elif self._internal_clock:
+            self._clock.stop(tick)
+
+    def _start(self, tick):
+        self._arguments_rulers = self.rulers().filter(type='arguments', enabled=True)
+        self._actions_rulers = self.rulers().filter(type='actions', enabled=True)
+        self._automation_set_rulers = self._staff.rulers()._allocate_players()._automation_set_rulers_generator()
+        if self._internal_clock and self != tick['player']:
+            self._clock.start(tick=tick)
+        return self
+
     def use_resource(self, name=None):
         if self._resources != None and name != self._resource_name:
             self.discard_resource()
@@ -420,12 +434,6 @@ class Player:
             self._resource = None
             self._resource_name = None
         return self
-
-    def finish(self, tick):
-        if self == tick['player']:
-            self._clock.stop()
-        elif self._internal_clock:
-            self._clock.stop(tick)
 
     def getClock(self):
         return self._clock
@@ -526,7 +534,7 @@ class Player:
         # Self own Action needs to be triggered in order to generate respective Action
         tick = self._clock.start(non_fast_forward_range)
         for player in self._clocked_players:
-            player['player'].start(tick)
+            player['player']._start(tick)
         self.actionTrigger({ None }, self.rulers().empty(), self._staff, tick)
 
         still_playing = True
@@ -539,7 +547,7 @@ class Player:
                     still_playing = True
         
         for player in self._clocked_players:
-            player['player'].finish(tick)
+            player['player']._finish(tick)
 
         return self
 
@@ -584,14 +592,6 @@ class Player:
     def staff(self):
         return self._staff
     
-    def start(self, tick):
-        self._arguments_rulers = self.rulers().filter(type='arguments', enabled=True)
-        self._actions_rulers = self.rulers().filter(type='actions', enabled=True)
-        self._automation_set_rulers = self._staff.rulers()._allocate_players()._automation_set_rulers_generator()
-        if self._internal_clock and self != tick['player']:
-            self._clock.start(tick=tick)
-        return self
-
     def tempo(self):
         return self._clock.getClockTempo()['beats_per_minute']
 
