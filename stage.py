@@ -299,6 +299,12 @@ class Stage:
 
         return self
     
+    def set_tempo(self, tempo=None, pulses_per_quarter_note=None):
+        for player_data in self._players_list:
+            player_data['player'].set_tempo(tempo=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
+            
+        return self
+
     def unique(self):
         unique_rulers_list = []
         for player_data in self._players_list:

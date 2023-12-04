@@ -563,8 +563,9 @@ class Player:
 
         return self
     
-    def set_tempo(self, tempo=120):
-        self._clock.set(beats_per_minute=tempo)
+    def set_tempo(self, tempo=None, pulses_per_quarter_note=None):
+        self._clock.set(beats_per_minute=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
+        self._staff.set(pulses_per_quarter_note=pulses_per_quarter_note)
         return self
 
     def set_staff(self, staff):
