@@ -131,7 +131,7 @@ class Note(PLAYER.Player):
                         
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                             'duration': clock_duration, 'action': self}, tick
+                             'duration': self_duration_pulses, 'action': self}, tick
                         )
     
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
@@ -168,28 +168,31 @@ class Retrigger(PLAYER.Player):
                 if self._key_pressed:
                     if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = (clock_rate_pulses - round(clock_rate_pulses * self._gate)) * self._clock_trigger_steps_per_beat_ratio
+                    self_retrig_duration = self_rate_pulses - round(self_rate_pulses * self._gate)
+                    clock_retrig_duration = self_retrig_duration * self._clock_trigger_steps_per_beat_ratio
                 elif self._remaining_pulses_duration > 0:
                     if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-                    clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
+                    self_retrig_duration = round(self_rate_pulses * self._gate)
+                    clock_retrig_duration = self_retrig_duration * self._clock_trigger_steps_per_beat_ratio
                 else:
-                    clock_retrig_duration = 0
+                    self_retrig_duration = 0
+                    clock_retrig_duration = self_retrig_duration
 
                 self._key_pressed = not self._key_pressed # alternates
 
-                clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
+                self_retrig_duration = min(self._remaining_pulses_duration, self_retrig_duration)
 
                 if self._remaining_pulses_duration > 0:
 
                     self.addClockedAction(
                         {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': clock_retrig_duration, 'action': self}, tick
+                            'duration': self_retrig_duration, 'action': self}, tick
                     )
                 else:
                     print(f"retrigger OFF:\t{self._note}\tduration: {self._retrig_duration}")
 
-                self._remaining_pulses_duration -= clock_retrig_duration
+                self._remaining_pulses_duration -= self_retrig_duration
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
                 pass
@@ -237,15 +240,16 @@ class Retrigger(PLAYER.Player):
                     
                         self._key_pressed = True
     
-                        clock_retrig_duration = round(clock_rate_pulses * self._gate) * self._clock_trigger_steps_per_beat_ratio
-                        clock_retrig_duration = min(self._remaining_pulses_duration, clock_retrig_duration)
+                        self_retrig_duration = round(self_rate_pulses * self._gate)
+                        clock_retrig_duration = self_retrig_duration * self._clock_trigger_steps_per_beat_ratio
+                        self_retrig_duration = min(self._remaining_pulses_duration, self_retrig_duration)
                         
                         self.addClockedAction(
                             {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                             'duration': clock_retrig_duration, 'action': self}, tick
+                             'duration': self_retrig_duration, 'action': self}, tick
                         )
                         
-                        self._remaining_pulses_duration -= clock_retrig_duration
+                        self._remaining_pulses_duration -= self_retrig_duration
 
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Retrigger.Action(self)
@@ -382,6 +386,7 @@ class Arpeggiator(PLAYER.Player):
             for parameter, lines in self._automation_ruler_lines.items():
                 if lines != None:
                     start_value = lines[0][0]
+                    # LINES_SCALES.note_to_steps(arpeggio_duration)
                     if isinstance(start_value, int) or isinstance(start_value, float):
                         finish_value = lines[1][0]
                         distance_pulses = lines[2][0]
@@ -423,7 +428,7 @@ class Arpeggiator(PLAYER.Player):
 
                 auto_remaining_duration_pulses = self.automate_parameters(tick)
                 
-                self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
+                self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step)
                 self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
                 self.update_selected_keys(tick)
@@ -493,7 +498,7 @@ class Arpeggiator(PLAYER.Player):
                     if (arpeggio_octave != None):
                         self._note['octave'] = arpeggio_octave
 
-                    self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
+                    self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step)
                     self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
                     arpeggio_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
@@ -502,7 +507,7 @@ class Arpeggiator(PLAYER.Player):
 
                         midi_key = RESOURCES_MIDI.getMidiNote(self._note)
 
-                        note_duration_pulses = round(self._arpeggio_duration * self._clock_pulses_per_step * self._clock_trigger_steps_per_beat_ratio)
+                        note_duration_pulses = round(self._arpeggio_duration * self._clock_pulses_per_step)
                         self.add_selected_key(midi_key, tick['pulse'], note_duration_pulses)
                         self.update_selected_keys(tick)
 
