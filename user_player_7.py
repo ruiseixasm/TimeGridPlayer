@@ -51,11 +51,11 @@ master.rulers().filter(type="actions").sort().print().print_lines()
 
 master.rulers().add({'link': "note.channel.staff", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'link': "note.velocity.staff", 'position': [0, 0], 'lines': [120]})
-master.rulers().add({'link': "note.duration.staff", 'position': [2, 0], 'lines': [0.25]})
+master.rulers().add({'link': "note.duration.staff", 'position': [2, 0], 'lines': ["1/64"]})
 master.rulers().add({'link': "note.duration.staff", 'position': [9, 0], 'lines': [28]})
 master.rulers().add({'link': "arpeggio.channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'link': "arpeggio.velocity.staff", 'position': [0, 0], 'lines': [120]})
-master.rulers().add({'link': "arpeggio.duration", 'position': [2, 0], 'lines': [100, 112, 112, 104], 'offset': 4})
+master.rulers().add({'link': "arpeggio.duration", 'position': [2, 0], 'lines': [100, "7", 112, 104], 'offset': 4})
 master.rulers().add({'link': "arpeggio.gate.auto", 'position': [8, 0], 'lines': [.25, .10, .25, .10, .25, .10], 'offset': 3})
 master.rulers().add({'link': "arpeggio.gate.auto", 'position': [14, 0], 'lines': [1, .90, .50, .80], 'offset': 3})
 master.rulers().add({'link': "arpeggio.rate.auto", 'position': [7, 0], 'lines': [.25, 4, 1, .5, 2, 8], 'offset': 3})
@@ -83,7 +83,7 @@ repeat.rulers().duplicate(7).duplicate().distribute_position(16).spread_lines().
 repeat.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': lines_minor_scale}).print_lines(0, 15)
 repeat.rulers().add({'link': "note.channel.staff", 'position': [0, 0], 'lines': [3]})
 repeat.rulers().add({'link': "note.velocity.staff", 'position': [0, 0], 'lines': [120]})
-repeat.rulers().add({'link': "note.duration.staff", 'position': [0, 0], 'lines': [0.5]})
+repeat.rulers().add({'link': "note.duration.staff", 'position': [0, 0], 'lines': ["1/32"]})
 repeat.rulers().filter(type="arguments").print().print_lines(0, 15)
 
 

@@ -244,7 +244,7 @@ class Stage:
                 full_string_top_length += value
 
             spaces_between = 4
-            header_char_length = full_string_top_length + 77
+            header_char_length = full_string_top_length + 60
 
             header_type = "   " + self.__class__.__name__ + "   "
             header_type_length = len(header_type)
