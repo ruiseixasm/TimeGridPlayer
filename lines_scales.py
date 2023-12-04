@@ -140,9 +140,9 @@ def int_to_key(key_int=0):
     return key_int
 
 def note_to_steps(note="1/4"):
-    if note.isnumeric():
+    try:
         return 16 * float(note)
-    else:
+    except ValueError:
         match note:
             case "1": return 16
             case "1T": return 12
