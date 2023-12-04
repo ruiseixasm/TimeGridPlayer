@@ -40,12 +40,13 @@ master.rulers().add({'link': "note.key", 'position': [4, 0], 'lines': ['a', 'b',
 master.rulers().add({'link': "note.channel.staff", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'link': "note.velocity.staff", 'position': [0, 0], 'lines': [120]})
 master.rulers().add({'link': "note.duration.staff", 'position': [2, 0], 'lines': ["1/64"]})
+master.rulers().print_lines(0, 15)
 
 # Retrigger
 retrig = stage_midi.add("retrig", type="Retrigger").use_resource("loop").enable_resource()
 master.rulers().add({'link': "retrig", 'position': [4, 0], 'lines': [1], 'offset': 4})
 master.rulers().add({'link': "retrig", 'position': [6, 0], 'lines': [1], 'offset': 4})
-master.rulers().add({'link': "retrig.key", 'position': [2, 1], 'lines': lines_major_scale})
+master.rulers().add({'link': "retrig.key", 'position': [2, 1], 'lines': lines_major_scale}).print_lines(0, 15)
 master.rulers().add({'link': "retrig.duration.staff", 'position': [2, 0], 'lines': [28]})
 master.rulers().add({'link': "retrig.rate.staff", 'position': [2, 0], 'lines': ["1/16"]})
 master.rulers().add({'link': "retrig.channel.staff", 'position': [0, 0], 'lines': [3]})
@@ -62,8 +63,8 @@ master.rulers().add({'link': "arpeggio.gate.auto", 'position': [14, 0], 'lines':
 master.rulers().add({'link': "arpeggio.rate.auto", 'position': [7, 0], 'lines': [.25, 4, 1, .5, 2, 8], 'offset': 3})
 master.rulers().add({'link': "arpeggio.rate.auto", 'position': [14, 0], 'lines': [4, 4, 4, 1], 'offset': 3})
 
-master.rulers().filter(type="actions").sort().print().print_lines()
-master.rulers().filter(type="arguments").sort().print().print_lines()
+master.rulers().filter(type="actions").sort().print().print_lines(0, 15)
+master.rulers().filter(type="arguments").sort().print().print_lines(0, 15)
 master.rulers().arguments().print().print_lines(0, 15).find_link(".staff").print()
 
 # SPREAD MIDI COMPOSITION

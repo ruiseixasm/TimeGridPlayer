@@ -182,6 +182,9 @@ class Player:
 
         def pulse(self, tick, first_pulse=False):
 
+            if tick['delayed']:
+                print(f"--------------------- PULSE {tick['pulse']} WAS DELAYED! -----------------------")
+
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                 if first_pulse:
@@ -354,7 +357,8 @@ class Player:
             self._next_pulse = 0
             self._next_pulse_time = time.time()
 
-            self._tick = {'player': self._player, 'tempo': self._tempo, 'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks}
+            self._tick = {'player': self._player, 'tempo': self._tempo,
+                          'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks, 'delayed': False}
 
             return self._tick
             
@@ -366,6 +370,7 @@ class Player:
             self._tick['pulse_ticks'] = self._pulse_ticks
             self._pulse_ticks += 1
 
+            self._tick['delayed'] = False
             if not self._next_pulse_time > time.time():
 
                 self._tick['pulse'] = self._next_pulse
@@ -380,6 +385,7 @@ class Player:
                 if self._tick['fast_forward']:
                     self._next_pulse_time = time.time()
                 elif self._next_pulse_time + self._pulse_duration < time.time(): # It has to happen inside pulse duration time window
+                    self._tick['delayed'] = True
                     self._next_pulse_time = time.time() + self._pulse_duration
                 else:
                     self._next_pulse_time += self._pulse_duration
