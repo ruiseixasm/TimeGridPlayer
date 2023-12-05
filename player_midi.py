@@ -149,18 +149,20 @@ class Retrigger(PLAYER.Player):
         def __init__(self, player):
             super().__init__(player) # not self init
             self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
-            self._rate = 0.5 # steps (1/32)
             self._gate = 0.5 # from 0 t0 1
             self._retrig_duration = 4 # steps (1/4)
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1}
             self._key_pressed = False
+
+            # SETS AND AUTOMATIONS
+            self._set_automation_ruler_value['rate'] = 0.5 # steps (1/32)
 
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
-            self_rate_pulses = self._rate * self._clock_pulses_per_step
+            self_rate_pulses = self._set_automation_ruler_value['rate'] * self._clock_pulses_per_step
             clock_rate_pulses = self_rate_pulses * self._clock_trigger_steps_per_beat_ratio
 
             if staff == None: # CLOCKED TRIGGER
@@ -212,7 +214,7 @@ class Retrigger(PLAYER.Player):
                     if (retrig_rate != None):
                         if isinstance(retrig_rate, str):
                             retrig_rate = LINES_SCALES.note_to_steps(retrig_rate)
-                        self._rate = max(0, retrig_rate)
+                        self._set_automation_ruler_value['rate'] = max(0, retrig_rate)
 
                     retrig_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate")
                     if (retrig_gate != None):
@@ -268,24 +270,15 @@ class Arpeggiator(PLAYER.Player):
             super().__init__(player) # not self init
             self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
             self._arpeggio_duration = 4 # steps (1/4)
-            self._rate = 1.0 # steps (1/16)
             self._gate = 0.5 # from 0 t0 1
             self._note = {'key': "C", 'octave': 4, 'velocity': 100, 'channel': 1}
             self._selected_keys = []
             self._total_selected_keys = 0
             self._active_midi_key = -1
 
-            # AUTOMATIONS
-            self._automation_ruler_lines = {
-                'rate': None,
-                'gate': None
-            }
-
-            # SETS
-            self._set_ruler_lines = {
-                'rate': None,
-                'gate': None
-            }
+            # SETS AND AUTOMATIONS
+            self._set_automation_ruler_value['rate'] = 1.0 # steps (1/16)
+            self._set_automation_ruler_value['gate'] = 0.5 # from 0 t0 1
 
         def add_selected_key(self, midi_key, selected_on_pulse, selected_duration_pulses):
             new_midi_key = {
@@ -380,45 +373,6 @@ class Arpeggiator(PLAYER.Player):
 
             return self
 
-        def automate_parameters(self, tick):
-
-            auto_remaining_duration_pulses = 0
-            for parameter, lines in self._automation_ruler_lines.items():
-                if lines != None:
-                    start_value = lines[0][0]
-                    # LINES_SCALES.note_to_steps(arpeggio_duration)
-                    if isinstance(start_value, int) or isinstance(start_value, float):
-                        finish_value = lines[1][0]
-                        distance_pulses = lines[2][0]
-                        start_pulse = lines[3][0]
-                        actual_pulse = tick['pulse']
-                        calculated_value = start_value
-                        if finish_value != None and (isinstance(finish_value, int) or isinstance(finish_value, float)):
-                            calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
-                            auto_remaining_duration_pulses = max(auto_remaining_duration_pulses, distance_pulses - (actual_pulse - start_pulse))
-                        else:
-                            self._automation_ruler_lines[parameter] = None
-                        if parameter == "rate":
-                            self._rate = calculated_value
-                        elif parameter == "gate":
-                            self._gate = calculated_value
-
-            return auto_remaining_duration_pulses
-
-        def set_parameters(self):
-
-            for parameter, lines in self._set_ruler_lines.items():
-                if lines != None:
-                    set_value = lines[0][0]
-                    if isinstance(set_value, int) or isinstance(set_value, float):
-                        
-                        if parameter == "rate":
-                            self._rate = set_value
-                        elif parameter == "gate":
-                            self._gate = set_value
-
-            return self
-
         ### ACTION ACTIONS ###
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
@@ -426,9 +380,7 @@ class Arpeggiator(PLAYER.Player):
 
             if staff == None: # INTERNAL CLOCKED TRIGGER
 
-                auto_remaining_duration_pulses = self.automate_parameters(tick)
-                
-                self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step)
+                self._active_duration_pulses = round(self._set_automation_ruler_value['rate'] * self._clock_pulses_per_step)
                 self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
                 self.update_selected_keys(tick)
@@ -437,35 +389,10 @@ class Arpeggiator(PLAYER.Player):
                         {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
                             'duration': 1, 'action': self}, tick # updates at least once per pulse
                     )
-                elif auto_remaining_duration_pulses > 0:
-                    self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': auto_remaining_duration_pulses, 'action': self}, tick # updates at least once per pulse
-                    )
                 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
+                pass
 
-                for auto_set_ruler in self_merged_staff_arguments:
-                    link_list = auto_set_ruler['link'].split(".")
-                    if len(link_list) > 1:
-                        ruler_argument = link_list[1]
-                        if ruler_argument == "rate" or ruler_argument == "gate":
-                            auto_set_ruler_length = len(auto_set_ruler['lines'][0])
-                            if auto_set_ruler_length > 0:
-                                if len(auto_set_ruler['lines']) == 3: # .auto has 3 sublines
-                                    # adds a 4th line for the starting pulse
-                                    self._automation_ruler_lines[ruler_argument] = auto_set_ruler['lines'] + [ [ tick['pulse'] ] * auto_set_ruler_length ]
-                                elif len(auto_set_ruler['lines']) == 1: # .set has just 1 sublines
-                                    self._set_ruler_lines[ruler_argument] = auto_set_ruler['lines']
-
-                self.set_parameters()
-                auto_remaining_duration_pulses = self.automate_parameters(tick)
-                if auto_remaining_duration_pulses > 0:
-                    self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': auto_remaining_duration_pulses, 'action': self}, tick # updates at least once per pulse
-                    )
-                
             else: # EXTERNAL TRIGGER
 
                 if (not tick['fast_forward']):
@@ -480,7 +407,7 @@ class Arpeggiator(PLAYER.Player):
                     if (arpeggio_rate != None):
                         if isinstance(arpeggio_rate, str):
                             arpeggio_rate = LINES_SCALES.note_to_steps(arpeggio_rate)
-                        self._rate = max(0, arpeggio_rate)
+                        self._set_automation_ruler_value['rate'] = max(0, arpeggio_rate)
 
                     arpeggio_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate", global_argument=True)
                     if (arpeggio_gate != None):
@@ -498,7 +425,7 @@ class Arpeggiator(PLAYER.Player):
                     if (arpeggio_octave != None):
                         self._note['octave'] = arpeggio_octave
 
-                    self._active_duration_pulses = round(self._rate * self._clock_pulses_per_step)
+                    self._active_duration_pulses = round(self._set_automation_ruler_value['rate'] * self._clock_pulses_per_step)
                     self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
                     arpeggio_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")

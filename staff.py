@@ -132,9 +132,9 @@ class Staff:
 
             return self
 
-        def _automation_set_rulers_generator(self):
+        def _sets_and_automations_rulers_generator(self):
             
-            automation_set_rulers_list = []
+            sets_and_automations_rulers_list = []
             auto_set_rulers = self._root_self.arguments().on_staff().enabled().sort(key="position")
 
             auto_rulers = auto_set_rulers.find_link(".auto")
@@ -178,7 +178,7 @@ class Staff:
                                 if complete_new_auto_ruler:
                                     break
 
-                    automation_set_rulers_list.append(new_auto_ruler)
+                    sets_and_automations_rulers_list.append(new_auto_ruler)
             
             set_rulers = auto_set_rulers.find_link(".set")
             set_rulers_merged = set_rulers.merge()
@@ -197,9 +197,9 @@ class Staff:
                     'player': set_link_merged['player']
                 }
 
-                automation_set_rulers_list.append(new_set_ruler)
+                sets_and_automations_rulers_list.append(new_set_ruler)
             
-            return Staff.Rulers(self._staff, automation_set_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, sets_and_automations_rulers_list, self._root_self, self._next_id)
 
         def _str_position(self, position):
             

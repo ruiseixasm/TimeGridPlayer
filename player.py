@@ -13,6 +13,7 @@ import time
 import json
 import resources as RESOURCES
 import staff as STAFF
+import lines_scales as LINES_SCALES
 
 class Player:
 
@@ -91,8 +92,8 @@ class Player:
         return self._actions_rulers
             
     @property
-    def automation_set_rulers(self):
-        return self._automation_set_rulers
+    def sets_and_automations_rulers(self):
+        return self._sets_and_automations_rulers
             
     class Action():
 
@@ -112,6 +113,17 @@ class Player:
             self._clocked_actions = []      # clocked actions list
             self._next_clocked_pulse = -1   # next programmed pulse on clocked actions list
             self._next_clock_pulse = -1     # next expected pulse from Clock
+
+            # SETS AND AUTOMATIONS
+            self._automations_ruler_values = {
+                # NAMED ARGUMENT TYPES GO HERE LIKE "DURATION" AND "RATE"
+            }
+            self._sets_ruler_value = {
+                # NAMED ARGUMENT TYPES GO HERE LIKE "DURATION" AND "RATE"
+            }
+            self._set_automation_ruler_value = {
+                # NAMED ARGUMENT TYPES GO HERE LIKE "DURATION" AND "RATE"
+            }
 
             self._total_ticks = 0
             self._min_ticks = 100000 * 100000
@@ -146,14 +158,16 @@ class Player:
 
         def addClockedAction(self, clocked_action, tick): # Clocked actions AREN'T rulers!
             if (clocked_action['duration'] != None and not clocked_action['duration'] < 0 and clocked_action['action'] != None):
-                clocked_action['pulse'] = round(tick['pulse'] + clocked_action['duration'])
-                clocked_action['stack_id'] = len(self._clocked_actions)
-                self._clocked_actions.append(clocked_action)
 
-                if (not self._next_clocked_pulse < tick['pulse']):
-                    self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
-                else:
-                    self._next_clocked_pulse = clocked_action['pulse']
+                clocked_action['pulse'] = round(tick['pulse'] + clocked_action['duration'])
+                
+                if clocked_action not in self._clocked_actions:
+                    self._clocked_actions.append(clocked_action)
+
+                    if (not self._next_clocked_pulse < tick['pulse']):
+                        self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
+                    else:
+                        self._next_clocked_pulse = clocked_action['pulse']
 
             return self
 
@@ -182,9 +196,6 @@ class Player:
 
         def pulse(self, tick, first_pulse=False):
 
-            if tick['delayed']:
-                print(f"--------------------- PULSE {tick['pulse']} WAS DELAYED! -----------------------")
-
             if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                 if first_pulse:
@@ -210,12 +221,12 @@ class Player:
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                         # FEED AUTOMATIONS HERE
-                        pulse_automation_set_rulers = self._player.automation_set_rulers.filter(positions=[position])
-                        if pulse_automation_set_rulers.len() > 0:
-                            for pulse_automation_ruler_dict in pulse_automation_set_rulers:
-                                pulse_automation_set_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
+                        pulse_sets_and_automations_rulers = self._player.sets_and_automations_rulers.filter(positions=[position])
+                        if pulse_sets_and_automations_rulers.len() > 0:
+                            for pulse_automation_ruler_dict in pulse_sets_and_automations_rulers:
+                                pulse_sets_and_automations_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
 
-                                pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_automation_set_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+                                pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
@@ -267,12 +278,82 @@ class Player:
         
         ### ACTION ACTIONS ###
 
+        def string_to_value_converter(original_value):
+            try:
+                return float(original_value)
+            except:
+                return original_value
+
+        def automate_parameters(self, tick):
+
+            future_values_to_automate = False
+            for parameter, values in self._automations_ruler_values.copy().items():
+                start_value = values[0]
+                finish_value = values[1]
+                distance_pulses = values[2]
+                start_pulse = values[3]
+                actual_pulse = tick['pulse']
+                if isinstance(start_value, int) or isinstance(start_value, float):
+                    calculated_value = start_value
+                    if finish_value != None and (isinstance(finish_value, int) or isinstance(finish_value, float)):
+                        future_values_to_automate = True
+                        calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
+                    else:
+                        del self._automations_ruler_values[parameter]
+                    self._set_automation_ruler_value[parameter] = calculated_value
+                else:
+                    del self._automations_ruler_values[parameter]
+
+            return future_values_to_automate
+
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             if staff != None: # EXTERNAL TRIGGER
                 self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
             self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
             self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
             self._clock_trigger_steps_per_beat_ratio = self._clock_steps_per_beat / self._trigger_steps_per_beat
+
+            if staff == None: # INTERNAL CLOCKED TRIGGER
+
+                if self.automate_parameters(tick):
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
+                            'duration': 1, 'action': self}, tick # updates at least once per pulse
+                    )
+
+            elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
+
+                for set_auto_ruler in self_merged_staff_arguments:
+                    link_list = set_auto_ruler['link'].split(".")
+                    if len(link_list) > 1:
+                        total_lines = len(set_auto_ruler['lines'])
+                        ruler_argument = link_list[1]
+                        if total_lines == 1: # meaning it's a SET (DOESN'T REQUIRE NUMERIC VALUES)
+                            self._sets_ruler_value[ruler_argument] = set_auto_ruler['lines'][0][0]
+                            self._set_automation_ruler_value[ruler_argument] = self._sets_ruler_value[ruler_argument] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
+                            # delete any existent automation
+                            del self._automations_ruler_values[ruler_argument]
+                        elif total_lines == 3: # meaning it's an AUTOMATION (DOES REQUIRE NUMERIC VALUES)
+                            self._automations_ruler_values[ruler_argument] = []
+                            for line_index in range(2): # only the first 2 lines are dedicated to values
+                                set_auto_ruler['lines'][line_index][0] = Player.Action.string_to_value_converter(set_auto_ruler['lines'][line_index][0])
+                                self._automations_ruler_values[ruler_argument].append(set_auto_ruler['lines'][line_index][0])
+                            self._automations_ruler_values[ruler_argument].append(set_auto_ruler['lines'][2][0])
+                            self._automations_ruler_values[ruler_argument].append(tick['pulse']) # 4th element
+
+                if self.automate_parameters(tick):
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
+                            'duration': 1, 'action': self}, tick # updates at least once per pulse
+                    )
+
+            else: # EXTERNAL TRIGGER
+
+                if (not tick['fast_forward']):
+                    pass
+                else:
+                    pass
+                        
                         
     class Clock():
         def __init__(self, player):
@@ -386,6 +467,8 @@ class Player:
                     self._next_pulse_time = time.time()
                 elif self._next_pulse_time + self._pulse_duration < time.time(): # It has to happen inside pulse duration time window
                     self._tick['delayed'] = True
+                    if self._tick['delayed']:
+                        print(f"--------------------- PULSE {self._tick['pulse']} WAS DELAYED! -----------------------")
                     self._next_pulse_time = time.time() + self._pulse_duration
                 else:
                     self._next_pulse_time += self._pulse_duration
@@ -409,7 +492,7 @@ class Player:
     def _start(self, tick):
         self._arguments_rulers = self.rulers().filter(type='arguments', enabled=True)
         self._actions_rulers = self.rulers().filter(type='actions', enabled=True)
-        self._automation_set_rulers = self._staff.rulers()._allocate_players()._automation_set_rulers_generator()
+        self._sets_and_automations_rulers = self._staff.rulers()._allocate_players()._sets_and_automations_rulers_generator()
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self
