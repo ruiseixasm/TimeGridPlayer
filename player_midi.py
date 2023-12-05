@@ -185,7 +185,7 @@ class ControlChange(PLAYER.Player):
                     if (control_channel != None):
                         self._channel = control_channel
 
-                    control_value = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "value", global_argument=True)
+                    control_value = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "value")
                     if (control_value != None and (isinstance(control_value, int) or isinstance(control_value, float))):
                         self._set_automation_ruler_value['value'] = max(0, min(127, control_value))
                     
