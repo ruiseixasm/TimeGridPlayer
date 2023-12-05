@@ -41,6 +41,14 @@ class StageMidi(STAGE.Stage):
                 if description == None:
                     return PLAYER_MIDI.Note(self, name, resources=resources)
                 return PLAYER_MIDI.Note(self, name, description, resources)
+            case "ControlChange":
+                if resources == None:
+                    if description == None:
+                        return PLAYER_MIDI.ControlChange(self, name, resources=self._resources)
+                    return PLAYER_MIDI.ControlChange(self, name, description, self._resources)
+                if description == None:
+                    return PLAYER_MIDI.ControlChange(self, name, resources=resources)
+                return PLAYER_MIDI.ControlChange(self, name, description, resources)
             case "Retrigger":
                 if resources == None:
                     if description == None:

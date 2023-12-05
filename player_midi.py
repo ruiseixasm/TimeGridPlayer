@@ -61,12 +61,7 @@ class Master(PLAYER.Player):
     
     def __init__(self, stage, name, description="A conductor of multiple Players"):
         super().__init__(stage, name, description) # not self init
-        
-class Automation(PLAYER.Player):
     
-    def __init__(self, stage, name, description="Applies only for automation parameters"):
-        super().__init__(stage, name, description) # not self init
-        
 class Note(PLAYER.Player):
     
     def __init__(self, stage, name, description="Plays notes on a given Synth", resources=None):
@@ -136,7 +131,71 @@ class Note(PLAYER.Player):
     
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Note.Action(self)
+        
+class ControlChange(PLAYER.Player):
+    
+    def __init__(self, stage, name, description="Sends a Control Change message to the Synth", resources=None):
+        super().__init__(stage, name, description, resources) # not self init
+        if resources == None:
+            self._resources = RESOURCES_MIDI.Midi()
 
+    class Action(PLAYER.Player.Action):
+        
+        def __init__(self, player):
+            super().__init__(player) # not self init
+            self._finish_pulse = self._start_pulse # makes sure the Staff isn't used to make it only a clocked action
+            self._number = 10 # default is value 10 for Pan
+            self._channel = 1
+
+            # SETS AND AUTOMATIONS
+            self._set_automation_ruler_value['value'] = 64.0 # middle way value by default
+
+        ### ACTION ACTIONS ###
+
+        def string_to_value_converter(self, original_value, parameter):
+            converted_value = super().string_to_value_converter(original_value, parameter)
+
+            if isinstance(converted_value, int) or isinstance(converted_value, float):
+                if parameter == "value":
+                    converted_value = max(0, min(127, converted_value))
+
+            return converted_value
+
+        def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+            super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
+
+            if staff == None: # CLOCKED TRIGGER
+
+                print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
+                if self._player.resource != None and not self._player.resource.is_none:
+                    self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
+
+            elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
+                pass
+
+            else: # EXTERNAL TRIGGER
+
+                if (not tick['fast_forward']):
+
+                    control_number = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "number", global_argument=True)
+                    if (control_number != None and (isinstance(control_number, int) or isinstance(control_number, float))):
+                        self._number = max(0, min(127, control_number))
+
+                    control_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel", global_argument=True)
+                    if (control_channel != None):
+                        self._channel = control_channel
+
+                    control_value = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "value", global_argument=True)
+                    if (control_value != None and (isinstance(control_value, int) or isinstance(control_value, float))):
+                        self._set_automation_ruler_value['value'] = max(0, min(127, control_value))
+                    
+                        print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
+                        if self._player.resource != None and not self._player.resource.is_none:
+                            self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
+    
+    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
+        return ControlChange.Action(self)
+        
 class Retrigger(PLAYER.Player):
     
     def __init__(self, stage, name, description="Retrigs a given note along a given duration", resources=None):
@@ -158,6 +217,15 @@ class Retrigger(PLAYER.Player):
             self._set_automation_ruler_value['rate'] = 0.5 # steps (1/32)
 
         ### ACTION ACTIONS ###
+
+        def string_to_value_converter(self, original_value, parameter):
+            converted_value = super().string_to_value_converter(original_value, parameter)
+
+            if isinstance(converted_value, str):
+                if parameter == "duration" or parameter == "rate":
+                    converted_value = LINES_SCALES.note_to_steps(converted_value)
+
+            return converted_value
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
@@ -374,6 +442,15 @@ class Arpeggiator(PLAYER.Player):
             return self
 
         ### ACTION ACTIONS ###
+
+        def string_to_value_converter(self, original_value, parameter):
+            converted_value = super().string_to_value_converter(original_value, parameter)
+
+            if isinstance(converted_value, str):
+                if parameter == "duration" or parameter == "rate":
+                    converted_value = LINES_SCALES.note_to_steps(converted_value)
+
+            return converted_value
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)

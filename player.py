@@ -278,7 +278,7 @@ class Player:
         
         ### ACTION ACTIONS ###
 
-        def string_to_value_converter(original_value):
+        def string_to_value_converter(self, original_value, parameter):
             try:
                 return float(original_value)
             except:
@@ -327,19 +327,19 @@ class Player:
                     link_list = set_auto_ruler['link'].split(".")
                     if len(link_list) > 1:
                         total_lines = len(set_auto_ruler['lines'])
-                        ruler_argument = link_list[1]
+                        ruler_parameter = link_list[1]
                         if total_lines == 1: # meaning it's a SET (DOESN'T REQUIRE NUMERIC VALUES)
-                            self._sets_ruler_value[ruler_argument] = set_auto_ruler['lines'][0][0]
-                            self._set_automation_ruler_value[ruler_argument] = self._sets_ruler_value[ruler_argument] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
+                            self._sets_ruler_value[ruler_parameter] = set_auto_ruler['lines'][0][0]
+                            self._set_automation_ruler_value[ruler_parameter] = self._sets_ruler_value[ruler_parameter] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
                             # delete any existent automation
-                            del self._automations_ruler_values[ruler_argument]
+                            del self._automations_ruler_values[ruler_parameter]
                         elif total_lines == 3: # meaning it's an AUTOMATION (DOES REQUIRE NUMERIC VALUES)
-                            self._automations_ruler_values[ruler_argument] = []
+                            self._automations_ruler_values[ruler_parameter] = []
                             for line_index in range(2): # only the first 2 lines are dedicated to values
-                                set_auto_ruler['lines'][line_index][0] = Player.Action.string_to_value_converter(set_auto_ruler['lines'][line_index][0])
-                                self._automations_ruler_values[ruler_argument].append(set_auto_ruler['lines'][line_index][0])
-                            self._automations_ruler_values[ruler_argument].append(set_auto_ruler['lines'][2][0])
-                            self._automations_ruler_values[ruler_argument].append(tick['pulse']) # 4th element
+                                set_auto_ruler['lines'][line_index][0] = self.string_to_value_converter(set_auto_ruler['lines'][line_index][0], ruler_parameter)
+                                self._automations_ruler_values[ruler_parameter].append(set_auto_ruler['lines'][line_index][0])
+                            self._automations_ruler_values[ruler_parameter].append(set_auto_ruler['lines'][2][0])
+                            self._automations_ruler_values[ruler_parameter].append(tick['pulse']) # 4th element
 
                 if self.automate_parameters(tick):
                     self.addClockedAction(
