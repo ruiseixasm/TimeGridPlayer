@@ -317,8 +317,8 @@ class Player:
 
                 if self.automate_parameters(tick):
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': 1, 'action': self}, tick # updates at least once per pulse
+                        {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
+                        tick # updates at least once per pulse
                     )
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
@@ -343,8 +343,8 @@ class Player:
 
                 if self.automate_parameters(tick):
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': 1, 'action': self}, tick # updates at least once per pulse
+                        {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
+                        tick # updates at least once per pulse
                     )
 
             else: # EXTERNAL TRIGGER
@@ -529,6 +529,14 @@ class Player:
             self._resources.remove(self._resource)
             self._resource = None
             self._resource_name = None
+        return self
+
+    def disable(self):
+        self._stage.filter(player=self).disable()
+        return self
+
+    def enable(self):
+        self._stage.filter(player=self).enable()
         return self
 
     def getClock(self):

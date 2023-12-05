@@ -481,8 +481,8 @@ class Arpeggiator(PLAYER.Player):
                 self.update_selected_keys(tick)
                 if self._total_selected_keys > 0:
                     self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': 1, 'action': self}, tick # updates at least once per pulse
+                        {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
+                        tick # updates at least once per pulse
                     )
                 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
@@ -536,8 +536,8 @@ class Arpeggiator(PLAYER.Player):
                         # only the first trigger key adds to the internal clock
                         if self._total_selected_keys == 1:
                             self.addClockedAction(
-                                {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                                'duration': 1, 'action': self}, tick # updates at least once per pulse
+                                {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
+                                tick # updates at least once per pulse
                             )
                         
     def isPlaying(self):
