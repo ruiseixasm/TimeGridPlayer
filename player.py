@@ -224,9 +224,9 @@ class Player:
                         pulse_sets_and_automations_rulers = self._player.sets_and_automations_rulers.filter(positions=[position])
                         if pulse_sets_and_automations_rulers.len() > 0:
                             for pulse_automation_ruler_dict in pulse_sets_and_automations_rulers:
-                                pulse_sets_and_automations_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
 
-                                pulse_automation_ruler_dict['player'].actionTrigger(None, pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+                                player_pulse_sets_and_automations_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
+                                pulse_automation_ruler_dict['player'].actionTrigger(None, player_pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
                     if (pulse_data['actions']['enabled'] > 0):
                         

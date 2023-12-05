@@ -83,9 +83,9 @@ master.rulers().add({'link': "spread", 'position': [1, 0], 'lines': [1]})
 cc = stage_midi.add("cc", type="ControlChange").use_resource("loop").enable_resource().print()
 master.rulers().add({'link': "cc", 'position': [3, 4], 'lines': [1]})
 master.rulers().add({'link': "cc.channel.staff", 'position': [0, 0], 'lines': [3]})
-master.rulers().add({'link': "cc.value.auto", 'position': [3, 4], 'lines': [0]})
-master.rulers().add({'link': "cc.value.auto", 'position': [5, 4], 'lines': [127]})
-master.rulers().add({'link': "cc.value.auto", 'position': [8, 4], 'lines': [64]})
+master.rulers().add({'link': "cc.value.auto", 'position': [3, 0], 'lines': [0]})
+master.rulers().add({'link': "cc.value.auto", 'position': [5, 0], 'lines': [127]})
+master.rulers().add({'link': "cc.value.auto", 'position': [8, 0], 'lines': [64]})
 
 
 stage_midi.print()

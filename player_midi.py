@@ -138,6 +138,7 @@ class ControlChange(PLAYER.Player):
         super().__init__(stage, name, description, resources) # not self init
         if resources == None:
             self._resources = RESOURCES_MIDI.Midi()
+        self._triggering_staffs = []
 
     class Action(PLAYER.Player.Action):
         
@@ -171,7 +172,10 @@ class ControlChange(PLAYER.Player):
                     self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
-                pass
+
+                print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
+                if self._player.resource != None and not self._player.resource.is_none:
+                    self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
 
             else: # EXTERNAL TRIGGER
 
@@ -193,9 +197,23 @@ class ControlChange(PLAYER.Player):
                         if self._player.resource != None and not self._player.resource.is_none:
                             self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
     
+    def isPlaying(self):
+        for triggering_staff in self._triggering_staffs[:]:
+            if not triggering_staff['action'].isPlaying():
+                self._triggering_staffs.remove(triggering_staff)
+        return super().isPlaying()
+
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
-        return ControlChange.Action(self)
-        
+        for triggering_staff in self._triggering_staffs:
+            if staff == triggering_staff['staff']:
+                return triggering_staff['action']
+        new_triggering_staff = {
+            'staff': staff,
+            'action': ControlChange.Action(self)
+        }
+        self._triggering_staffs.append(new_triggering_staff)
+        return new_triggering_staff['action']
+    
 class Retrigger(PLAYER.Player):
     
     def __init__(self, stage, name, description="Retrigs a given note along a given duration", resources=None):
