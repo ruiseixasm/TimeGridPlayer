@@ -196,12 +196,12 @@ class Player:
 
         def pulse(self, tick, first_pulse=False):
 
-            if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
+            if first_pulse:
+                self._next_clock_pulse = tick['pulse']
 
-                if first_pulse:
-                    self._next_clock_pulse = tick['pulse']
+            if tick['pulse'] == self._next_clock_pulse: # avoids repeated processed pulses for any single pulse
 
-                if tick['pulse'] == self._next_clock_pulse: # avoids repeated action on a single pulse
+                if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                     position = self._staff.position(pulses=self._play_pulse)
 
@@ -246,33 +246,34 @@ class Player:
                                     triggered_action['player'].playerTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                     self._play_pulse += 1
-                    self._next_clock_pulse += 1
 
-            if len(self._clocked_actions) > 0:
+                if len(self._clocked_actions) > 0:
 
-                # clocked triggers staked to be called
-                maximum_while_loops = 100
-                while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
-                    clockedActions = [
-                        clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
-                    ] # New list enables deletion of the original list while looping
+                    # clocked triggers staked to be called
+                    maximum_while_loops = 100
+                    while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
+                        clockedActions = [
+                            clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
+                        ] # New list enables deletion of the original list while looping
 
-                    for clockedAction in clockedActions:
-                        clockedAction['action'].actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
-                        self._clocked_actions.remove(clockedAction)
-                            
-                    if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
-                        self._next_clocked_pulse = self._clocked_actions[0]['pulse']
-                        for clocked_action in self._clocked_actions:
-                            self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
-                    else:
-                        self._next_clocked_pulse = -1
+                        for clockedAction in clockedActions:
+                            clockedAction['action'].actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
+                            self._clocked_actions.remove(clockedAction)
+                                
+                        if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
+                            self._next_clocked_pulse = self._clocked_actions[0]['pulse']
+                            for clocked_action in self._clocked_actions:
+                                self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
+                        else:
+                            self._next_clocked_pulse = -1
 
-                    maximum_while_loops -= 1
+                        maximum_while_loops -= 1
 
-            if not self._play_pulse < self._finish_pulse and len(self._clocked_actions) == 0:
-                self._play_mode = False
-                self._play_pulse = self._start_pulse
+                if not self._play_pulse < self._finish_pulse and len(self._clocked_actions) == 0:
+                    self._play_mode = False
+                    self._play_pulse = self._start_pulse
+
+                self._next_clock_pulse += 1
 
             return self
         
@@ -728,6 +729,7 @@ class Player:
         else: # for automation ".auto" arguments only!
             for player_action in self._actions:
                 player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
+                player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
 
         return self
 
