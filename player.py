@@ -226,7 +226,7 @@ class Player:
                             for pulse_automation_ruler_dict in pulse_sets_and_automations_rulers:
 
                                 player_pulse_sets_and_automations_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
-                                pulse_automation_ruler_dict['player'].actionTrigger(None, player_pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+                                pulse_automation_ruler_dict['player'].playerTrigger(None, player_pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
@@ -243,7 +243,7 @@ class Player:
                                         if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
-                                    triggered_action['player'].actionTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                                    triggered_action['player'].playerTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                     self._play_pulse += 1
                     self._next_clock_pulse += 1
@@ -639,7 +639,7 @@ class Player:
         tick = self._clock.start(non_fast_forward_range)
         for player in self._clocked_players:
             player['player']._start(tick)
-        self.actionTrigger({ None }, self.rulers().empty(), self._staff, tick)
+        self.playerTrigger({ None }, self.rulers().empty(), self._staff, tick)
 
         still_playing = True
         while still_playing:
@@ -715,7 +715,7 @@ class Player:
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick): # Factory Method Pattern
         return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
-    def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+    def playerTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
         if player_action not in self._actions:
             self._actions.append(player_action)
@@ -767,7 +767,7 @@ class PlayerNone(Player):
         self._resources = RESOURCES.ResourcesNone()
         self._staff = STAFF.StaffNone(self)
 
-    def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+    def playerTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         pass # does nothing
 
 # GLOBAL CLASS METHODS

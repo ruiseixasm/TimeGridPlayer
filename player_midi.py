@@ -54,7 +54,7 @@ class Clock(PLAYER.Player):
 
             return self._tick
 
-    def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+    def playerTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return self # No trigger actions for Clock Player
 
 class Master(PLAYER.Player):
@@ -169,13 +169,15 @@ class ControlChange(PLAYER.Player):
 
                 print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
                 if self._player.resource != None and not self._player.resource.is_none:
-                    self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
+                    midi_value = round(self._set_automation_ruler_value['value'])
+                    self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
 
                 print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
                 if self._player.resource != None and not self._player.resource.is_none:
-                    self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
+                    midi_value = round(self._set_automation_ruler_value['value'])
+                    self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
 
             else: # EXTERNAL TRIGGER
 
@@ -195,7 +197,8 @@ class ControlChange(PLAYER.Player):
                     
                         print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
                         if self._player.resource != None and not self._player.resource.is_none:
-                            self._player.resource.controlChange(self._number, self._set_automation_ruler_value['value'], self._channel) # WERE THE MIDI CC IS TRIGGERED
+                            midi_value = round(self._set_automation_ruler_value['value'])
+                            self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
     
     def isPlaying(self):
         for triggering_staff in self._triggering_staffs[:]:
