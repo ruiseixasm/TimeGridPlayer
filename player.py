@@ -201,6 +201,25 @@ class Player:
 
             if tick['pulse'] == self._next_clock_pulse: # avoids repeated processed pulses for any single pulse
 
+                future_values_to_automate = False
+                for parameter, values in self._automations_ruler_values.copy().items():
+                    start_value = values[0]
+                    finish_value = values[1]
+                    distance_pulses = values[2]
+                    start_pulse = values[3]
+                    actual_pulse = tick['pulse']
+                    if isinstance(start_value, int) or isinstance(start_value, float):
+                        calculated_value = start_value
+                        if finish_value != None and (isinstance(finish_value, int) or isinstance(finish_value, float)):
+                            future_values_to_automate = True
+                            calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
+                        else:
+                            del self._automations_ruler_values[parameter]
+                        self._set_automation_ruler_value[parameter] = calculated_value
+                        self.automationTrigger(tick)
+                    else:
+                        del self._automations_ruler_values[parameter]
+
                 if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                     position = self._staff.position(pulses=self._play_pulse)
@@ -269,7 +288,7 @@ class Player:
 
                         maximum_while_loops -= 1
 
-                if not self._play_pulse < self._finish_pulse and len(self._clocked_actions) == 0:
+                if not self._play_pulse < self._finish_pulse and len(self._clocked_actions) == 0 and not future_values_to_automate:
                     self._play_mode = False
                     self._play_pulse = self._start_pulse
 
@@ -306,9 +325,14 @@ class Player:
                     del self._automations_ruler_values[parameter]
 
             return future_values_to_automate
+        
+        def automationTrigger(self, tick):
+            return self
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+
             if staff != None: # EXTERNAL TRIGGER
+
                 self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
             self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
             self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
@@ -316,11 +340,7 @@ class Player:
 
             if staff == None: # INTERNAL CLOCKED TRIGGER
 
-                if self.automate_parameters(tick):
-                    self.addClockedAction(
-                        {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
-                        tick # updates at least once per pulse
-                    )
+                ...
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
 
@@ -341,12 +361,6 @@ class Player:
                                 self._automations_ruler_values[ruler_parameter].append(set_auto_ruler['lines'][line_index][0])
                             self._automations_ruler_values[ruler_parameter].append(set_auto_ruler['lines'][2][0])
                             self._automations_ruler_values[ruler_parameter].append(tick['pulse']) # 4th element
-
-                if self.automate_parameters(tick):
-                    self.addClockedAction(
-                        {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
-                        tick # updates at least once per pulse
-                    )
 
             else: # EXTERNAL TRIGGER
 

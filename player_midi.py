@@ -162,15 +162,21 @@ class ControlChange(PLAYER.Player):
 
             return converted_value
 
+        def automationTrigger(self, tick):
+            super().automationTrigger(tick)
+            
+            print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
+            if self._player.resource != None and not self._player.resource.is_none:
+                midi_value = round(self._set_automation_ruler_value['value'])
+                self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
+
+            return self
+
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
             if staff == None: # CLOCKED TRIGGER
-
-                print(f"CC Message:\tNumber: {self._number}\tValue: {self._set_automation_ruler_value['value']}\tChannel: {self._channel}")
-                if self._player.resource != None and not self._player.resource.is_none:
-                    midi_value = round(self._set_automation_ruler_value['value'])
-                    self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
+                ...
 
             elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
 
