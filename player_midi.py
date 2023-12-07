@@ -93,8 +93,7 @@ class Note(PLAYER.Player):
 
                 note_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                 if (note_duration != None):
-                    if isinstance(note_duration, str):
-                        note_duration = LINES_SCALES.note_to_steps(note_duration)
+                    note_duration = LINES_SCALES.note_to_steps(note_duration)
                     self._duration = note_duration
 
                 note_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
@@ -277,15 +276,13 @@ class Retrigger(PLAYER.Player):
 
                 retrig_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                 if (retrig_duration != None):
-                    if isinstance(retrig_duration, str):
-                        retrig_duration = LINES_SCALES.note_to_steps(retrig_duration)
+                    retrig_duration = LINES_SCALES.note_to_steps(retrig_duration)
                     self._retrig_duration = retrig_duration
                 self._remaining_pulses_duration = self._retrig_duration * self._clock_pulses_per_step
 
                 retrig_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate")
                 if (retrig_rate != None):
-                    if isinstance(retrig_rate, str):
-                        retrig_rate = LINES_SCALES.note_to_steps(retrig_rate)
+                    retrig_rate = LINES_SCALES.note_to_steps(retrig_rate)
                     self.set_automation_ruler_value['rate'] = max(0, retrig_rate)
 
                 retrig_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate")
@@ -330,9 +327,8 @@ class Retrigger(PLAYER.Player):
     def string_to_value_converter(self, original_value, parameter):
         converted_value = super().string_to_value_converter(original_value, parameter)
 
-        if isinstance(converted_value, str):
-            if parameter == "duration" or parameter == "rate":
-                converted_value = LINES_SCALES.note_to_steps(converted_value)
+        if parameter == "duration" or parameter == "rate":
+            converted_value = LINES_SCALES.note_to_steps(converted_value)
 
         return converted_value
 
@@ -475,14 +471,12 @@ class Arpeggiator(PLAYER.Player):
 
                 arpeggio_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                 if (arpeggio_duration != None):
-                    if isinstance(arpeggio_duration, str):
-                        arpeggio_duration = LINES_SCALES.note_to_steps(arpeggio_duration)
+                    arpeggio_duration = LINES_SCALES.note_to_steps(arpeggio_duration)
                     self._arpeggio_duration = arpeggio_duration
 
                 arpeggio_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate", global_argument=True)
                 if (arpeggio_rate != None):
-                    if isinstance(arpeggio_rate, str):
-                        arpeggio_rate = LINES_SCALES.note_to_steps(arpeggio_rate)
+                    arpeggio_rate = LINES_SCALES.note_to_steps(arpeggio_rate)
                     self.set_automation_ruler_value['rate'] = max(0, arpeggio_rate)
 
                 arpeggio_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate", global_argument=True)
@@ -541,8 +535,7 @@ class Arpeggiator(PLAYER.Player):
     def string_to_value_converter(self, original_value, parameter):
         converted_value = super().string_to_value_converter(original_value, parameter)
 
-        if isinstance(converted_value, str):
-            if parameter == "duration" or parameter == "rate":
-                converted_value = LINES_SCALES.note_to_steps(converted_value)
+        if parameter == "duration" or parameter == "rate":
+            converted_value = LINES_SCALES.note_to_steps(converted_value)
 
         return converted_value

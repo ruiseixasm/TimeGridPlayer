@@ -130,6 +130,9 @@ class Staff:
                     if enabled_ruler_data['player'] == self.player and enabled_ruler_data['type'] == "actions":
                         enabled_ruler_data['player'] = PLAYER.PlayerNone(self.player.stage)
 
+                # also convert positions from notes duration to steps
+                enabled_ruler_data['position'][1] = LINES_SCALES.note_to_steps(enabled_ruler_data['position'][1])
+
             return self
 
         def _sets_and_automations_rulers_generator(self):
@@ -203,8 +206,8 @@ class Staff:
 
         def _str_position(self, position):
             
-            position_value = [position[0], round(position[1], 3)]
-            if position_value[1] % 1 == 0:
+            position_value = [position[0], position[1] if isinstance(position[1], str) else round(position[1], 3)]
+            if not isinstance(position[1], str) and position_value[1] % 1 == 0:
                 position_value = [position_value[0], int(position_value[1])]
             
             return f"{position_value}"
@@ -351,8 +354,7 @@ class Staff:
                     start_pulses = self._staff.pulses(range_positions[0])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
                 elif range_steps != None:
-                    if isinstance(range_steps, str):
-                        range_steps = LINES_SCALES.note_to_steps(range_steps)
+                    range_steps = LINES_SCALES.note_to_steps(range_steps)
                     distance_pulses = self._staff.pulses([0, range_steps]) # total distance
                     start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
@@ -504,10 +506,14 @@ class Staff:
                     ruler for ruler in filtered_rulers if ruler['link'] in links
                 ]
             if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
+                for position_index in range(len(positions)):
+                    positions[position_index] = LINES_SCALES.note_to_steps(positions[position_index])
                 filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['position'] in positions
+                    ruler for ruler in filtered_rulers if LINES_SCALES.note_to_steps(ruler['position']) in positions
                 ]
             if (len(position_range) == 2 and len(position_range[0]) == 2 and len(position_range[1]) == 2):
+                position_range[0][1] = LINES_SCALES.note_to_steps(position_range[0][1])
+                position_range[1][1] = LINES_SCALES.note_to_steps(position_range[1][1])
                 # Using list comprehension
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers
@@ -1587,7 +1593,7 @@ class Staff:
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
         return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat'] + \
-            round(position[1] * self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])
+            round(LINES_SCALES.note_to_steps(position[1]) * self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -1698,7 +1704,7 @@ def position_gt(left_position, right_position):
         if (left_position[0] > right_position[0]):
             return True
         if (left_position[0] == right_position[0]):
-            if (left_position[1] > right_position[1]):
+            if (LINES_SCALES.note_to_steps(left_position[1]) > LINES_SCALES.note_to_steps(right_position[1])):
                 return True
     return False
 
