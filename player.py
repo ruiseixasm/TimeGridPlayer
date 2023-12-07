@@ -154,29 +154,11 @@ class Player:
             trigger_player_set_automation = {
                     'trigger_player': self._trigger_player,
                     'automations_ruler_values': {},
-                    'sets_ruler_value': {},
-                    'set_automation_ruler_value': {},
+                    'set_automation_ruler_value': {}
                 }
             self.player.set_automation_per_trigger_player.append(trigger_player_set_automation)
   
             return trigger_player_set_automation['automations_ruler_values']
-        
-        @property
-        def sets_ruler_value(self):
-            
-            for set_automation in self._player.set_automation_per_trigger_player:
-                if set_automation['trigger_player'] == self._trigger_player:
-                    return set_automation['sets_ruler_value']
-                
-            trigger_player_set_automation = {
-                    'trigger_player': self._trigger_player,
-                    'automations_ruler_values': {},
-                    'sets_ruler_value': {},
-                    'set_automation_ruler_value': {},
-                }
-            self.player.set_automation_per_trigger_player.append(trigger_player_set_automation)
-  
-            return trigger_player_set_automation['sets_ruler_value']
         
         @property
         def set_automation_ruler_value(self):
@@ -188,8 +170,7 @@ class Player:
             trigger_player_set_automation = {
                     'trigger_player': self._trigger_player,
                     'automations_ruler_values': {},
-                    'sets_ruler_value': {},
-                    'set_automation_ruler_value': {},
+                    'set_automation_ruler_value': {}
                 }
             self.player.set_automation_per_trigger_player.append(trigger_player_set_automation)
   
@@ -353,28 +334,6 @@ class Player:
         
         ### ACTION ACTIONS ###
 
-        def automate_parameters(self, tick):
-
-            future_values_to_automate = False
-            for parameter, values in self.automations_ruler_values.copy().items():
-                start_value = values[0]
-                finish_value = values[1]
-                distance_pulses = values[2]
-                start_pulse = values[3]
-                actual_pulse = tick['pulse']
-                if isinstance(start_value, int) or isinstance(start_value, float):
-                    calculated_value = start_value
-                    if finish_value != None and (isinstance(finish_value, int) or isinstance(finish_value, float)):
-                        future_values_to_automate = True
-                        calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
-                    else:
-                        del self.automations_ruler_values[parameter]
-                    self.set_automation_ruler_value[parameter] = calculated_value
-                else:
-                    del self.automations_ruler_values[parameter]
-
-            return future_values_to_automate
-        
         def automationUpdater(self, tick):
             return self
        
@@ -471,7 +430,7 @@ class Player:
             self._next_pulse_time = time.time()
 
             self._tick = {'player': self._player, 'tempo': self._tempo,
-                          'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks, 'delayed': False}
+                          'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks, 'delayed': False, 'overhead': 0}
 
             return self._tick
             
@@ -496,13 +455,16 @@ class Player:
                         or self._non_fast_forward_range_pulses[1] != None and not self._next_pulse < self._non_fast_forward_range_pulses[1])
             
                 if self._tick['fast_forward']:
+                    self._tick['overhead'] = 1
                     self._next_pulse_time = time.time()
                 elif self._next_pulse_time + self._pulse_duration < time.time(): # It has to happen inside pulse duration time window
                     self._tick['delayed'] = True
+                    self._tick['overhead'] = 0
                     if self._tick['delayed']:
                         print(f"--------------------- PULSE {self._tick['pulse']} OF PLAYER {self._player}'S CLOCK WAS DELAYED! -----------------------")
                     self._next_pulse_time = time.time() + self._pulse_duration
                 else:
+                    self._tick['overhead'] = 1 - (time.time() - self._next_pulse_time) / self._pulse_duration
                     self._next_pulse_time += self._pulse_duration
                     
                 self._next_pulse += 1
@@ -535,6 +497,7 @@ class Player:
         if tick['pulse'] != None:
             for action in self._actions:
                 action.pulse(tick)
+            self.playerAutomationCleaner(tick)
 
     def use_resource(self, name=None):
         if self._resources != None and name != self._resource_name:
@@ -769,7 +732,6 @@ class Player:
         trigger_player_set_automation = {
                 'trigger_player': staff.player,
                 'automations_ruler_values': {},
-                'sets_ruler_value': {},
                 'set_automation_ruler_value': {},
             }
 
@@ -789,11 +751,8 @@ class Player:
                 total_lines = len(set_auto_ruler['lines'])
                 ruler_parameter = link_list[1]
                 if total_lines == 1: # meaning it's a SET (DOESN'T REQUIRE NUMERIC VALUES)
-                    trigger_player_set_automation['sets_ruler_value'][ruler_parameter] = set_auto_ruler['lines'][0][0]
                     trigger_player_set_automation['set_automation_ruler_value'][ruler_parameter] \
-                        = trigger_player_set_automation['sets_ruler_value'][ruler_parameter] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
-                    # delete any existent automation
-                    del trigger_player_set_automation['automations_ruler_values'][ruler_parameter]
+                        = set_auto_ruler['lines'][0][0] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
                 elif total_lines == 3: # meaning it's an AUTOMATION (DOES REQUIRE NUMERIC VALUES)
                     trigger_player_set_automation['automations_ruler_values'][ruler_parameter] = []
                     for line_index in range(2): # only the first 2 lines are dedicated to values
@@ -803,6 +762,23 @@ class Player:
                     trigger_player_set_automation['automations_ruler_values'][ruler_parameter].append(tick['pulse']) # 4th element                      
                     
         return self
+
+    def playerAutomationCleaner(self, tick):
+
+        if tick['overhead'] > 0.5: # avoids unecessary delays
+
+            for set_automation in self.set_automation_per_trigger_player.copy():
+
+                if set_automation['automations_ruler_values'] == {}:
+
+                    found_active_action = False
+                    for action in self._actions:
+                        if set_automation['trigger_player'] == action.trigger_player:
+                            found_active_action = True
+                            break
+
+                    if not found_active_action:
+                        self.set_automation_per_trigger_player.remove(set_automation)
 
     ### CLASS ###
     
