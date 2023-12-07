@@ -34,6 +34,8 @@ class Player:
         self._clock = Player.Clock(self)
         self._internal_clock = False
 
+        # SETS AND AUTOMATIONS
+        self._set_automation_per_trigger_player = []
         self._actions = []
 
     def __del__(self):
@@ -92,15 +94,20 @@ class Player:
         return self._actions_rulers
             
     @property
+    def set_automation_per_trigger_player(self):
+        return self._set_automation_per_trigger_player
+            
+    @property
     def sets_and_automations_rulers(self):
         return self._sets_and_automations_rulers
             
     class Action():
 
-        def __init__(self, player):
+        def __init__(self, player, trigger_player):
 
             self._player = player
             self._staff = self._player.getStaff()
+            self._trigger_player = trigger_player
 
             self._internal_arguments_rulers = self._player.rulers().empty()
             self._external_arguments_rulers = self._player.rulers().empty()
@@ -114,22 +121,19 @@ class Player:
             self._next_clocked_pulse = -1   # next programmed pulse on clocked actions list
             self._next_clock_pulse = -1     # next expected pulse from Clock
 
-            # SETS AND AUTOMATIONS
-            self._automations_ruler_values = {
-                # NAMED ARGUMENT TYPES GO HERE LIKE "DURATION" AND "RATE"
-            }
-            self._sets_ruler_value = {
-                # NAMED ARGUMENT TYPES GO HERE LIKE "DURATION" AND "RATE"
-            }
-            self._set_automation_ruler_value = {
-                # NAMED ARGUMENT TYPES GO HERE LIKE "DURATION" AND "RATE"
-            }
-
             self._total_ticks = 0
             self._min_ticks = 100000 * 100000
 
         # using property decorator 
         
+        @property
+        def player(self):
+            return self._player
+    
+        @property
+        def trigger_player(self):
+            return self._trigger_player
+    
         # a getter function 
         @property
         def play_mode(self):
@@ -140,6 +144,57 @@ class Player:
         def play_mode(self, mode):
             self._play_mode = mode
 
+        @property
+        def automations_ruler_values(self):
+            
+            for set_automation in self._player.set_automation_per_trigger_player:
+                if set_automation['trigger_player'] == self._trigger_player:
+                    return set_automation['automations_ruler_values']
+                
+            trigger_player_set_automation = {
+                    'trigger_player': self._trigger_player,
+                    'automations_ruler_values': {},
+                    'sets_ruler_value': {},
+                    'set_automation_ruler_value': {},
+                }
+            self.player.set_automation_per_trigger_player.append(trigger_player_set_automation)
+  
+            return trigger_player_set_automation['automations_ruler_values']
+        
+        @property
+        def sets_ruler_value(self):
+            
+            for set_automation in self._player.set_automation_per_trigger_player:
+                if set_automation['trigger_player'] == self._trigger_player:
+                    return set_automation['sets_ruler_value']
+                
+            trigger_player_set_automation = {
+                    'trigger_player': self._trigger_player,
+                    'automations_ruler_values': {},
+                    'sets_ruler_value': {},
+                    'set_automation_ruler_value': {},
+                }
+            self.player.set_automation_per_trigger_player.append(trigger_player_set_automation)
+  
+            return trigger_player_set_automation['sets_ruler_value']
+        
+        @property
+        def set_automation_ruler_value(self):
+            
+            for set_automation in self._player.set_automation_per_trigger_player:
+                if set_automation['trigger_player'] == self._trigger_player:
+                    return set_automation['set_automation_ruler_value']
+                
+            trigger_player_set_automation = {
+                    'trigger_player': self._trigger_player,
+                    'automations_ruler_values': {},
+                    'sets_ruler_value': {},
+                    'set_automation_ruler_value': {},
+                }
+            self.player.set_automation_per_trigger_player.append(trigger_player_set_automation)
+  
+            return trigger_player_set_automation['set_automation_ruler_value']
+        
         # a getter function 
         @property
         def external_arguments_rulers(self):
@@ -202,7 +257,7 @@ class Player:
             if tick['pulse'] == self._next_clock_pulse: # avoids repeated processed pulses for any single pulse
 
                 future_values_to_automate = False
-                for parameter, values in self._automations_ruler_values.copy().items():
+                for parameter, values in self.automations_ruler_values.copy().items():
                     start_value = values[0]
                     finish_value = values[1]
                     distance_pulses = values[2]
@@ -214,11 +269,11 @@ class Player:
                             future_values_to_automate = True
                             calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
                         else:
-                            del self._automations_ruler_values[parameter]
-                        self._set_automation_ruler_value[parameter] = calculated_value
-                        self.automationTrigger(tick)
+                            del self.automations_ruler_values[parameter]
+                        self.set_automation_ruler_value[parameter] = calculated_value
+                        self.automationUpdater(tick)
                     else:
-                        del self._automations_ruler_values[parameter]
+                        del self.automations_ruler_values[parameter]
 
                 if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
@@ -234,18 +289,18 @@ class Player:
                     pulse_data = self._staff.pulse(pulse=self._play_pulse)
                     if (pulse_data['arguments']['enabled'] > 0):
                         
-                        pulse_arguments_rulers = self._player.arguments_rulers.filter(positions=[position])
-                        self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
-                        pulse_reset_arguments_rulers = pulse_arguments_rulers.find_link(".reset").link_name_strip(".reset")
-                        self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
-
-                        # FEED AUTOMATIONS HERE
+                        # FEED AUTOMATIONS HERE (NEED EXISTENT ACTIONS)
                         pulse_sets_and_automations_rulers = self._player.sets_and_automations_rulers.filter(positions=[position])
                         if pulse_sets_and_automations_rulers.len() > 0:
                             for pulse_automation_ruler_dict in pulse_sets_and_automations_rulers:
 
                                 player_pulse_sets_and_automations_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
-                                pulse_automation_ruler_dict['player'].playerTrigger(None, player_pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+                                pulse_automation_ruler_dict['player'].playerAutomationTrigger(player_pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
+
+                        pulse_arguments_rulers = self._player.arguments_rulers.filter(positions=[position])
+                        self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
+                        pulse_reset_arguments_rulers = pulse_arguments_rulers.find_link(".reset").link_name_strip(".reset")
+                        self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
@@ -262,7 +317,7 @@ class Player:
                                         if (arguments_ruler['line'] < 0 or not (arguments_ruler['line'] < len(arguments_ruler['lines']))):
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
-                                    triggered_action['player'].playerTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+                                    triggered_action['player'].playerActionTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
                     self._play_pulse += 1
 
@@ -276,7 +331,7 @@ class Player:
                         ] # New list enables deletion of the original list while looping
 
                         for clockedAction in clockedActions:
-                            clockedAction['action'].actionTrigger(clockedAction, clockedAction['staff_arguments'], None, tick) # WHERE ACTION IS TRIGGERED
+                            clockedAction['action'].clockedTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
                             self._clocked_actions.remove(clockedAction)
                                 
                         if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
@@ -298,16 +353,10 @@ class Player:
         
         ### ACTION ACTIONS ###
 
-        def string_to_value_converter(self, original_value, parameter):
-            try:
-                return float(original_value)
-            except:
-                return original_value
-
         def automate_parameters(self, tick):
 
             future_values_to_automate = False
-            for parameter, values in self._automations_ruler_values.copy().items():
+            for parameter, values in self.automations_ruler_values.copy().items():
                 start_value = values[0]
                 finish_value = values[1]
                 distance_pulses = values[2]
@@ -319,57 +368,25 @@ class Player:
                         future_values_to_automate = True
                         calculated_value = start_value + (finish_value - start_value) * (actual_pulse - start_pulse) / distance_pulses
                     else:
-                        del self._automations_ruler_values[parameter]
-                    self._set_automation_ruler_value[parameter] = calculated_value
+                        del self.automations_ruler_values[parameter]
+                    self.set_automation_ruler_value[parameter] = calculated_value
                 else:
-                    del self._automations_ruler_values[parameter]
+                    del self.automations_ruler_values[parameter]
 
             return future_values_to_automate
         
-        def automationTrigger(self, tick):
+        def automationUpdater(self, tick):
             return self
-
+       
+        def clockedTrigger(self, triggered_action, self_merged_staff_arguments, tick):
+            pass
+                 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
-
-            if staff != None: # EXTERNAL TRIGGER
-
-                self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
+            self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
             self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
             self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
             self._clock_trigger_steps_per_beat_ratio = self._clock_steps_per_beat / self._trigger_steps_per_beat
-
-            if staff == None: # INTERNAL CLOCKED TRIGGER
-
-                ...
-
-            elif triggered_action == None: # EXTERNAL AUTOMATION TRIGGER
-
-                for set_auto_ruler in self_merged_staff_arguments:
-                    link_list = set_auto_ruler['link'].split(".")
-                    if len(link_list) > 1:
-                        total_lines = len(set_auto_ruler['lines'])
-                        ruler_parameter = link_list[1]
-                        if total_lines == 1: # meaning it's a SET (DOESN'T REQUIRE NUMERIC VALUES)
-                            self._sets_ruler_value[ruler_parameter] = set_auto_ruler['lines'][0][0]
-                            self._set_automation_ruler_value[ruler_parameter] = self._sets_ruler_value[ruler_parameter] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
-                            # delete any existent automation
-                            del self._automations_ruler_values[ruler_parameter]
-                        elif total_lines == 3: # meaning it's an AUTOMATION (DOES REQUIRE NUMERIC VALUES)
-                            self._automations_ruler_values[ruler_parameter] = []
-                            for line_index in range(2): # only the first 2 lines are dedicated to values
-                                set_auto_ruler['lines'][line_index][0] = self.string_to_value_converter(set_auto_ruler['lines'][line_index][0], ruler_parameter)
-                                self._automations_ruler_values[ruler_parameter].append(set_auto_ruler['lines'][line_index][0])
-                            self._automations_ruler_values[ruler_parameter].append(set_auto_ruler['lines'][2][0])
-                            self._automations_ruler_values[ruler_parameter].append(tick['pulse']) # 4th element
-
-            else: # EXTERNAL TRIGGER
-
-                if (not tick['fast_forward']):
-                    pass
-                else:
-                    pass
-                        
-                        
+                      
     class Clock():
         def __init__(self, player):
             self._player = player
@@ -654,7 +671,7 @@ class Player:
         tick = self._clock.start(non_fast_forward_range)
         for player in self._clocked_players:
             player['player']._start(tick)
-        self.playerTrigger({ None }, self.rulers().empty(), self._staff, tick)
+        self.playerActionTrigger({ None }, self.rulers().empty(), self._staff, tick)
 
         still_playing = True
         while still_playing:
@@ -713,9 +730,7 @@ class Player:
         return self._staff
     
     def tempo(self):
-        return self._clock.getClockTempo()['beats_per_minute']
-
-        return self        
+        return self._clock.getClockTempo()['beats_per_minute']       
 
     def time_signature(self):
         return self._staff.time_signature()
@@ -727,24 +742,66 @@ class Player:
 
     ### PLAYER ACTIONS ###
 
-    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick): # Factory Method Pattern
-        return self.Action(self) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
+    def string_to_value_converter(self, original_value, parameter):
+        try:
+            return float(original_value)
+        except:
+            return original_value
 
-    def playerTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
-        player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
-        if player_action not in self._actions:
-            self._actions.append(player_action)
-        else:
-            player_action.play_mode = True
+    def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick): # Factory Method Pattern
+        return self.Action(self, staff.player) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
+
+    def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         if triggered_action != None:
+            player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
+            if player_action not in self._actions:
+                self._actions.append(player_action)
+            else:
+                player_action.play_mode = True
             player_action.external_arguments_rulers = self_merged_staff_arguments
             player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
             player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
-        else: # for automation ".auto" arguments only!
-            for player_action in self._actions:
-                player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
-                player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
 
+        return self
+
+    def playerAutomationTrigger(self, player_pulse_sets_and_automations_rulers, staff, tick):
+
+        trigger_player_set_automation = {
+                'trigger_player': staff.player,
+                'automations_ruler_values': {},
+                'sets_ruler_value': {},
+                'set_automation_ruler_value': {},
+            }
+
+        new_trigger_player_set_automation = True
+        for set_automation in self._set_automation_per_trigger_player:
+            if set_automation['trigger_player'] == staff.player:
+                new_trigger_player_set_automation = False
+                trigger_player_set_automation = set_automation
+                break
+
+        if new_trigger_player_set_automation:
+            self._set_automation_per_trigger_player.append(trigger_player_set_automation)
+
+        for set_auto_ruler in player_pulse_sets_and_automations_rulers:
+            link_list = set_auto_ruler['link'].split(".")
+            if len(link_list) > 1:
+                total_lines = len(set_auto_ruler['lines'])
+                ruler_parameter = link_list[1]
+                if total_lines == 1: # meaning it's a SET (DOESN'T REQUIRE NUMERIC VALUES)
+                    trigger_player_set_automation['sets_ruler_value'][ruler_parameter] = set_auto_ruler['lines'][0][0]
+                    trigger_player_set_automation['set_automation_ruler_value'][ruler_parameter] \
+                        = trigger_player_set_automation['sets_ruler_value'][ruler_parameter] # DIRECT SET OF THE VALUE, NO LINEAR PROJECTION
+                    # delete any existent automation
+                    del trigger_player_set_automation['automations_ruler_values'][ruler_parameter]
+                elif total_lines == 3: # meaning it's an AUTOMATION (DOES REQUIRE NUMERIC VALUES)
+                    trigger_player_set_automation['automations_ruler_values'][ruler_parameter] = []
+                    for line_index in range(2): # only the first 2 lines are dedicated to values
+                        set_auto_ruler['lines'][line_index][0] = self.string_to_value_converter(set_auto_ruler['lines'][line_index][0], ruler_parameter)
+                        trigger_player_set_automation['automations_ruler_values'][ruler_parameter].append(set_auto_ruler['lines'][line_index][0])
+                    trigger_player_set_automation['automations_ruler_values'][ruler_parameter].append(set_auto_ruler['lines'][2][0])
+                    trigger_player_set_automation['automations_ruler_values'][ruler_parameter].append(tick['pulse']) # 4th element                      
+                    
         return self
 
     ### CLASS ###
@@ -759,8 +816,8 @@ class Trigger(Player):
         
     class Action(Player.Action):
         
-        def __init__(self, player):
-            super().__init__(player) # not self init
+        def __init__(self, player, trigger_player):
+            super().__init__(player, trigger_player) # not self init
 
         ### ACTION ACTIONS ###
 
@@ -783,7 +840,7 @@ class PlayerNone(Player):
         self._resources = RESOURCES.ResourcesNone()
         self._staff = STAFF.StaffNone(self)
 
-    def playerTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+    def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         pass # does nothing
 
 # GLOBAL CLASS METHODS
