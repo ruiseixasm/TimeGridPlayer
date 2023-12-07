@@ -500,7 +500,7 @@ class Player:
                 elif self._next_pulse_time + self._pulse_duration < time.time(): # It has to happen inside pulse duration time window
                     self._tick['delayed'] = True
                     if self._tick['delayed']:
-                        print(f"--------------------- PULSE {self._tick['pulse']} WAS DELAYED! -----------------------")
+                        print(f"--------------------- PULSE {self._tick['pulse']} OF PLAYER {self._player}'S CLOCK WAS DELAYED! -----------------------")
                     self._next_pulse_time = time.time() + self._pulse_duration
                 else:
                     self._next_pulse_time += self._pulse_duration
