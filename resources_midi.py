@@ -129,18 +129,19 @@ class Midi(RESOURCES.Resources):
             parameter_1 = getMidiNote(note)
             parameter_2 = note['velocity']
             message = [command, parameter_1, parameter_2]
-            if not self._pressed_keys[parameter_1]:
-                self._pressed_keys[parameter_1] = True
-                return self.sendMessage(message)
-            return self
+            self.releaseNote(note, channel)
+            self._pressed_keys[parameter_1] = True
+            return self.sendMessage(message)
 
         def releaseNote(self, note={'key': "C", 'octave': 4}, channel=1):
             command = 0x80 | max(0, channel - 1)
             parameter_1 = getMidiNote(note)
-            parameter_2 = 64
-            message = [command, parameter_1, parameter_2]
-            self._pressed_keys[parameter_1] = False
-            return self.sendMessage(message)
+            if self._pressed_keys[parameter_1]:
+                parameter_2 = 64
+                message = [command, parameter_1, parameter_2]
+                self._pressed_keys[parameter_1] = False
+                return self.sendMessage(message)
+            return self
             
         def releaseAllNotes(self, channel=1):
             sleep_time = 0.002 # 2ms

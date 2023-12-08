@@ -533,6 +533,13 @@ class Staff:
                 ]
             return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id)
         
+        def function_lines(self, function = lambda line : line):
+            for ruler in self._rulers_list:
+                for line_index in range(len(ruler['lines'])):
+                    ruler['lines'][line_index] = function(ruler['lines'][line_index])
+
+            return self
+
         def link(self, link):
             return self.filter(links=[link])
         

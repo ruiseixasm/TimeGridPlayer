@@ -117,7 +117,6 @@ class Note(PLAYER.Player):
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
                     self_duration_pulses = self._duration * self._clock_pulses_per_step
-                    clock_duration = self_duration_pulses * self._clock_trigger_steps_per_beat_ratio
                     
                     self.addClockedAction(
                         {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
