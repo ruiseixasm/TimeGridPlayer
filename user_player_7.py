@@ -65,7 +65,7 @@ master.rulers().add({'link': "arpeggio.rate.auto", 'position': [14, 0], 'lines':
 
 master.rulers().filter(type="actions").sort().print().print_lines(0, 15)
 master.rulers().filter(type="arguments").sort().print().print_lines(0, 15)
-master.rulers().arguments().print().print_lines(0, 15).find_link(".staff").print()
+master.rulers().arguments().print().print_lines(0, 15).link_find(".staff").print()
 
 # SPREAD MIDI COMPOSITION
 spread = stage_midi.add("spread", type="Master").set_time_signature(size_measures=1)

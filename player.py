@@ -230,7 +230,33 @@ class Player:
 
             return line_argument_value
 
-        def pulse(self, tick, first_pulse=False):
+        def pulseClockedAction(self, tick):
+
+            if tick['pulse'] == self._next_clock_pulse: # avoids repeated processed pulses for any single pulse
+
+                if len(self._clocked_actions) > 0:
+
+                    # clocked triggers staked to be called
+                    maximum_while_loops = 100
+                    while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
+                        clockedActions = [
+                            clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
+                        ] # New list enables deletion of the original list while looping
+
+                        for clockedAction in clockedActions:
+                            clockedAction['action'].clockedTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
+                            self._clocked_actions.remove(clockedAction)
+                                
+                        if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
+                            self._next_clocked_pulse = self._clocked_actions[0]['pulse']
+                            for clocked_action in self._clocked_actions:
+                                self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
+                        else:
+                            self._next_clocked_pulse = -1
+
+                        maximum_while_loops -= 1
+
+        def pulseStaffAction(self, tick, first_pulse=False):
 
             if first_pulse:
                 self._next_clock_pulse = tick['pulse']
@@ -255,28 +281,6 @@ class Player:
                         self.automationUpdater(tick)
                     else:
                         del self.automations_ruler_values[parameter]
-
-                if len(self._clocked_actions) > 0:
-
-                    # clocked triggers staked to be called
-                    maximum_while_loops = 100
-                    while (self._next_clocked_pulse == tick['pulse'] and maximum_while_loops > 0):
-                        clockedActions = [
-                            clockedAction for clockedAction in self._clocked_actions if clockedAction['pulse'] == tick['pulse']
-                        ] # New list enables deletion of the original list while looping
-
-                        for clockedAction in clockedActions:
-                            clockedAction['action'].clockedTrigger(clockedAction, clockedAction['staff_arguments'], tick) # WHERE ACTION IS TRIGGERED
-                            self._clocked_actions.remove(clockedAction)
-                                
-                        if (len(self._clocked_actions) > 0): # gets the next pulse to be triggered
-                            self._next_clocked_pulse = self._clocked_actions[0]['pulse']
-                            for clocked_action in self._clocked_actions:
-                                self._next_clocked_pulse = min(self._next_clocked_pulse, clocked_action['pulse'])
-                        else:
-                            self._next_clocked_pulse = -1
-
-                        maximum_while_loops -= 1
 
                 if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
@@ -493,10 +497,18 @@ class Player:
 
     def _tick(self, tick):
         if self._internal_clock and self != tick['player']:
-            tick = self._clock.tick(tick) # changes the tick for the internal clock one | WHERE INTERNAL CLOCK IS USED
+            return self._clock.tick(tick) # changes the tick for the internal clock one | WHERE INTERNAL CLOCK IS USED
+        return tick
+
+    def _clocked_pulse(self, tick):
         if tick['pulse'] != None:
             for action in self._actions:
-                action.pulse(tick)
+                action.pulseClockedAction(tick)
+
+    def _staff_pulse(self, tick):
+        if tick['pulse'] != None:
+            for action in self._actions:
+                action.pulseStaffAction(tick)
             self.playerAutomationCleaner(tick)
 
     def use_resource(self, name=None):
@@ -639,9 +651,14 @@ class Player:
         still_playing = True
         while still_playing:
             tick = self._clock.tick() # where it ticks
+            for player in self._clocked_players:
+                player_tick = player['player']._tick(tick)
+                player['player']._clocked_pulse(player_tick)
+            for player in self._clocked_players:
+                player_tick = player['player']._tick(tick)
+                player['player']._staff_pulse(player_tick)
             still_playing = False
             for player in self._clocked_players:
-                player['player']._tick(tick)
                 if player['player'].isPlaying():
                     still_playing = True
         
@@ -716,9 +733,6 @@ class Player:
 
     def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         if triggered_action != None:
-            # processes all existing actions first to avoid overlappings
-            for existing_action in self._actions:
-                existing_action.pulse(tick) # cleans up all pendent pulses to be processed
             player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
             if player_action not in self._actions:
                 self._actions.append(player_action)
@@ -726,7 +740,7 @@ class Player:
                 player_action.play_mode = True
             player_action.external_arguments_rulers = self_merged_staff_arguments
             player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
-            player_action.pulse(tick, first_pulse=True) # first pulse on Action, has to be processed
+            player_action.pulseStaffAction(tick, first_pulse=True) # first pulse on Action, has to be processed
 
         return self
 
