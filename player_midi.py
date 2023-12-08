@@ -143,24 +143,16 @@ class ControlChange(PLAYER.Player):
             self._channel = 1
 
             # SETS AND AUTOMATIONS
-            self.set_automation_ruler_value['value'] = 64.0 # middle way value by default
+            self.parameters_ruler_values['value'] = 64.0 # middle way value by default
 
         ### ACTION ACTIONS ###
-
-        def automationTrigger(self, triggered_action, self_merged_staff_arguments, tick):
-            super().automationTrigger(triggered_action, self_merged_staff_arguments, tick)
-
-            print(f"CC Message:\tNumber: {self._number}\tValue: {self.set_automation_ruler_value['value']}\tChannel: {self._channel}")
-            if self._player.resource != None and not self._player.resource.is_none:
-                midi_value = round(self.set_automation_ruler_value['value'])
-                self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
 
         def automationUpdater(self, tick):
             super().automationUpdater(tick)
             
-            print(f"CC Message:\tNumber: {self._number}\tValue: {self.set_automation_ruler_value['value']}\tChannel: {self._channel}")
+            print(f"CC Message:\tNumber: {self._number}\tValue: {self.parameters_ruler_values['value']}\tChannel: {self._channel}")
             if self._player.resource != None and not self._player.resource.is_none:
-                midi_value = round(self.set_automation_ruler_value['value'])
+                midi_value = round(self.parameters_ruler_values['value'])
                 self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
 
             return self
@@ -180,12 +172,7 @@ class ControlChange(PLAYER.Player):
 
                 control_value = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "value")
                 if (control_value != None and (isinstance(control_value, int) or isinstance(control_value, float))):
-                    self.set_automation_ruler_value['value'] = max(0, min(127, control_value))
-                
-                    print(f"CC Message:\tNumber: {self._number}\tValue: {self.set_automation_ruler_value['value']}\tChannel: {self._channel}")
-                    if self._player.resource != None and not self._player.resource.is_none:
-                        midi_value = round(self.set_automation_ruler_value['value'])
-                        self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
+                    self.parameters_ruler_values['value'] = max(0, min(127, control_value))
 
     def isPlaying(self):
         for triggering_staff in self._triggering_staffs[:]:
@@ -231,14 +218,14 @@ class Retrigger(PLAYER.Player):
             self._key_pressed = False
 
             # SETS AND AUTOMATIONS
-            self.set_automation_ruler_value['rate'] = 0.5 # steps (1/32)
+            self.parameters_ruler_values['rate'] = 0.5 # steps (1/32)
 
         ### ACTION ACTIONS ###
       
         def clockedTrigger(self, triggered_action, self_merged_staff_arguments, tick):
             super().clockedTrigger(triggered_action, self_merged_staff_arguments, tick)
                    
-            self_rate_pulses = self.set_automation_ruler_value['rate'] * self._clock_pulses_per_step
+            self_rate_pulses = self.parameters_ruler_values['rate'] * self._clock_pulses_per_step
 
             if self._key_pressed:
                 if self._player.resource != None and not self._player.resource.is_none:
@@ -271,7 +258,7 @@ class Retrigger(PLAYER.Player):
 
             if (not tick['fast_forward']):
 
-                self_rate_pulses = self.set_automation_ruler_value['rate'] * self._clock_pulses_per_step
+                self_rate_pulses = self.parameters_ruler_values['rate'] * self._clock_pulses_per_step
 
                 retrig_duration = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "duration")
                 if (retrig_duration != None):
@@ -282,7 +269,7 @@ class Retrigger(PLAYER.Player):
                 retrig_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate")
                 if (retrig_rate != None):
                     retrig_rate = LINES_SCALES.note_to_steps(retrig_rate)
-                    self.set_automation_ruler_value['rate'] = max(0, retrig_rate)
+                    self.parameters_ruler_values['rate'] = max(0, retrig_rate)
 
                 retrig_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate")
                 if (retrig_gate != None):
@@ -352,8 +339,8 @@ class Arpeggiator(PLAYER.Player):
             self._active_midi_key = -1
 
             # SETS AND AUTOMATIONS
-            self.set_automation_ruler_value['rate'] = 1.0 # steps (1/16)
-            self.set_automation_ruler_value['gate'] = 0.5 # from 0 t0 1
+            self.parameters_ruler_values['rate'] = 1.0 # steps (1/16)
+            self.parameters_ruler_values['gate'] = 0.5 # from 0 t0 1
 
         def add_selected_key(self, midi_key, selected_on_pulse, selected_duration_pulses):
             new_midi_key = {
@@ -453,7 +440,7 @@ class Arpeggiator(PLAYER.Player):
         def clockedTrigger(self, triggered_action, self_merged_staff_arguments, tick):
             super().clockedTrigger(triggered_action, self_merged_staff_arguments, tick)
                    
-            self._active_duration_pulses = round(self.set_automation_ruler_value['rate'] * self._clock_pulses_per_step)
+            self._active_duration_pulses = round(self.parameters_ruler_values['rate'] * self._clock_pulses_per_step)
             self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
             self.update_selected_keys(tick)
@@ -476,7 +463,7 @@ class Arpeggiator(PLAYER.Player):
                 arpeggio_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate", global_argument=True)
                 if (arpeggio_rate != None):
                     arpeggio_rate = LINES_SCALES.note_to_steps(arpeggio_rate)
-                    self.set_automation_ruler_value['rate'] = max(0, arpeggio_rate)
+                    self.parameters_ruler_values['rate'] = max(0, arpeggio_rate)
 
                 arpeggio_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate", global_argument=True)
                 if (arpeggio_gate != None):
@@ -494,7 +481,7 @@ class Arpeggiator(PLAYER.Player):
                 if (arpeggio_octave != None):
                     self._note['octave'] = arpeggio_octave
 
-                self._active_duration_pulses = round(self.set_automation_ruler_value['rate'] * self._clock_pulses_per_step)
+                self._active_duration_pulses = round(self.parameters_ruler_values['rate'] * self._clock_pulses_per_step)
                 self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
                 arpeggio_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
