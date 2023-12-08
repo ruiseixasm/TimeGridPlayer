@@ -140,7 +140,7 @@ class Staff:
             sets_and_automations_rulers_list = []
             auto_set_rulers = self._root_self.arguments().on_staff().enabled().sort(key="position")
 
-            auto_rulers = auto_set_rulers.find_link(".auto")
+            auto_rulers = auto_set_rulers.link_find(".auto")
             auto_rulers_merged = auto_rulers.merge()
             for auto_link_merged in auto_rulers_merged:
                 auto_rulers_link = auto_rulers.link(auto_link_merged['link'])
@@ -183,7 +183,7 @@ class Staff:
 
                     sets_and_automations_rulers_list.append(new_auto_ruler)
             
-            set_rulers = auto_set_rulers.find_link(".set")
+            set_rulers = auto_set_rulers.link_find(".set")
             set_rulers_merged = set_rulers.merge()
             for set_link_merged in set_rulers_merged:
                 new_set_ruler = {
@@ -471,13 +471,6 @@ class Staff:
             on_staff.drop()
             return self
         
-        def find_link(self, name):
-            link_name_found = []
-            for ruler in self._rulers_list:
-                if ruler['link'].find(name) != -1:
-                    link_name_found.append(ruler)
-            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id)
-            
         def float(self):
             self._staff.remove(self.unique().list())
             # updates on_staff for all remaining rulers not on staff
@@ -543,6 +536,13 @@ class Staff:
         def link(self, link):
             return self.filter(links=[link])
         
+        def link_find(self, name):
+            link_name_found = []
+            for ruler in self._rulers_list:
+                if ruler['link'].find(name) != -1:
+                    link_name_found.append(ruler)
+            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id)
+            
         def link_name_prefix(self, prefix):
             for ruler in self._rulers_list:
                 original_link_name = ruler['link']
@@ -568,6 +568,9 @@ class Staff:
             head_rulers_list = self._rulers_list[:elements]
             return Staff.Rulers(self._staff, head_rulers_list, self._root_self, self._next_id)
         
+        def id(self, id=0):
+            return self.filter(ids=[id])
+
         def insert_lines(self, line, lines=[None], id=None):
             target_rulers = self
             if id != None:
@@ -1153,7 +1156,7 @@ class Staff:
 
             return self.rotate(increments)
         
-        def set_lines(self, lines, offset=0):
+        def set_lines(self, lines, offset=None):
 
             if type(lines) == type({}):
                 offset = lines['offset']
@@ -1161,9 +1164,10 @@ class Staff:
 
             for ruler in self._rulers_list:
                 ruler['lines'] = lines
-                ruler['offset'] = offset
+                if offset != None:
+                    ruler['offset'] = offset
                 if ruler['type'] == "action":
-                    ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines'])
+                    ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines']) # replaces by dots!
                 
             return self
 

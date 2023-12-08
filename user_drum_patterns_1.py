@@ -26,9 +26,10 @@ master.rulers().add({'link': "note", 'position': [0, 0], 'lines': [1]}).duplicat
 master.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': [60]}).print_lines(0, 15)
 master.rulers().add({'link': "note.channel", 'position': [0, 0], 'lines': [10]}).print_lines(0, 15)
 
-for note in range(128):
-    ...
+key_ruler = master.rulers().link_find("key")
 
-master.play()
+for note in range(128):
+    key_ruler.set_lines([note]).print()
+    master.play()
 
 stage_midi.print()
