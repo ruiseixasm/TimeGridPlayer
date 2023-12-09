@@ -121,8 +121,8 @@ class Staff:
                 # link_name_re = re.search(r"([a-zA-Z0-9]+)_(.+)", link_name)
                 # if link_name_re != None:
 
-            enabled_rulers = self._root_self.enabled()
-            for enabled_ruler_data in enabled_rulers:
+            all_rulers = self._root_self
+            for enabled_ruler_data in all_rulers:
                 link_list = enabled_ruler_data['link'].split(".")
                 if len(link_list) > 0:
                     player_name = link_list[0]
