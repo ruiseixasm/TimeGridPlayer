@@ -44,6 +44,11 @@ class Player:
     #region Player Properties
 
     @property
+    def enabled(self):
+        self_player_data = self._stage.filter(player = self).list()[0]
+        return self_player_data['enabled']
+
+    @property
     def stage(self):
         return self._stage
             
@@ -624,7 +629,7 @@ class Player:
 
     def play(self, start=None, finish=None):
 
-        self_player = {'name': self._name, 'player': self, 'enabled': True}
+        self_player = {'name': self._name, 'player': self}
         self._clocked_players = [ self_player ]
 
         all_enabled_players = self._stage.filter(enabled=True)
@@ -633,8 +638,7 @@ class Player:
         for enabled_player in self._stage:
             clockable_player = {
                 'name': enabled_player['name'],
-                'player': enabled_player['player'],
-                'enabled': enabled_player['enabled']
+                'player': enabled_player['player']
             }
             if not clockable_player in self._clocked_players:
                 self._clocked_players.append(clockable_player)
@@ -655,29 +659,25 @@ class Player:
         while still_playing:
             tick = self._clock.tick() # where it ticks
             for player in self._clocked_players:
-                if player['enabled']:
-                    player_tick = player['player']._tick(tick)
-                    if player_tick['pulse'] != None:
-                        for action in player['player']._actions:
-                            action.pulseSetAutomations(player_tick)
+                player_tick = player['player']._tick(tick)
+                if player_tick['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseSetAutomations(player_tick)
             for player in self._clocked_players:
-                if player['enabled']:
-                    player_tick = player['player']._tick(tick)
-                    if player_tick['pulse'] != None:
-                        for action in player['player']._actions:
-                            action.pulseClockedAction(player_tick)
+                player_tick = player['player']._tick(tick)
+                if player_tick['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseClockedAction(player_tick)
             for player in self._clocked_players:
-                if player['enabled']:
-                    player_tick = player['player']._tick(tick)
-                    if player_tick['pulse'] != None:
-                        for action in player['player']._actions:
-                            action.pulseStaffAction(player_tick)
-                        player['player'].playerAutomationCleaner(player_tick)
+                player_tick = player['player']._tick(tick)
+                if player_tick['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseStaffAction(player_tick)
+                    player['player'].playerAutomationCleaner(player_tick)
             still_playing = False
             for player in self._clocked_players:
-                if player['enabled']:
-                    if player['player'].isPlaying():
-                        still_playing = True
+                if player['player'].isPlaying():
+                    still_playing = True
         
         for player in self._clocked_players:
             player['player']._finish(tick)
