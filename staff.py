@@ -478,7 +478,7 @@ class Staff:
                 ruler_list['on_staff'] = False
             return self
         
-        def filter(self, ids = [], type = None, links = [], positions = [], position_range = [], enabled = None, on_staff = None, player=None):
+        def filter(self, ids = [], type = None, links = [], positions = [], position_range = [], lines = [], enabled = None, on_staff = None, player=None):
 
             filtered_rulers = self._rulers_list.copy()
 
@@ -512,6 +512,10 @@ class Staff:
                     ruler for ruler in filtered_rulers
                             if not (position_lt(ruler['position'], position_range[0]) and position_lt(ruler['position'], position_range[1]))
                 ]
+            if (len(lines) > 0 and lines != [None]):
+                filtered_rulers = [
+                    ruler for ruler in filtered_rulers if ruler['offset'] in lines
+                ]
             if (enabled != None):
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['enabled'] == enabled
@@ -532,6 +536,9 @@ class Staff:
                     ruler['lines'][line_index] = function(ruler['lines'][line_index])
 
             return self
+
+        def line(self, line):
+            return self.filter(lines=[line])
 
         def link(self, link):
             return self.filter(links=[link])

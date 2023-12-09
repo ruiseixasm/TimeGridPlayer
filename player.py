@@ -319,7 +319,7 @@ class Player:
 
                     self._play_pulse += 1
 
-                elif len(self._clocked_actions) == 0 and self.pulseSetAutomationsCleaner():
+                elif self.pulseSetAutomationsCleaner() and len(self._clocked_actions) == 0:
                     self._play_mode = False
                     self._play_pulse = self._start_pulse
 

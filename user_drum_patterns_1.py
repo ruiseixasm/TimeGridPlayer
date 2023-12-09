@@ -28,7 +28,7 @@ master.rulers().add({'link': "note.channel", 'position': [0, 0], 'lines': [10]})
 
 key_ruler = master.rulers().link_find("key")
 
-for note in range(27, 88):
+for note in range(25, 91):
     key_ruler.set_lines([note]).print()
     master.play()
 
