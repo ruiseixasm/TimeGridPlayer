@@ -295,18 +295,18 @@ class Player:
                                 player_pulse_sets_and_automations_rulers = STAFF.Staff.Rulers(self._staff, [ pulse_automation_ruler_dict ])
                                 pulse_automation_ruler_dict['player'].playerAutomationTrigger(player_pulse_sets_and_automations_rulers, self._staff, tick) # WHERE AUTOMATION IS TRIGGERED
 
-                        pulse_arguments_rulers = self._player.arguments_rulers.filter(positions=[position])
+                        pulse_arguments_rulers = self._player.arguments_rulers.filter(positions=[position], enabled=True)
                         self._internal_arguments_rulers = (pulse_arguments_rulers + self._internal_arguments_rulers).merge() # Where internal arguments are merged
                         pulse_reset_arguments_rulers = pulse_arguments_rulers.link_find(".reset").link_name_strip(".reset")
                         self._internal_arguments_rulers = (pulse_reset_arguments_rulers + self._internal_arguments_rulers).merge(merge_none=True) # Where arguments reset rulers are merged
 
                     if (pulse_data['actions']['enabled'] > 0):
                         
-                        pulse_actions_rulers = self._player.actions_rulers.filter(positions=[position])
+                        pulse_actions_rulers = self._player.actions_rulers.filter(positions=[position], enabled=True)
                         merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge() # Where external arguments are merged
 
                         for triggered_action in pulse_actions_rulers: # single ruler actions
-                            player_merged_staff_arguments = merged_staff_arguments.filter(player=triggered_action['player'])
+                            player_merged_staff_arguments = merged_staff_arguments.filter(player=triggered_action['player'], enabled=True)
                             for action_line in range(len(triggered_action['lines'])):
                                 if (triggered_action['lines'][action_line] != None):
                                     triggered_action['line'] = action_line
