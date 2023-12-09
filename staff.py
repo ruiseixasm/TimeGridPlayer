@@ -335,11 +335,11 @@ class Staff:
         
         def disable(self):
             disabled_rulers_list = self.filter(enabled=True).unique().list()
+            # updates disabled on staff
+            self._staff.disabled(disabled_rulers_list)
             # disables all rulers
             for enabled_ruler in disabled_rulers_list:
                 enabled_ruler['enabled'] = False
-            # updates disabled on staff
-            self._staff.disabled(disabled_rulers_list)
             return self
         
         def disabled(self):
@@ -1363,7 +1363,7 @@ class Staff:
                     ruler['on_staff'] = True
                     self._staff_list[pulses][ruler['type']]['total'] += total_one
                 if ruler['on_staff']:
-                    if ruler['enabled'] and enabled_one == 1 or not ruler['enabled'] and enabled_one == -1:
+                    if ruler['enabled']:
                         self._staff_list[pulses][ruler['type']]['enabled'] += enabled_one
                     if total_one == -1:
                         ruler['on_staff'] = False
