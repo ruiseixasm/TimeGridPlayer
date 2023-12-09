@@ -513,22 +513,6 @@ class Player:
             return self._clock.tick(tick) # changes the tick for the internal clock one | WHERE INTERNAL CLOCK IS USED
         return tick
 
-    def _set_automations_pulse(self, tick):
-        if tick['pulse'] != None:
-            for action in self._actions:
-                action.pulseSetAutomations(tick)
-
-    def _clocked_pulse(self, tick):
-        if tick['pulse'] != None:
-            for action in self._actions:
-                action.pulseClockedAction(tick)
-
-    def _staff_pulse(self, tick):
-        if tick['pulse'] != None:
-            for action in self._actions:
-                action.pulseStaffAction(tick)
-            self.playerAutomationCleaner(tick)
-
     def use_resource(self, name=None):
         if self._resources != None and name != self._resource_name:
             self.discard_resource()
@@ -671,13 +655,20 @@ class Player:
             tick = self._clock.tick() # where it ticks
             for player in self._clocked_players:
                 player_tick = player['player']._tick(tick)
-                player['player']._set_automations_pulse(player_tick)
+                if player_tick['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseSetAutomations(player_tick)
             for player in self._clocked_players:
                 player_tick = player['player']._tick(tick)
-                player['player']._clocked_pulse(player_tick)
+                if player_tick['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseClockedAction(player_tick)
             for player in self._clocked_players:
                 player_tick = player['player']._tick(tick)
-                player['player']._staff_pulse(player_tick)
+                if player_tick['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseStaffAction(player_tick)
+                    player['player'].playerAutomationCleaner(player_tick)
             still_playing = False
             for player in self._clocked_players:
                 if player['player'].isPlaying():
