@@ -632,8 +632,6 @@ class Player:
         self_player = {'name': self._name, 'player': self}
         self._clocked_players = [ self_player ]
 
-        all_enabled_players = self._stage.filter(enabled=True)
-        
         # Assembling of clockable players
         for enabled_player in self._stage:
             clockable_player = {
