@@ -28,7 +28,7 @@ master.staff().print()
 
 key_ruler = master.rulers().link_find("key")
 
-for note in range(25, 91):
+for note in range(27, 88):
     key_ruler.set_lines([note]).print()
     master.play()
 
