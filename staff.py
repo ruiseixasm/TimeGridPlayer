@@ -215,7 +215,19 @@ class Staff:
                 for action_line_index in range(len(action_lines)):
                     if action_lines[action_line_index] == None or action_lines[action_line_index] == False:
                         action_lines[action_line_index] = self._last_action_duration
+                    else:
+                        self._last_action_duration = action_lines[action_line_index]
             return action_lines
+
+        def action_stack_position(self):
+            next_action_position_steps = 0
+            for action_ruler in self.actions():
+                action_ruler_position_steps = self._staff.steps(action_ruler['position'])
+                for action_duration in action_ruler['lines']:
+                    action_duration_steps = self._staff.steps([0, action_duration])
+                    next_action_position_steps = max(next_action_position_steps, action_ruler_position_steps + action_duration_steps)
+
+            return self._staff.position(next_action_position_steps)
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
@@ -241,6 +253,9 @@ class Staff:
 
                 if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
                     structured_ruler['position'] = ruler['position']
+                else:
+                    next_action_position = self.action_stack_position()
+                    structured_ruler['position'] = next_action_position
                 if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
                     if type(ruler['lines']) == type({}):
                         structured_ruler['lines'] = ruler['lines']['lines']
@@ -1694,6 +1709,7 @@ class Staff:
         return self
 
     def steps(self, position=[0, 0]): # position: [measure, step]
+        position[1] = LINES_SCALES.note_to_steps(position[1])
         return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['steps_per_beat'] + position[1]
 
     def str_position(self, position):

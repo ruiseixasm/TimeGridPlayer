@@ -651,7 +651,7 @@ class Player:
         tick = self._clock.start(non_fast_forward_range)
         for player in self._clocked_players:
             player['player']._start(tick)
-        self.playerActionTrigger({ None }, self.rulers().empty(), self._staff, tick)
+        self.playerActionTrigger(None , self.rulers().empty(), self._staff, tick)
 
         still_playing = True
         while still_playing:
@@ -747,7 +747,7 @@ class Player:
         return self.Action(self, staff.player) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
     def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
-        if triggered_action != None:
+        if self.enabled and staff.player.enabled:
             player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
             if player_action not in self._actions:
                 self._actions.append(player_action)
