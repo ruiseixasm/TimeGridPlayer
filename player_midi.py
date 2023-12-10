@@ -82,46 +82,46 @@ class Note(PLAYER.Player):
         def clockedTrigger(self, triggered_action, self_merged_staff_arguments, tick):
             super().clockedTrigger(triggered_action, self_merged_staff_arguments, tick)
 
-            if (not tick['fast_forward']):
-                print(f"note OFF:\t{self._note}")
-                if self._player.resource != None and not self._player.resource.is_none:
-                    self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+            print(f"note OFF:\t{self._note}")
+            if self._player.resource != None and not self._player.resource.is_none:
+                self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
-            if triggered_action['line'] != None:
-                note_duration = triggered_action['lines'][triggered_action['line']]
-                if (note_duration != None):
-                    self._duration = LINES_SCALES.note_to_steps(note_duration)
+            if (not tick['fast_forward']):
 
-            note_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
-            if (note_channel != None):
-                self._note['channel'] = note_channel
+                if triggered_action['line'] != None:
+                    note_duration = triggered_action['lines'][triggered_action['line']]
+                    if (note_duration != None):
+                        self._duration = LINES_SCALES.note_to_steps(note_duration)
 
-            note_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
-            if (note_velocity != None):
-                self._note['velocity'] = note_velocity
+                note_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
+                if (note_channel != None):
+                    self._note['channel'] = note_channel
 
-            note_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
-            if (note_octave != None):
-                self._note['octave'] = note_octave
+                note_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
+                if (note_velocity != None):
+                    self._note['velocity'] = note_velocity
 
-            note_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key") # key is mandatory
-            if (note_key != None):
-                self._note['key'] = note_key
+                note_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
+                if (note_octave != None):
+                    self._note['octave'] = note_octave
 
-                if (not tick['fast_forward']):
+                note_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key") # key is mandatory
+                if (note_key != None):
+                    self._note['key'] = note_key
+
                     print(f"note ON:\t{self._note}")
                     if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
-                self_duration_pulses = self._duration * self._clock_pulses_per_step
-                
-                self.addClockedAction(
-                    {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                        'duration': self_duration_pulses, 'action': self}, tick
-                )
+                    self_duration_pulses = self._duration * self._clock_pulses_per_step
+                    
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
+                            'duration': self_duration_pulses, 'action': self}, tick
+                    )
     
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Note.Action(self, staff.player)
@@ -150,28 +150,29 @@ class ControlChange(PLAYER.Player):
         def automationUpdater(self, tick):
             super().automationUpdater(tick)
             
-            if (not tick['fast_forward']):
-                print(f"CC Message:\tNumber: {self._number}\tValue: {self.parameters_ruler_values['value']}\tChannel: {self._channel}")
-                if self._player.resource != None and not self._player.resource.is_none:
-                    midi_value = round(self.parameters_ruler_values['value'])
-                    self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
+            print(f"CC Message:\tNumber: {self._number}\tValue: {self.parameters_ruler_values['value']}\tChannel: {self._channel}")
+            if self._player.resource != None and not self._player.resource.is_none:
+                midi_value = round(self.parameters_ruler_values['value'])
+                self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
 
             return self
 
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
-            control_number = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "number", global_argument=True)
-            if (control_number != None and (isinstance(control_number, int) or isinstance(control_number, float))):
-                self._number = max(0, min(127, control_number))
+            if (not tick['fast_forward']):
 
-            control_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel", global_argument=True)
-            if (control_channel != None):
-                self._channel = control_channel
+                control_number = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "number", global_argument=True)
+                if (control_number != None and (isinstance(control_number, int) or isinstance(control_number, float))):
+                    self._number = max(0, min(127, control_number))
 
-            control_value = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "value")
-            if (control_value != None and (isinstance(control_value, int) or isinstance(control_value, float))):
-                self.parameters_ruler_values['value'] = max(0, min(127, control_value))
+                control_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel", global_argument=True)
+                if (control_channel != None):
+                    self._channel = control_channel
+
+                control_value = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "value")
+                if (control_value != None and (isinstance(control_value, int) or isinstance(control_value, float))):
+                    self.parameters_ruler_values['value'] = max(0, min(127, control_value))
 
     def isPlaying(self):
         for triggering_staff in self._triggering_staffs[:]:
@@ -227,14 +228,12 @@ class Retrigger(PLAYER.Player):
             self_rate_pulses = self.parameters_ruler_values['rate'] * self._clock_pulses_per_step
 
             if self._key_pressed:
-                if (not tick['fast_forward']):
-                    if self._player.resource != None and not self._player.resource.is_none:
-                        self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                if self._player.resource != None and not self._player.resource.is_none:
+                    self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                 self_retrig_duration = self_rate_pulses - round(self_rate_pulses * self._gate)
             elif self._remaining_pulses_duration > 0:
-                if (not tick['fast_forward']):
-                    if self._player.resource != None and not self._player.resource.is_none:
-                        self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                if self._player.resource != None and not self._player.resource.is_none:
+                    self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                 self_retrig_duration = round(self_rate_pulses * self._gate)
             else:
                 self_retrig_duration = 0
@@ -257,55 +256,56 @@ class Retrigger(PLAYER.Player):
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
-            self_rate_pulses = self.parameters_ruler_values['rate'] * self._clock_pulses_per_step
+            if (not tick['fast_forward']):
 
-            if triggered_action['line'] != None:
-                retrig_duration = triggered_action['lines'][triggered_action['line']]
-                if (retrig_duration != None):
-                    self._retrig_duration = LINES_SCALES.note_to_steps(retrig_duration)
-            self._remaining_pulses_duration = self._retrig_duration * self._clock_pulses_per_step
+                self_rate_pulses = self.parameters_ruler_values['rate'] * self._clock_pulses_per_step
 
-            retrig_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate")
-            if (retrig_rate != None):
-                retrig_rate = LINES_SCALES.note_to_steps(retrig_rate)
-                self.parameters_ruler_values['rate'] = max(0, retrig_rate)
+                if triggered_action['line'] != None:
+                    retrig_duration = triggered_action['lines'][triggered_action['line']]
+                    if (retrig_duration != None):
+                        self._retrig_duration = LINES_SCALES.note_to_steps(retrig_duration)
+                self._remaining_pulses_duration = self._retrig_duration * self._clock_pulses_per_step
 
-            retrig_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate")
-            if (retrig_gate != None):
-                self._gate = min(1, max(0, retrig_gate))
+                retrig_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate")
+                if (retrig_rate != None):
+                    retrig_rate = LINES_SCALES.note_to_steps(retrig_rate)
+                    self.parameters_ruler_values['rate'] = max(0, retrig_rate)
 
-            retrig_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
-            if (retrig_channel != None):
-                self._note['channel'] = retrig_channel
+                retrig_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate")
+                if (retrig_gate != None):
+                    self._gate = min(1, max(0, retrig_gate))
 
-            retrig_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
-            if (retrig_velocity != None):
-                self._note['velocity'] = retrig_velocity
+                retrig_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel")
+                if (retrig_channel != None):
+                    self._note['channel'] = retrig_channel
 
-            retrig_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
-            if (retrig_octave != None):
-                self._note['octave'] = retrig_octave
+                retrig_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
+                if (retrig_velocity != None):
+                    self._note['velocity'] = retrig_velocity
 
-            retrig_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
-            if (retrig_key != None):
-                self._note['key'] = retrig_key
+                retrig_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
+                if (retrig_octave != None):
+                    self._note['octave'] = retrig_octave
 
-                if (not tick['fast_forward']):
+                retrig_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
+                if (retrig_key != None):
+                    self._note['key'] = retrig_key
+
                     print(f"retrigger ON:\t{self._note}\tduration: {self._retrig_duration}")
                     if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
-            
-                self._key_pressed = True
+                
+                    self._key_pressed = True
 
-                self_retrig_duration = round(self_rate_pulses * self._gate)
-                self_retrig_duration = min(self._remaining_pulses_duration, self_retrig_duration)
-                
-                self.addClockedAction(
-                    {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                        'duration': self_retrig_duration, 'action': self}, tick
-                )
-                
-                self._remaining_pulses_duration -= self_retrig_duration
+                    self_retrig_duration = round(self_rate_pulses * self._gate)
+                    self_retrig_duration = min(self._remaining_pulses_duration, self_retrig_duration)
+                    
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
+                            'duration': self_retrig_duration, 'action': self}, tick
+                    )
+                    
+                    self._remaining_pulses_duration -= self_retrig_duration
 
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Retrigger.Action(self, staff.player)
@@ -375,10 +375,9 @@ class Arpeggiator(PLAYER.Player):
                         selected_key['activated_on_pulse'] + self._pressed_duration_pulses <= tick['pulse']:
 
                         selected_key['pressed'] = False
-                        if (not tick['fast_forward']):
-                            if self._player.resource != None and not self._player.resource.is_none:
-                                self._note['key'] = selected_key['midi_key']
-                                self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                        if self._player.resource != None and not self._player.resource.is_none:
+                            self._note['key'] = selected_key['midi_key']
+                            self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
             # cleans up outdated keys except the active one
             for selected_key in self._selected_keys[:]:
@@ -396,10 +395,9 @@ class Arpeggiator(PLAYER.Player):
 
                     if not self._selected_keys[0]['pressed']:
                         self._selected_keys[0]['pressed'] = True
-                        if (not tick['fast_forward']):
-                            if self._player.resource != None and not self._player.resource.is_none:
-                                self._note['key'] = self._selected_keys[0]['midi_key']
-                                self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                        if self._player.resource != None and not self._player.resource.is_none:
+                            self._note['key'] = self._selected_keys[0]['midi_key']
+                            self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
             else:
                 for selected_key_index in range(self._total_selected_keys):
@@ -421,10 +419,9 @@ class Arpeggiator(PLAYER.Player):
 
                                 if not self._selected_keys[pick_up_index]['pressed']:
                                     self._selected_keys[pick_up_index]['pressed'] = True
-                                    if (not tick['fast_forward']):
-                                        if self._player.resource != None and not self._player.resource.is_none:
-                                            self._note['key'] = self._selected_keys[pick_up_index]['midi_key']
-                                            self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                                    if self._player.resource != None and not self._player.resource.is_none:
+                                        self._note['key'] = self._selected_keys[pick_up_index]['midi_key']
+                                        self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
                         if self._selected_keys[selected_key_index]['selected_on_pulse'] + self._selected_keys[selected_key_index]['selected_duration_pulses'] <= tick['pulse']:
 
@@ -456,51 +453,53 @@ class Arpeggiator(PLAYER.Player):
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
-            if triggered_action['line'] != None:
-                arpeggio_duration = triggered_action['lines'][triggered_action['line']]
-                if (arpeggio_duration != None):
-                    self._arpeggio_duration = LINES_SCALES.note_to_steps(arpeggio_duration)
+            if (not tick['fast_forward']):
 
-            arpeggio_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate", global_argument=True)
-            if (arpeggio_rate != None):
-                arpeggio_rate = LINES_SCALES.note_to_steps(arpeggio_rate)
-                self.parameters_ruler_values['rate'] = max(0, arpeggio_rate)
+                if triggered_action['line'] != None:
+                    arpeggio_duration = triggered_action['lines'][triggered_action['line']]
+                    if (arpeggio_duration != None):
+                        self._arpeggio_duration = LINES_SCALES.note_to_steps(arpeggio_duration)
 
-            arpeggio_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate", global_argument=True)
-            if (arpeggio_gate != None):
-                self._gate = max(0, arpeggio_gate)
+                arpeggio_rate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "rate", global_argument=True)
+                if (arpeggio_rate != None):
+                    arpeggio_rate = LINES_SCALES.note_to_steps(arpeggio_rate)
+                    self.parameters_ruler_values['rate'] = max(0, arpeggio_rate)
 
-            arpeggio_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel", global_argument=True)
-            if (arpeggio_channel != None):
-                self._note['channel'] = arpeggio_channel
+                arpeggio_gate = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "gate", global_argument=True)
+                if (arpeggio_gate != None):
+                    self._gate = max(0, arpeggio_gate)
 
-            arpeggio_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
-            if (arpeggio_velocity != None):
-                self._note['velocity'] = arpeggio_velocity
+                arpeggio_channel = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "channel", global_argument=True)
+                if (arpeggio_channel != None):
+                    self._note['channel'] = arpeggio_channel
 
-            arpeggio_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
-            if (arpeggio_octave != None):
-                self._note['octave'] = arpeggio_octave
+                arpeggio_velocity = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "velocity")
+                if (arpeggio_velocity != None):
+                    self._note['velocity'] = arpeggio_velocity
 
-            self._active_duration_pulses = round(self.parameters_ruler_values['rate'] * self._clock_pulses_per_step)
-            self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
+                arpeggio_octave = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "octave")
+                if (arpeggio_octave != None):
+                    self._note['octave'] = arpeggio_octave
 
-            arpeggio_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
-            if (arpeggio_key != None):
-                self._note['key'] = arpeggio_key
+                self._active_duration_pulses = round(self.parameters_ruler_values['rate'] * self._clock_pulses_per_step)
+                self._pressed_duration_pulses = round(self._gate * self._active_duration_pulses)
 
-                midi_key = RESOURCES_MIDI.getMidiNote(self._note)
+                arpeggio_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key")
+                if (arpeggio_key != None):
+                    self._note['key'] = arpeggio_key
 
-                note_duration_pulses = round(self._arpeggio_duration * self._clock_pulses_per_step)
-                self.add_selected_key(midi_key, tick['pulse'], note_duration_pulses)
-                self.update_selected_keys(tick)
+                    midi_key = RESOURCES_MIDI.getMidiNote(self._note)
 
-                # only the first trigger key adds to the internal clock
-                if self._total_selected_keys == 1:
-                    self.addClockedAction(
-                        {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
-                        tick # updates at least once per pulse
-                    )
+                    note_duration_pulses = round(self._arpeggio_duration * self._clock_pulses_per_step)
+                    self.add_selected_key(midi_key, tick['pulse'], note_duration_pulses)
+                    self.update_selected_keys(tick)
+
+                    # only the first trigger key adds to the internal clock
+                    if self._total_selected_keys == 1:
+                        self.addClockedAction(
+                            {'triggered_action': None, 'staff_arguments': None, 'duration': 1, 'action': self},
+                            tick # updates at least once per pulse
+                        )
                         
     def isPlaying(self):
         for triggering_staff in self._triggering_staffs[:]:
