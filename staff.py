@@ -39,7 +39,7 @@ class Staff:
             
     class Rulers():
 
-        def __init__(self, staff, rulers_list=None, root_self=None, start_id=0):
+        def __init__(self, staff, rulers_list=None, root_self=None, start_id=0, last_action_duration=4):
 
             self._staff = staff
             self._rulers_list = []
@@ -50,16 +50,9 @@ class Staff:
                 self._root_self = root_self # type Rulers
 
             self._next_id = start_id
+            self._last_action_duration = last_action_duration # steps
 
             self.current_ruler = 0
-
-        def action_lines_formattor(action_lines):
-            for action_line_index in range(len(action_lines)):
-                if action_lines[action_line_index] == None or action_lines[action_line_index] == False or action_lines[action_line_index] == 0:
-                    action_lines[action_line_index] = None
-                else:
-                    action_lines[action_line_index] = "•"
-            return action_lines
 
         @property
         def is_none(self):
@@ -87,7 +80,7 @@ class Staff:
             self_rulers_list = self.list()
             other_rulers_list = other.list()
 
-            return Staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, self_rulers_list + other_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def __sub__(self, other):
             '''Works as exclusion'''
@@ -96,7 +89,7 @@ class Staff:
 
             exclusion_list = [ ruler for ruler in self_rulers_list if ruler not in other_rulers_list ]
 
-            return Staff.Rulers(self._staff, exclusion_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, exclusion_list, self._root_self, self._next_id, self._last_action_duration)
         
         def __mul__(self, other):
             '''Works as intersection'''
@@ -105,7 +98,7 @@ class Staff:
             
             intersection_list = [ ruler for ruler in self_rulers_list if ruler in other_rulers_list ]
 
-            return Staff.Rulers(self._staff, intersection_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, intersection_list, self._root_self, self._next_id, self._last_action_duration)
         
         def __div__(self, other):
             '''Works as divergence'''
@@ -202,7 +195,7 @@ class Staff:
 
                 sets_and_automations_rulers_list.append(new_set_ruler)
             
-            return Staff.Rulers(self._staff, sets_and_automations_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, sets_and_automations_rulers_list, self._root_self, self._next_id, self._last_action_duration)
 
         def _str_position(self, position):
             
@@ -214,6 +207,15 @@ class Staff:
 
         def actions(self):
             return self.type(type="actions")
+
+        def action_lines_duration_validator(self, action_lines):
+            if len(action_lines) == 0:
+                action_lines = [ self._last_action_duration ]
+            else:
+                for action_line_index in range(len(action_lines)):
+                    if action_lines[action_line_index] == None or action_lines[action_line_index] == False:
+                        action_lines[action_line_index] = self._last_action_duration
+            return action_lines
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
@@ -246,7 +248,7 @@ class Staff:
                     else:
                         structured_ruler['lines'] = ruler['lines']
                     if structured_ruler['type'] == "actions":
-                        structured_ruler['lines'] = Staff.Rulers.action_lines_formattor(structured_ruler['lines'])
+                        structured_ruler['lines'] = self.action_lines_duration_validator(structured_ruler['lines'])
                 if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
                     structured_ruler['offset'] = ruler['offset']
                 if (structured_ruler['offset'] == None):
@@ -260,7 +262,7 @@ class Staff:
                     self._next_id = self._root_self._next_id
                 self._staff.add([structured_ruler])
 
-            return Staff.Rulers(self._staff, [structured_ruler], self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, [structured_ruler], self._root_self, self._next_id, self._last_action_duration)
         
         def add_lines(self, line, amount=1, id=None):
             """Add new empty lines lines"""
@@ -286,7 +288,7 @@ class Staff:
 
                     ruler['lines'] = new_lines
                     if ruler['type'] == "action":
-                        ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines'])
+                        ruler['lines'] = self.action_lines_duration_validator(ruler['lines'])
                 
             return self
             
@@ -388,7 +390,7 @@ class Staff:
         
         def empty(self):
             empty_rulers_list = []
-            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, empty_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def empty_lines(self):
             for ruler in self._rulers_list:
@@ -437,7 +439,7 @@ class Staff:
         
         def even(self):
             even_rulers_list = self._rulers_list[::2]
-            return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def exclude(self, index=0):
             if (self.len() > index):
@@ -528,7 +530,7 @@ class Staff:
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['player'] == player
                 ]
-            return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id, self._last_action_duration)
         
         def function_lines(self, function = lambda line : line):
             for ruler in self._rulers_list:
@@ -548,7 +550,7 @@ class Staff:
             for ruler in self._rulers_list:
                 if ruler['link'].find(name) != -1:
                     link_name_found.append(ruler)
-            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id, self._last_action_duration)
             
         def link_name_prefix(self, prefix):
             for ruler in self._rulers_list:
@@ -573,7 +575,7 @@ class Staff:
 
         def head(self, elements=1):
             head_rulers_list = self._rulers_list[:elements]
-            return Staff.Rulers(self._staff, head_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, head_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def id(self, id=0):
             return self.filter(ids=[id])
@@ -604,7 +606,7 @@ class Staff:
 
                     ruler['lines'] = new_lines
                     if ruler['type'] == "action":
-                        ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines'])
+                        ruler['lines'] = self.action_lines_duration_validator(ruler['lines'])
 
             return self
        
@@ -750,7 +752,7 @@ class Staff:
 
                 merged_rulers.append(merged_ruler)
 
-            return Staff.Rulers(self._staff, merged_rulers, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, merged_rulers, self._root_self, self._next_id, self._last_action_duration)
         
         def move_lines(self, offset=0):
             for ruler in self._rulers_list:
@@ -796,7 +798,7 @@ class Staff:
 
         def odd(self):
             odd_rulers_list = self._rulers_list[1::2]
-            return Staff.Rulers(self._staff, odd_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, odd_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def on_staff(self):
             return self.filter(on_staff=True)
@@ -1174,7 +1176,7 @@ class Staff:
                 if offset != None:
                     ruler['offset'] = offset
                 if ruler['type'] == "action":
-                    ruler['lines'] = Staff.Rulers.action_lines_formattor(ruler['lines']) # replaces by dots!
+                    ruler['lines'] = self.action_lines_duration_validator(ruler['lines']) # replaces by dots!
                 
             return self
 
@@ -1195,7 +1197,7 @@ class Staff:
         def single(self, index=0):
             if (self.len() > index):
                 ruler_list = [ self._rulers_list[index] ]
-                return Staff.Rulers(self._staff, ruler_list, self._root_self, self._next_id)
+                return Staff.Rulers(self._staff, ruler_list, self._root_self, self._next_id, self._last_action_duration)
             return self
 
         def slide_lines(self, increments=1):
@@ -1280,7 +1282,7 @@ class Staff:
 
         def tail(self, elements=1):
             tail_rulers_list = self._rulers_list[-elements:]
-            return Staff.Rulers(self._staff, tail_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, tail_rulers_list, self._root_self, self._next_id, self._last_action_duration)
 
         def type(self, type="arguments"):
             return self.filter(type=type)
@@ -1291,7 +1293,7 @@ class Staff:
                 if ruler not in unique_rulers_list:
                     unique_rulers_list.append(ruler)
 
-            return Staff.Rulers(self._staff, unique_rulers_list, self._root_self, self._next_id)
+            return Staff.Rulers(self._staff, unique_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
     class RulersNone(Rulers):
 

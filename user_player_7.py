@@ -28,8 +28,8 @@ midi_clock = stage_midi.add("clock", type="Clock").use_resource("loop").enable_r
 
 # Midi Note
 note = stage_midi.add("note", type="Note").use_resource("loop").enable_resource().print()
-master.rulers().add({'link': "note", 'position': [2, 4], 'lines': [1], 'offset': 2})
-master.rulers().add({'link': "note", 'position': [3, 4], 'lines': [1]})
+master.rulers().add({'link': "note", 'position': [2, 4], 'lines': ["1/64"], 'offset': 2})
+master.rulers().add({'link': "note", 'position': [3, 4], 'lines': ["1/64"]})
 master.rulers().add({'link': "note.key", 'position': [2, 1], 'lines': lines_major_scale}).print_lines(0, 15)
 master.rulers().add({'link': "note.key", 'position': [1, 0], 'lines': ['c', 'c#', 'd', None, 'e', None]})
 master.rulers().add({'link': "note.key", 'position': [3, 0], 'lines': ['d', 'c#', 'd', 'd#', 'e', None], 'offset': -1})
@@ -44,8 +44,8 @@ master.rulers().print_lines(0, 15)
 
 # Retrigger
 retrig = stage_midi.add("retrig", type="Retrigger").use_resource("loop").enable_resource()
-master.rulers().add({'link': "retrig", 'position': [4, 0], 'lines': [1], 'offset': 4})
-master.rulers().add({'link': "retrig", 'position': [6, 0], 'lines': [1], 'offset': 4})
+master.rulers().add({'link': "retrig", 'position': [4, 0], 'lines': [28], 'offset': 4})
+master.rulers().add({'link': "retrig", 'position': [6, 0], 'lines': [28], 'offset': 4})
 master.rulers().add({'link': "retrig.key", 'position': [2, 1], 'lines': lines_major_scale}).print_lines(0, 15)
 master.rulers().add({'link': "retrig.duration.staff", 'position': [2, 0], 'lines': [28]})
 master.rulers().add({'link': "retrig.rate.staff", 'position': [2, 0], 'lines': ["1/16"]})
@@ -53,7 +53,7 @@ master.rulers().add({'link': "retrig.channel.staff", 'position': [0, 0], 'lines'
 
 # Arpeggiator
 arpeggio = stage_midi.add("arpeggio", type="Arpeggiator").use_resource("loop").enable_resource()
-master.rulers().add({'link': "arpeggio", 'position': [9, 0], 'lines': [1, 1, 1, 1], 'offset': 4})
+master.rulers().add({'link': "arpeggio", 'position': [9, 0], 'lines': [100, "7", "7", "6.5"], 'offset': 4})
 master.rulers().add({'link': "arpeggio.key", 'position': [2, 1], 'lines': lines_major_scale})
 master.rulers().add({'link': "arpeggio.channel", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'link': "arpeggio.velocity.staff", 'position': [0, 0], 'lines': [120]})
@@ -70,7 +70,7 @@ master.rulers().arguments().print().print_lines(0, 15).link_find(".staff").print
 # SPREAD MIDI COMPOSITION
 spread = stage_midi.add("spread", type="Master").set_time_signature(size_measures=1)
 
-spread.rulers().add({'link': "note", 'position': [0, 0], 'lines': [1]}).duplicate(7).duplicate().distribute("1").spread_lines().print_lines() # WHERE MULTIPLE ACTION NOTES ARE SPREAD (REPEATED)
+spread.rulers().add({'link': "note", 'position': [0, 0], 'lines': ["1/32"]}).duplicate(7).duplicate().distribute("1").spread_lines().print_lines() # WHERE MULTIPLE ACTION NOTES ARE SPREAD (REPEATED)
 spread.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': lines_minor_scale}).print_lines(0, 15)
 spread.rulers().add({'link': "note.channel.staff", 'position': [0, 0], 'lines': [3]})
 spread.rulers().add({'link': "note.velocity.staff", 'position': [0, 0], 'lines': [120]})
