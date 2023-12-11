@@ -197,8 +197,9 @@ class Staff:
             
             return Staff.Rulers(self._staff, sets_and_automations_rulers_list, self._root_self, self._next_id, self._last_action_duration)
 
-        def _str_position(self, position):
+        def _str_position(self, position, note_notation=None):
             
+            position[1] = format_note_duration(position[1], note_notation)
             position_value = [position[0], position[1] if isinstance(position[1], str) else round(position[1], 3)]
             if not isinstance(position[1], str) and position_value[1] % 1 == 0:
                 position_value = [position_value[0], int(position_value[1])]
@@ -841,7 +842,7 @@ class Staff:
         def on_staff(self):
             return self.filter(on_staff=True)
 
-        def print(self, format_in_steps=None):
+        def print(self, note_notation=None):
             
             header_char = "'"
             if len(self._rulers_list) > 0:
@@ -856,7 +857,7 @@ class Staff:
                         else:
                             ruler_value = ""
                             if key == 'position':
-                                ruler_value = self._str_position(ruler['position'])
+                                ruler_value = self._str_position(ruler['position'], note_notation)
                             elif key == 'lines':
                                 ruler_value = len(ruler[key])
                             else:
@@ -892,7 +893,7 @@ class Staff:
                         else:
                             ruler_value = ""
                             if key == 'position':
-                                ruler_value = self._str_position(ruler['position'])
+                                ruler_value = self._str_position(ruler['position'], note_notation)
                                 key_value_str = f"{ruler_value}"
                                 key_value_str = f"{key}: " + f"{ruler_value}" + (" " * (string_top_length[key] - len(key_value_str)))
                             elif key == 'lines':
@@ -922,7 +923,7 @@ class Staff:
                 print(header_char * 7)
             return self
 
-        def print_lines(self, first_line=None, last_line=None, format_in_steps=None):
+        def print_lines(self, first_line=None, last_line=None, note_notation=None):
             
             header_char = "-"
             rulers_size = self.len()
@@ -991,7 +992,6 @@ class Staff:
 
                                 string_top_length[key] = max(string_top_length[key], key_value_length)
 
-                
                 full_string_top_length = 0
                 for key, value in string_top_length.items():
                     if key == 'lines':
@@ -1820,3 +1820,21 @@ def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps 
     STEPS_PER_QUARTER_NOTE = 4
     pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
     return int(pulses_per_beat)
+
+def format_note_duration(note, note_notation=None):
+    note_steps = LINES_SCALES.note_to_steps(note)
+    if not isinstance(note, str) or (note_notation != None and not note_notation):
+        return note_steps
+    if note_steps > 16 and isinstance(note, str):
+        return note + "/1"
+    if isinstance(note, str) or note_notation:
+        return note_steps
+    if note_notation:
+        # test reversity
+        steps_to_note = LINES_SCALES.steps_to_note(note_steps)
+        note_to_steps = LINES_SCALES.note_to_steps(steps_to_note)
+        if note_to_steps == note_steps:
+            return steps_to_note
+        return note_steps / 16 + "/1"
+    
+    return note

@@ -203,10 +203,21 @@ import lines_scales as L_SCALES
 # print (dict2)
 
 
-string1 = "link"
-string2 = "link.new"
+# string1 = "link"
+# string2 = "link.new"
 
-x1 = string1.split(".")
-print(x1)
-x2 = string2.split(".")
-print(x2)
+# x1 = string1.split(".")
+# print(x1)
+# x2 = string2.split(".")
+# print(x2)
+
+bool1 = False
+bool2 = True
+bool3 = None
+
+if bool1:
+    print("bool1")
+if bool2:
+    print("bool2")
+if bool3:
+    print("bool3")
