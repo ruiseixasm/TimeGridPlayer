@@ -40,7 +40,7 @@ class Midi(RESOURCES.Resources):
     class Resource(RESOURCES.Resources.Resource):
         
         def __init__(self, output_port, port_index):
-            self._pressed_keys = [False] * 128
+            self._key_presses = [[0] * 128] * 16
             self._output_port = output_port
             self._port_index = port_index
             self._active_port = None
@@ -129,17 +129,19 @@ class Midi(RESOURCES.Resources):
             parameter_1 = getMidiNote(note)
             parameter_2 = note['velocity']
             message = [command, parameter_1, parameter_2]
-            self.releaseNote(note, channel)
-            self._pressed_keys[parameter_1] = True
-            return self.sendMessage(message)
+            if self._key_presses[(channel - 1)%16][parameter_1] == 0:
+                return self.sendMessage(message)
+            self._key_presses[parameter_1] += 1
+            return self
 
         def releaseNote(self, note={'key': "C", 'octave': 4}, channel=1):
             command = 0x80 | max(0, channel - 1)
             parameter_1 = getMidiNote(note)
-            if self._pressed_keys[parameter_1]:
+            if self._key_presses[(channel - 1)%16][parameter_1] > 0:
+                self._key_presses[(channel - 1)%16][parameter_1] -= 1
+            if self._key_presses[(channel - 1)%16][parameter_1] == 0:
                 parameter_2 = 64
                 message = [command, parameter_1, parameter_2]
-                self._pressed_keys[parameter_1] = False
                 return self.sendMessage(message)
             return self
             
@@ -150,7 +152,7 @@ class Midi(RESOURCES.Resources):
             for parameter_1 in range(128):
                 message = [command, parameter_1, parameter_2]
                 self.sendMessage(message)
-                self._pressed_keys[parameter_1] = False
+                self._key_presses[(channel - 1)%16][parameter_1] = 0
                 time.sleep(sleep_time)
             return self
             
