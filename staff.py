@@ -277,7 +277,7 @@ class Staff:
                     self._next_id = self._root_self._next_id
                 self._staff.add([structured_ruler])
 
-            return Staff.Rulers(self._staff, [structured_ruler], self._root_self, self._next_id, self._last_action_duration)
+            return self
         
         def add_lines(self, line, amount=1, id=None):
             """Add new empty lines lines"""
@@ -488,13 +488,6 @@ class Staff:
             on_staff.drop()
             return self
         
-        def float(self):
-            self._staff.remove(self.unique().list())
-            # updates on_staff for all remaining rulers not on staff
-            for ruler_list in self.list():
-                ruler_list['on_staff'] = False
-            return self
-        
         def filter(self, ids = [], type = None, links = [], positions = [], position_range = [], lines = [], enabled = None, on_staff = None, player=None):
 
             filtered_rulers = self._rulers_list.copy()
@@ -547,45 +540,21 @@ class Staff:
                 ]
             return Staff.Rulers(self._staff, filtered_rulers, self._root_self, self._next_id, self._last_action_duration)
         
+        def first(self):
+            return self.head(1)
+
+        def float(self):
+            self._staff.remove(self.unique().list())
+            # updates on_staff for all remaining rulers not on staff
+            for ruler_list in self.list():
+                ruler_list['on_staff'] = False
+            return self
+        
         def function_lines(self, function = lambda line : line):
             for ruler in self._rulers_list:
                 for line_index in range(len(ruler['lines'])):
                     ruler['lines'][line_index] = function(ruler['lines'][line_index])
 
-            return self
-
-        def line(self, line):
-            return self.filter(lines=[line])
-
-        def link(self, link):
-            return self.filter(links=[link])
-        
-        def link_find(self, name):
-            link_name_found = []
-            for ruler in self._rulers_list:
-                if ruler['link'].find(name) != -1:
-                    link_name_found.append(ruler)
-            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id, self._last_action_duration)
-            
-        def link_name_prefix(self, prefix):
-            for ruler in self._rulers_list:
-                original_link_name = ruler['link']
-                prefixed_link_name = prefix + original_link_name
-                ruler['link'] = prefixed_link_name
-            return self
-
-        def link_name_strip(self, strip):
-            for ruler in self._rulers_list:
-                original_link_name = ruler['link']
-                stripped_link_name = original_link_name.strip(strip)
-                ruler['link'] = stripped_link_name
-            return self
-
-        def link_name_suffix(self, suffix):
-            for ruler in self._rulers_list:
-                original_link_name = ruler['link']
-                suffixed_link_name = original_link_name + suffix
-                ruler['link'] = suffixed_link_name
             return self
 
         def head(self, elements=1):
@@ -671,6 +640,60 @@ class Staff:
 
             return self
 
+        def last(self):
+            return self.tail(1)
+
+        def len(self):
+            return len(self._rulers_list)
+        
+        def len_lines(self):
+            total_lines = 0
+            for ruler in self._rulers_list:
+                total_lines += len(ruler['lines'])
+            return total_lines
+        
+        def line(self, line):
+            return self.filter(lines=[line])
+
+        def lines(self, index=0):
+            single_ruler = self.single(index)
+            lines = {}
+            if single_ruler.len() > 0:
+                lines['lines'] = single_ruler.list()[0]['lines']
+                lines['offset'] = single_ruler.list()[0]['offset']
+            return lines
+
+        def link(self, link):
+            return self.filter(links=[link])
+        
+        def link_find(self, name):
+            link_name_found = []
+            for ruler in self._rulers_list:
+                if ruler['link'].find(name) != -1:
+                    link_name_found.append(ruler)
+            return Staff.Rulers(self._staff, link_name_found, self._root_self, self._next_id, self._last_action_duration)
+            
+        def link_name_prefix(self, prefix):
+            for ruler in self._rulers_list:
+                original_link_name = ruler['link']
+                prefixed_link_name = prefix + original_link_name
+                ruler['link'] = prefixed_link_name
+            return self
+
+        def link_name_strip(self, strip):
+            for ruler in self._rulers_list:
+                original_link_name = ruler['link']
+                stripped_link_name = original_link_name.strip(strip)
+                ruler['link'] = stripped_link_name
+            return self
+
+        def link_name_suffix(self, suffix):
+            for ruler in self._rulers_list:
+                original_link_name = ruler['link']
+                suffixed_link_name = original_link_name + suffix
+                ruler['link'] = suffixed_link_name
+            return self
+
         def list(self):
             return self._rulers_list
         
@@ -692,23 +715,6 @@ class Staff:
                 all_lines.append(ruler['lines'])
             return all_lines
         
-        def len(self):
-            return len(self._rulers_list)
-        
-        def len_lines(self):
-            total_lines = 0
-            for ruler in self._rulers_list:
-                total_lines += len(ruler['lines'])
-            return total_lines
-        
-        def lines(self, index=0):
-            single_ruler = self.single(index)
-            lines = {}
-            if single_ruler.len() > 0:
-                lines['lines'] = single_ruler.list()[0]['lines']
-                lines['offset'] = single_ruler.list()[0]['offset']
-            return lines
-
         def merge(self, merge_none=False):
 
             type_links = [] # merge agregates rulers by type and link

@@ -45,7 +45,33 @@ class Stage:
         else:
             self.current_player = 0  # Reset to 0 when limit is reached
             raise StopIteration
-        
+
+# Resources Methods
+
+    def use_resource(self, name=None):
+        for player_data in self._players_list:
+            player_data['player'].use_resource(name)
+            
+        return self
+
+    def enable_resource(self):
+        for player_data in self._players_list:
+            player_data['player'].enable_resource()
+
+        return self
+            
+    def disable_resource(self):
+        for player_data in self._players_list:
+            player_data['player'].disable_resource()
+
+        return self
+
+    def discard_resource(self):
+        for player_data in self._players_list:
+            player_data['player'].discard_resource()
+
+        return self
+
     def playerFactoryMethod(self, name, description=None, resources=None, type=None):
         if resources == None:
             if description == None:
@@ -75,7 +101,7 @@ class Stage:
                 self._players_list.append(player_data)
                 self._next_id = self._root_self._next_id
 
-        return player
+        return self
     
     def disable(self):
         for player_data in self._players_list:
@@ -114,6 +140,13 @@ class Stage:
 
         return Stage(filtered_players, self._root_self, self._next_id)
 
+    def first(self):
+        return self.head(1)
+
+    def head(self, elements=1):
+        head_players_list = self._players_list[:elements]
+        return Stage(head_players_list, self._root_self, self._next_id)
+        
     def json_dictionnaire(self):
         stage = {
                 'part': "stage",
@@ -195,6 +228,9 @@ class Stage:
             json.dump(stage, outfile)
 
         return self
+
+    def last(self):
+        return self.tail(1)
 
     def len(self):
         return len(self._players_list)
@@ -304,6 +340,16 @@ class Stage:
             player_data['player'].set_tempo(tempo=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
             
         return self
+
+    def set_time_signature(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+        for player_data in self._players_list:
+            player_data['player'].set_time_signature(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+            
+        return self
+
+    def tail(self, elements=1):
+        tail_players_list = self._players_list[-elements:]
+        return Stage(tail_players_list, self._root_self, self._next_id)
 
     def unique(self):
         unique_rulers_list = []

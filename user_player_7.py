@@ -21,13 +21,13 @@ lines_major_scale = scales.scale("major", "A", 5).lines()
 lines_minor_scale = scales.scale("minor", "D", 5).lines()
 
 # add a master player to stage
-master = stage_midi.add("master").set_time_signature(size_measures=16).set_tempo(125)
+master = stage_midi.add("master").last().set_time_signature(size_measures=16).set_tempo(125).last().player()
 
 # Midi Clock
-midi_clock = stage_midi.add("clock", type="Clock").use_resource("loop").enable_resource().print()
+midi_clock = stage_midi.add("clock", type="Clock").print()
 
 # Midi Note
-note = stage_midi.add("note", type="Note").use_resource("loop").enable_resource().print()
+note = stage_midi.add("note", type="Note").print().last().player()
 master.rulers().add({'link': "note", 'position': [2, 4], 'lines': ["1/64"], 'offset': 2})
 master.rulers().add({'link': "note", 'position': [3, 4], 'lines': ["1/64"]})
 master.rulers().add({'link': "note.key", 'position': [2, 1], 'lines': lines_major_scale}).print_lines(0, 15)
@@ -42,7 +42,7 @@ master.rulers().add({'link': "note.velocity.staff", 'position': [0, 0], 'lines':
 master.rulers().print_lines(0, 15)
 
 # Retrigger
-retrig = stage_midi.add("retrig", type="Retrigger").use_resource("loop").enable_resource()
+retrig = stage_midi.add("retrig", type="Retrigger").last().player()
 master.rulers().add({'link': "retrig", 'position': [4, 0], 'lines': [28], 'offset': 4})
 master.rulers().add({'link': "retrig", 'position': [6, 0], 'lines': [28], 'offset': 4})
 master.rulers().add({'link': "retrig.key", 'position': [2, 1], 'lines': lines_major_scale}).print_lines(0, 15)
@@ -50,7 +50,7 @@ master.rulers().add({'link': "retrig.rate.staff", 'position': [2, 0], 'lines': [
 master.rulers().add({'link': "retrig.channel.staff", 'position': [0, 0], 'lines': [3]})
 
 # Arpeggiator
-arpeggio = stage_midi.add("arpeggio", type="Arpeggiator").use_resource("loop").enable_resource()
+arpeggio = stage_midi.add("arpeggio", type="Arpeggiator").last().player()
 master.rulers().add({'link': "arpeggio", 'position': [9, 0], 'lines': [100, "7", "7", "6.5"], 'offset': 4})
 master.rulers().add({'link': "arpeggio.key", 'position': [2, 1], 'lines': lines_major_scale})
 master.rulers().add({'link': "arpeggio.channel", 'position': [0, 0], 'lines': [3]})
@@ -65,9 +65,9 @@ master.rulers().filter(type="arguments").sort().print().print_lines(0, 15)
 master.rulers().arguments().print().print_lines(0, 15).link_find(".staff").print()
 
 # SPREAD MIDI COMPOSITION
-spread = stage_midi.add("spread", type="Master").set_time_signature(size_measures=1)
+spread = stage_midi.add("spread", type="Master").last().set_time_signature(size_measures=1).last().player()
 
-spread.rulers().add({'link': "note", 'position': [0, 0], 'lines': ["1/32"]}).duplicate(7).duplicate().distribute("1").spread_lines().print_lines() # WHERE MULTIPLE ACTION NOTES ARE SPREAD (REPEATED)
+spread.rulers().add({'link': "note", 'position': [0, 0], 'lines': ["1/32"]}).last().duplicate(7).duplicate().distribute("1").spread_lines().print_lines() # WHERE MULTIPLE ACTION NOTES ARE SPREAD (REPEATED)
 spread.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': lines_minor_scale}).print_lines(0, 15)
 spread.rulers().add({'link': "note.channel.staff", 'position': [0, 0], 'lines': [3]})
 spread.rulers().add({'link': "note.velocity.staff", 'position': [0, 0], 'lines': [120]})
@@ -76,7 +76,7 @@ spread.play()
 master.rulers().add({'link': "spread", 'position': [1, 0], 'lines': [1]})
 
 # CC MIDI MESSAGE
-cc = stage_midi.add("cc", type="ControlChange").use_resource("loop").enable_resource().print()
+cc = stage_midi.add("cc", type="ControlChange").print().last().player()
 master.rulers().add({'link': "cc", 'position': [3, 4], 'lines': [1]})
 master.rulers().add({'link': "cc.channel.staff", 'position': [0, 0], 'lines': [3]})
 master.rulers().add({'link': "cc.value.auto", 'position': [3, 0], 'lines': [0]})
@@ -84,6 +84,7 @@ master.rulers().add({'link': "cc.value.auto", 'position': [5, 0], 'lines': [127]
 master.rulers().add({'link': "cc.value.auto", 'position': [8, 0], 'lines': [64]})
 
 
+stage_midi.use_resource("loop").enable_resource()
 stage_midi.print()
 
 stage_midi.json_save("stage_2.json")

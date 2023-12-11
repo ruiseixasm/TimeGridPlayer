@@ -16,15 +16,14 @@ stage_midi = STAGE_MIDI.StageMidi()
 
 
 # add a master player to stage
-master = stage_midi.add("master").set_time_signature(size_measures=4).set_tempo(126)
+master = stage_midi.add("master").set_time_signature(size_measures=4).set_tempo(126).player()
 
 
 # Midi Note
 note = stage_midi.add("note", type="Note").use_resource("loop").enable_resource().print()
 master.rulers().add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'lines': ["1/4"]})
 master.rulers().copy().move_position([1, 0]).copy().move_position([2, 0]).copy().move_position([3, 0])
-master.rulers().print().print_lines(0, 15)
-master.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': [60]}).print_lines(0, 15)
+master.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': [60]})
 master.rulers().add({'link': "note.channel", 'position': [0, 0], 'lines': [10]}).print_lines(0, 15)
 #master.staff().print()
 
