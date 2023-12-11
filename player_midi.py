@@ -30,9 +30,9 @@ class Clock(PLAYER.Player):
         def stop(self, tick = None):
             self._tick = super().stop(tick)
             if self._player.resource != None and not self._player.resource.is_none:
-                # print(f"\tclock stop")
+                # self._player.stage._play_print(f"\tclock stop\r\n", 'message')
                 self._player.resource.clockStop()
-                # print(f"\tclock position start")
+                # self._player.stage._play_print(f"\tclock position start\r\n", 'message')
                 self._player.resource.songPositionStart()
 
             return self._tick
@@ -46,10 +46,10 @@ class Clock(PLAYER.Player):
             if self._tick['pulse'] != None: # a pulse of this clock
                 if self._player.resource != None and not self._player.resource.is_none:
                     if self._next_pulse == 1:
-                        #print(f"\tclock start")
+                        #self._player.stage._play_print(f"\tclock start\r\n", 'message')
                         self._player.resource.clockStart() # WERE THE MIDI START IS SENT
                     else:
-                        #print(f"\tclock pulse")
+                        #self._player.stage._play_print(f"\tclock pulse\r\n", 'message')
                         self._player.resource.clock() # WERE THE MIDI CLOCK IS SENT
 
             return self._tick
@@ -82,7 +82,7 @@ class Note(PLAYER.Player):
         def clockedTrigger(self, triggered_action, self_merged_staff_arguments, tick):
             super().clockedTrigger(triggered_action, self_merged_staff_arguments, tick)
 
-            print(f"note OFF:\t{self._note}")
+            self._player.stage._play_print(f"note OFF:\t{self._note}\r\n", 'message')
             if self._player.resource != None and not self._player.resource.is_none:
                 self._player.resource.releaseNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
@@ -112,7 +112,7 @@ class Note(PLAYER.Player):
                 if (note_key != None):
                     self._note['key'] = note_key
 
-                    print(f"note ON:\t{self._note}")
+                    self._player.stage._play_print(f"note ON:\t{self._note}\r\n", 'message')
                     if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
@@ -150,7 +150,7 @@ class ControlChange(PLAYER.Player):
         def automationUpdater(self, tick):
             super().automationUpdater(tick)
             
-            print(f"CC Message:\tNumber: {self._number}\tValue: {self.parameters_ruler_values['value']}\tChannel: {self._channel}")
+            self._player.stage._play_print(f"CC Message:\tNumber: {self._number}\tValue: {self.parameters_ruler_values['value']}\tChannel: {self._channel}\r\n", 'message')
             if self._player.resource != None and not self._player.resource.is_none:
                 midi_value = round(self.parameters_ruler_values['value'])
                 self._player.resource.controlChange(self._number, midi_value, self._channel) # WERE THE MIDI CC IS TRIGGERED
@@ -249,7 +249,7 @@ class Retrigger(PLAYER.Player):
                         'duration': self_retrig_duration, 'action': self}, tick
                 )
             else:
-                print(f"retrigger OFF:\t{self._note}\tduration: {self._retrig_duration}")
+                self._player.stage._play_print(f"retrigger OFF:\t{self._note}\tduration: {self._retrig_duration}\r\n", 'message')
 
             self._remaining_pulses_duration -= self_retrig_duration
 
@@ -291,7 +291,7 @@ class Retrigger(PLAYER.Player):
                 if (retrig_key != None):
                     self._note['key'] = retrig_key
 
-                    print(f"retrigger ON:\t{self._note}\tduration: {self._retrig_duration}")
+                    self._player.stage._play_print(f"retrigger ON:\t{self._note}\tduration: {self._retrig_duration}\r\n", 'message')
                     if self._player.resource != None and not self._player.resource.is_none:
                         self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
                 

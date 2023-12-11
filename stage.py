@@ -34,6 +34,16 @@ class Stage:
         self._next_id = start_id
         self.current_player = 0
 
+        self._play_print_options = {
+            'staff': True,
+            'error': False,
+            'message': False
+        }
+
+    @property
+    def play_print_options(self):
+        return self._play_print_options
+            
     def __iter__(self):
         return self
     
@@ -45,6 +55,10 @@ class Stage:
         else:
             self.current_player = 0  # Reset to 0 when limit is reached
             raise StopIteration
+
+    def _play_print(self, message, type):
+        if self._play_print_options[type]:
+            print(message, end="", flush=True)
 
 # Resources Methods
 
@@ -247,7 +261,7 @@ class Stage:
             elif self._players_list[0]['enabled']:
                 self._players_list[0]['player'].play(start=start, finish=finish)
         return self
-            
+        
     def player(self, name=None, enabled=None) -> (PLAYER.Player | PLAYER.PlayerNone):
         selected_player = self.filter(names=[name], enabled=enabled)
         if selected_player.len() > 0:

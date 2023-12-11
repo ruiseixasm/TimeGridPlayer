@@ -130,6 +130,8 @@ class Player:
             self._next_clocked_pulse = -1   # next programmed pulse on clocked actions list
             self._next_clock_pulse = -1     # next expected pulse from Clock
 
+            self._delayed_pulse = False
+
             self._total_ticks = 0
             self._min_ticks = 100000 * 100000
 
@@ -278,6 +280,9 @@ class Player:
 
             if tick['pulse'] == self._next_clock_pulse: # avoids repeated processed pulses for any single pulse
 
+                if not self._delayed_pulse:
+                    self._delayed_pulse = tick['delayed']
+
                 if (self._play_pulse < self._finish_pulse): # plays staff range from start to finish
 
                     position = self._staff.position(pulses=self._play_pulse)
@@ -285,9 +290,22 @@ class Player:
                     self._total_ticks += tick['pulse_ticks']
                     self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
                     if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
-                        self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
+                        if self._player.stage.play_print_options['message']:
+                            self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
                         self._total_ticks = 0
                         self._min_ticks = 100000 * 100000
+                    if self._staff.pulseRemainders(self._play_pulse)['step'] == 0 and tick['player'] == self._player:
+                        print_symbol = "."
+                        if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
+                            print_symbol = ":"
+                        if self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
+                            print_symbol = "|"
+                        if self._delayed_pulse:
+                            print_symbol = " "
+                        if self._staff.pulseData(tick['pulse'])['measure'] % 4 == 0 and self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
+                            print_symbol = "\r\n" + print_symbol
+                        self._player.stage._play_print(print_symbol, 'staff')
+                        self._delayed_pulse = False
 
                     pulse_data = self._staff.pulse(pulse=self._play_pulse)
                     if (pulse_data['arguments']['enabled'] > 0):
@@ -483,7 +501,7 @@ class Player:
                     self._tick['delayed'] = True
                     self._tick['overhead'] = 0
                     if self._tick['delayed']:
-                        print(f"--------------------- PULSE {self._tick['pulse']} OF PLAYER {self._player}'S CLOCK WAS DELAYED! -----------------------")
+                        self._player.stage._play_print(f"--------------------- PULSE {self._tick['pulse']} OF PLAYER {self._player}'S CLOCK WAS DELAYED! -----------------------\r\n", 'error')
                     self._next_pulse_time = time.time() + self._pulse_duration
                 else:
                     self._tick['overhead'] = 1 - (time.time() - self._next_pulse_time) / self._pulse_duration

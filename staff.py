@@ -1650,6 +1650,14 @@ class Staff:
         pulse = min(len(self._staff_list) - 1, pulse)
         return self._staff_list[pulse]
 
+    def pulseData(self, pulse=0):
+        return {
+            'measure': int(pulse / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure'])),
+            'beat': int(pulse / self._time_signature['pulses_per_beat']),
+            'step': int(pulse / (self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])),
+            'pulse': pulse # by definition pulse is pulse
+        }
+    
     def pulseRemainders(self, pulse=0):
         return {
             'measure': pulse % (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']),
