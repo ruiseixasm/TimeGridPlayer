@@ -302,7 +302,7 @@ class Player:
                             print_symbol = "|"
                         if self._delayed_pulse:
                             print_symbol = " "
-                        if self._staff.pulseData(tick['pulse'])['measure'] % 4 == 0 and self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
+                        if self._staff.pulseData(self._play_pulse)['measure'] % 4 == 0 and self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
                             print_symbol = "\r\n" + print_symbol
                         self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
                         self._delayed_pulse = False
