@@ -1005,7 +1005,7 @@ class Staff:
 
                 spaces_between = 4
 
-                header_char_length = ((full_string_top_length + 3) + 5 * (total_lines + 3))
+                header_char_length = (full_string_top_length + total_lines * 4 + 34)
 
                 header_type = "  " + self.player.name + "  "
                 header_type_length = len(header_type)
