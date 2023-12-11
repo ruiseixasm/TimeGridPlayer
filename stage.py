@@ -56,9 +56,12 @@ class Stage:
             self.current_player = 0  # Reset to 0 when limit is reached
             raise StopIteration
 
-    def _play_print(self, message, type):
+    def _play_print(self, message, type, overhead = 1):
         if self._play_print_options[type]:
-            print(message, end="", flush=True)
+            if overhead > 0.75:
+                print(message, end="", flush=True)
+            else:
+                print(message, end="")
 
 # Resources Methods
 

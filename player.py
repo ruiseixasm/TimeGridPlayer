@@ -287,13 +287,13 @@ class Player:
 
                     position = self._staff.position(pulses=self._play_pulse)
 
-                    self._total_ticks += tick['pulse_ticks']
-                    self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
-                    if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
-                        if self._player.stage.play_print_options['message']:
+                    if self._player.stage.play_print_options['message']:
+                        self._total_ticks += tick['pulse_ticks']
+                        self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
+                        if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
                             self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
-                        self._total_ticks = 0
-                        self._min_ticks = 100000 * 100000
+                            self._total_ticks = 0
+                            self._min_ticks = 100000 * 100000
                     if self._staff.pulseRemainders(self._play_pulse)['step'] == 0 and tick['player'] == self._player:
                         print_symbol = "."
                         if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
@@ -304,7 +304,7 @@ class Player:
                             print_symbol = " "
                         if self._staff.pulseData(tick['pulse'])['measure'] % 4 == 0 and self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
                             print_symbol = "\r\n" + print_symbol
-                        self._player.stage._play_print(print_symbol, 'staff')
+                        self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
                         self._delayed_pulse = False
 
                     pulse_data = self._staff.pulse(pulse=self._play_pulse)
