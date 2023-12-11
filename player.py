@@ -295,6 +295,8 @@ class Player:
                             self._total_ticks = 0
                             self._min_ticks = 100000 * 100000
                     if self._staff.pulseRemainders(self._play_pulse)['step'] == 0 and tick['player'] == self._player:
+                        staff_time_signature = self._staff.time_signature()
+                        pulses_per_step = staff_time_signature['pulses_per_beat'] / staff_time_signature['steps_per_beat']
                         print_symbol = "."
                         if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
                             print_symbol = ":"
@@ -302,8 +304,9 @@ class Player:
                             print_symbol = "|"
                         if self._delayed_pulse:
                             print_symbol = " "
-                        if self._staff.pulseData(self._play_pulse)['measure'] % 4 == 0 and self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
-                            print_symbol = "\r\n" + print_symbol
+                        if (self._staff.pulseData(self._play_pulse)['measure'] + 1) % 4 == 0 \
+                            	and self._staff.pulseRemainders(self._play_pulse + pulses_per_step)['measure'] == 0:
+                            print_symbol += f" {self._staff.pulseData(self._play_pulse)['measure'] + 1}" "\r\n"
                         self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
                         self._delayed_pulse = False
 
