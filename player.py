@@ -730,7 +730,7 @@ class Player:
     def time_signature(self):
         return self._staff.time_signature()
 
-    def useInternalClock(self, internal_clock=False):
+    def internal_clock(self, internal_clock=False):
         self._internal_clock = internal_clock
 
         return self

@@ -219,15 +219,23 @@ class Staff:
                         self._last_action_duration = action_lines[action_line_index]
             return action_lines
 
-        def action_stack_position(self):
-            next_action_position_steps = 0
+        def stack_position(self, type="actions"):
+            finish_action_position_steps = 0
             for action_ruler in self.actions():
                 action_ruler_position_steps = self._staff.steps(action_ruler['position'])
                 for action_duration in action_ruler['lines']:
                     action_duration_steps = self._staff.steps([0, action_duration])
-                    next_action_position_steps = max(next_action_position_steps, action_ruler_position_steps + action_duration_steps)
+                    finish_action_position_steps = max(finish_action_position_steps, action_ruler_position_steps + action_duration_steps)
 
-            return self._staff.position(next_action_position_steps)
+            if type == "actions":
+                return self._staff.position(finish_action_position_steps)
+
+            start_argument_position_steps = finish_action_position_steps
+            for ruler_data in self:
+                action_ruler_position_steps = self._staff.steps(ruler_data['position'])
+                start_argument_position_steps = min(start_argument_position_steps, action_ruler_position_steps)
+
+            return self._staff.position(start_argument_position_steps)
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
@@ -254,7 +262,7 @@ class Staff:
                 if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
                     structured_ruler['position'] = ruler['position']
                 else:
-                    next_action_position = self.action_stack_position()
+                    next_action_position = self.stack_position(ruler_type)
                     structured_ruler['position'] = next_action_position
                 if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
                     if type(ruler['lines']) == type({}):
@@ -484,7 +492,7 @@ class Staff:
             on_staff = self.on_staff()
             on_staff.float()
             for ruler_index in range(1, self.len()):
-                self._rulers_list[ruler_index]['position'] = self._staff.addPositions(first_position, [0, ruler_index * spread_steps])
+                self._rulers_list[ruler_index]['position'] = self._staff.add_position(first_position, [0, ruler_index * spread_steps])
             on_staff.drop()
             return self
         
@@ -554,6 +562,15 @@ class Staff:
             for ruler in self._rulers_list:
                 for line_index in range(len(ruler['lines'])):
                     ruler['lines'][line_index] = function(ruler['lines'][line_index])
+
+            return self
+
+        def group(self):
+            rulers_list = self.list()
+            rulers_length = len(rulers_list)
+            if rulers_length > 0:
+                for ruler_index in range(rulers_length - 1):
+                    rulers_list[ruler_index + 1]['position'] = rulers_list[ruler_index]['position']
 
             return self
 
@@ -803,7 +820,7 @@ class Staff:
                 on_staff = self.on_staff()
                 on_staff.float()
                 for ruler in self._rulers_list:
-                    ruler['position'] = self._staff.addPositions(ruler['position'], [0, move_steps])
+                    ruler['position'] = self._staff.add_position(ruler['position'], [0, move_steps])
                 on_staff.drop()
 
             return self
@@ -824,7 +841,7 @@ class Staff:
         def on_staff(self):
             return self.filter(on_staff=True)
 
-        def print(self):
+        def print(self, format_in_steps=None):
             
             header_char = "'"
             if len(self._rulers_list) > 0:
@@ -905,7 +922,7 @@ class Staff:
                 print(header_char * 7)
             return self
 
-        def print_lines(self, first_line=None, last_line=None):
+        def print_lines(self, first_line=None, last_line=None, format_in_steps=None):
             
             header_char = "-"
             rulers_size = self.len()
@@ -1316,6 +1333,29 @@ class Staff:
 
             return self
 
+        def stack(self, slack=0):
+            slack = LINES_SCALES.note_to_steps(slack)
+            actions_rulers_list = self.actions().list()
+            actions_rulers_length = len(actions_rulers_list)
+            if actions_rulers_length > 0:
+                actions_stack_position = actions_rulers_list[0]['position']
+                for actions_ruler_index in range(actions_rulers_length - 1):
+                    actions_ruler_start_position = actions_rulers_list[actions_ruler_index]['position']
+                    actions_ruler_duration_steps = 0
+                    for line_duration in actions_rulers_list[actions_ruler_index]['lines']:
+                        line_duration_steps = LINES_SCALES.note_to_steps(line_duration)
+                        actions_ruler_duration_steps = max(actions_ruler_duration_steps, line_duration_steps)
+                    actions_ruler_finish_position = self._staff.add_position(actions_ruler_start_position, [0, actions_ruler_duration_steps])
+                    actions_ruler_next_position = self._staff.add_position(actions_ruler_finish_position, [0, slack])
+
+                    actions_rulers_list[actions_ruler_index + 1]['position'] = actions_ruler_next_position
+
+                arguments_start_position = self._staff.add_position(actions_stack_position, [0, slack])
+                for arguments_ruler_data in self.arguments():
+                    arguments_ruler_data['position'] = arguments_start_position
+
+            return self
+
         def tail(self, elements=1):
             tail_rulers_list = self._rulers_list[-elements:]
             return Staff.Rulers(self._staff, tail_rulers_list, self._root_self, self._next_id, self._last_action_duration)
@@ -1411,11 +1451,12 @@ class Staff:
         
         return self._setTopLengths_Sums()
     
-    def addPositions(self, position_1=[0, 0], position_2=[0, 0]):
-
-        steps_1 = self.steps(position_1)
-        steps_2 = self.steps(position_2)
-        total_steps = steps_1 + steps_2
+    def add_position(self, left_position=[0, 0], right_position=[0, 0]):
+        left_position[1] = LINES_SCALES.note_to_steps(left_position[1])
+        right_position[1] = LINES_SCALES.note_to_steps(right_position[1])
+        left_position_steps = self.steps(left_position)
+        right_position_steps = self.steps(right_position)
+        total_steps = left_position_steps + right_position_steps
         
         return self.position(steps=total_steps)
 
