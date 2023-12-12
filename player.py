@@ -304,13 +304,13 @@ class Player:
                             print_symbol = "|"
                         if self._delayed_pulse:
                             print_symbol = " "
-                        if (self._staff.pulseData(self._play_pulse)['measure'] + 1) % 4 == 0 \
+                        if (self._staff.pulse_divisions(self._play_pulse)['measure'] + 1) % 4 == 0 \
                             	and self._staff.pulseRemainders(self._play_pulse + pulses_per_step)['measure'] == 0:
-                            print_symbol += f" {self._staff.pulseData(self._play_pulse)['measure'] + 1}" "\r\n"
+                            print_symbol += f" {self._staff.pulse_divisions(self._play_pulse)['measure'] + 1}" "\r\n"
                         self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
                         self._delayed_pulse = False
 
-                    pulse_data = self._staff.pulse(pulse=self._play_pulse)
+                    pulse_data = self._staff.pulse_data(pulse=self._play_pulse)
                     if (pulse_data['arguments']['enabled'] > 0):
                         
                         # FEED AUTOMATIONS HERE (NEED EXISTENT ACTIONS)

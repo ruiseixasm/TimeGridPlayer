@@ -46,8 +46,10 @@ class Staff:
             if rulers_list != None:
                 self._rulers_list = rulers_list
             self._root_self = self
+            self._recall_self = self
             if root_self != None:
                 self._root_self = root_self # type Rulers
+                self._root_self._recall_self = self
 
             self._next_id = start_id
             self._last_action_duration = last_action_duration # steps
@@ -319,6 +321,9 @@ class Staff:
         def arguments(self):
             return self.type(type="arguments")
 
+        def beats(self, *beats):
+            return self.filter(beats=beats)
+
         def clone(self):
             type_rulers = [ self.type("arguments"), self.type("actions") ]
             on_staff = self.on_staff()
@@ -497,7 +502,7 @@ class Staff:
             on_staff.drop()
             return self
         
-        def filter(self, ids = [], type = None, links = [], positions = [], position_range = [], lines = [], enabled = None, on_staff = None, player=None):
+        def filter(self, ids=[], type=None, links=[], positions=[], position_range=[], lines=[], measures=[], beats=[], steps=[], enabled=None, on_staff=None, player=None):
 
             filtered_rulers = self._rulers_list.copy()
 
@@ -534,6 +539,20 @@ class Staff:
             if (len(lines) > 0 and lines != [None]):
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers if ruler['offset'] in lines
+                ]
+            if (len(measures) > 0 and measures != [None]):
+                filtered_rulers = [
+                    ruler for ruler in filtered_rulers if ruler['position'][0] in measures
+                ]
+            if (len(beats) > 0 and beats != [None]):
+                filtered_rulers = [
+                    ruler for ruler in filtered_rulers \
+                        if self._staff.step_divisions(self._staff.steps(ruler['position']))['beat'] in beats
+                ]
+            if (len(steps) > 0 and steps != [None]):
+                filtered_rulers = [
+                    ruler for ruler in filtered_rulers \
+                        if self._staff.step_divisions(self._staff.steps(ruler['position']))['step'] in steps
                 ]
             if (enabled != None):
                 filtered_rulers = [
@@ -670,10 +689,10 @@ class Staff:
                 total_lines += len(ruler['lines'])
             return total_lines
         
-        def line(self, line):
-            return self.filter(lines=[line])
+        def lines(self, *lines):
+            return self.filter(lines=lines)
 
-        def lines(self, index=0):
+        def lines_data(self, index=0):
             single_ruler = self.single(index)
             lines = {}
             if single_ruler.len() > 0:
@@ -733,6 +752,9 @@ class Staff:
                 all_lines.append(ruler['lines'])
             return all_lines
         
+        def measures(self, *measures):
+            return self.filter(measures=measures)
+
         def merge(self, merge_none=False):
 
             type_links = [] # merge agregates rulers by type and link
@@ -831,7 +853,7 @@ class Staff:
 
         def offset_lines(self, offset=0):
             for ruler in self._rulers_list:
-                ruler['offset'] = offset
+                ruler['offset'] += offset
 
             return self
 
@@ -1091,6 +1113,9 @@ class Staff:
                 print("[EMPTY]")
                 print(header_char * 7)
             return self
+
+        def recall(self):
+            return self._root_self._recall_self
 
         def remove(self):
             self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
@@ -1356,6 +1381,9 @@ class Staff:
 
             return self
 
+        def steps(self, *steps):
+            return self.filter(steps=steps)
+
         def tail(self, elements=1):
             tail_rulers_list = self._rulers_list[-elements:]
             return Staff.Rulers(self._staff, tail_rulers_list, self._root_self, self._next_id, self._last_action_duration)
@@ -1489,7 +1517,7 @@ class Staff:
                 ]
         else:
             if pulse != None:
-                filtered_list = [ self.pulse(pulse) ]
+                filtered_list = [ self.pulse_data(pulse) ]
             else:
                 filtered_list = self._staff_list[:]
 
@@ -1646,15 +1674,16 @@ class Staff:
 
         return self
 
-    def pulse(self, pulse):
+    def pulse_data(self, pulse):
         pulse = min(len(self._staff_list) - 1, pulse)
         return self._staff_list[pulse]
 
-    def pulseData(self, pulse=0):
+    def pulse_divisions(self, pulse=0):
         return {
             'measure': int(pulse / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure'])),
-            'beat': int(pulse / self._time_signature['pulses_per_beat']),
-            'step': int(pulse / (self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])),
+            'beat': int(pulse / self._time_signature['pulses_per_beat']) % self._time_signature['beats_per_measure'],
+            'step': int(pulse / (self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])) \
+                % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']),
             'pulse': pulse # by definition pulse is pulse
         }
     
@@ -1778,6 +1807,13 @@ class Staff:
         self._rulers = rulers
         return self
 
+    def step_divisions(self, step=0):
+        return {
+            'measure': int(step / (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])),
+            'beat': int(step / self._time_signature['steps_per_beat']) % self._time_signature['beats_per_measure'],
+            'step': step % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])
+        }
+    
     def steps(self, position=[0, 0]): # position: [measure, step]
         position[1] = LINES_SCALES.note_to_steps(position[1])
         return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['steps_per_beat'] + position[1]

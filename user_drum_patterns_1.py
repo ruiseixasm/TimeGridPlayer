@@ -24,13 +24,15 @@ note = stage_midi.add("note", type="Note").use_resource("loop").enable_resource(
 master.rulers().add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'lines': ["1/4"]})
 master.rulers().copy().move_position([1, 0]).copy().move_position([2, 0]).copy().move_position([3, 0])
 master.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': [60]})
-master.rulers().add({'link': "note.channel", 'position': [0, 0], 'lines': [10]}).print_lines(0, 15)
+master.rulers().add({'link': "note.channel", 'position': [0, 0], 'lines': [10]}).print().print_lines(0, 15)
+master.rulers().recall().copy().print().offset_lines(1).print().root().print().lines(1,2).print()
+master.rulers().print().measures(0).print().root().print().beats(1).print().root().print().steps(8).print()
 #master.staff().print()
 
 key_ruler = master.rulers().link_find("key")
 
-for note in range(27, 88):
-    key_ruler.set_lines([note]).print_lines()
-    master.play()
+# for note in range(27, 88):
+#     key_ruler.set_lines([note]).print_lines()
+#     master.play()
 
 stage_midi.print()
