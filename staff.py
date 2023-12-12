@@ -1399,6 +1399,26 @@ class Staff:
 
             return Staff.Rulers(self._staff, unique_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
+        def zone_dictionary(positions=[], position_range=[], lines=[], measures=[], beats=[], steps=[]):
+            return {
+                'positions': positions,
+                'position_range': position_range,
+                'lines': lines,
+                'measures': measures,
+                'beats': beats,
+                'steps': steps
+            }
+        
+        def zone(self, zone_dictionary):
+            return self.filter(
+                positions=zone_dictionary['positions'],
+                position_range=zone_dictionary['position_range'],
+                lines=zone_dictionary['lines'],
+                measures=zone_dictionary['measures'],
+                beats=zone_dictionary['beats'],
+                steps=zone_dictionary['steps']
+            )
+
     class RulersNone(Rulers):
 
         def __init__(self, staff):

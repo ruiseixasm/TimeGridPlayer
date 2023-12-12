@@ -129,6 +129,7 @@ class Player:
             self._clocked_actions = []      # clocked actions list
             self._next_clocked_pulse = -1   # next programmed pulse on clocked actions list
             self._next_clock_pulse = -1     # next expected pulse from Clock
+            self._repeat_action = 0
 
             self._delayed_pulse = False
 
@@ -290,11 +291,11 @@ class Player:
                     if self._player.stage.play_print_options['message']:
                         self._total_ticks += tick['pulse_ticks']
                         self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
-                        if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0 and tick['player'] == self._player:
+                        if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
                             self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
                             self._total_ticks = 0
                             self._min_ticks = 100000 * 100000
-                    if self._staff.pulseRemainders(self._play_pulse)['step'] == 0 and tick['player'] == self._player:
+                    if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['step'] == 0:
                         staff_time_signature = self._staff.time_signature()
                         pulses_per_step = staff_time_signature['pulses_per_beat'] / staff_time_signature['steps_per_beat']
                         print_symbol = "."
@@ -346,8 +347,11 @@ class Player:
                     self._play_pulse += 1
 
                 elif self.pulseSetAutomationsCleaner() and len(self._clocked_actions) == 0:
-                    self._play_mode = False
                     self._play_pulse = self._start_pulse
+                    if self._repeat_action == 0:
+                        self._play_mode = False
+                    else:
+                        self._repeat_action -= 1
 
                 self._next_clock_pulse += 1
 
@@ -388,7 +392,11 @@ class Player:
             self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
             self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
             self._clock_trigger_steps_per_beat_ratio = self._clock_steps_per_beat / self._trigger_steps_per_beat
-                      
+
+            repeat_action = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "repeat")
+            if (repeat_action != None and self._repeat_action == 0):
+                self._repeat_action = repeat_action
+
     class Clock():
         def __init__(self, player):
             self._player = player
@@ -770,6 +778,8 @@ class Player:
     def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         if self.enabled and staff.player.enabled:
             player_action = self.actionFactoryMethod(triggered_action, self_merged_staff_arguments, staff, tick) # Factory Method Pattern
+            # apply existing automations, overriding the action defaults if automated or set
+            player_action.automationUpdater(tick)
             if player_action not in self._actions:
                 self._actions.append(player_action)
             else:
@@ -777,8 +787,6 @@ class Player:
             player_action.external_arguments_rulers = self_merged_staff_arguments
             player_action.actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
             player_action.pulseStaffAction(tick, first_pulse=True) # first pulse on Action, has to be processed
-            # apply existing automations, overriding the action defaults if automated or set
-            player_action.automationUpdater(tick)
 
         return self
 
@@ -787,7 +795,7 @@ class Player:
         trigger_player_set_automation = {
                 'trigger_player': staff.player,
                 'set_auto_ruler_values': {},
-                'parameters_ruler_values': {},
+                'parameters_ruler_values': {}
             }
 
         new_trigger_player_set_automation = True
@@ -820,7 +828,7 @@ class Player:
 
     def playerAutomationCleaner(self, tick):
 
-        if tick['overhead'] > 0.5: # avoids unecessary delays
+        if tick['overhead'] > 0.7: # avoids unecessary delays
 
             for set_automation in self.set_auto_parameter_values.copy():
 
