@@ -864,6 +864,39 @@ class Staff:
         def on_staff(self):
             return self.filter(on_staff=True)
 
+        def populate(self, ruler, populating_length=16):
+
+            link_list = ruler['link'].split(".")
+            ruler_type = "arguments"
+            if len(link_list) == 1:
+                ruler_type = "actions"
+
+            if ruler_type == "arguments":
+                return self.add(ruler)
+
+            ruler['lines'] = self.action_lines_duration_validator(ruler['lines'])
+
+            ruler_duration = 0
+            if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
+                
+                for ruler_line_duration in ruler['lines']:
+                    ruler_duration = max(ruler_duration, ruler_line_duration)
+
+            else:
+                ruler_duration = self._last_action_duration
+
+            populating_length_steps = LINES_SCALES.note_to_steps(populating_length)
+            ruler_duration_steps = LINES_SCALES.note_to_steps(ruler_duration)
+
+            total_rulers = int(ruler_duration_steps / populating_length_steps)
+
+            for _ in range(total_rulers):
+                ruler_copy = ruler.copy()
+                ruler_copy['lines'] = ruler['lines'].copy()
+                self.add(ruler_copy)
+
+            return self
+
         def print(self, note_notation=None):
             
             header_char = "'"
