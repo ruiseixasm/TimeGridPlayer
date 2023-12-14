@@ -585,6 +585,34 @@ class Staff:
 
             return self
 
+        def get_finish_position(self):
+
+            finish_position_steps = 0
+            for ruler_data in self._rulers_list:
+                ruler_start_position_steps = LINES_SCALES.note_to_steps(ruler_data['position'])
+                if ruler_data['type'] == "arguments":
+                    finish_position_steps = max(finish_position_steps, ruler_start_position_steps)
+                else:
+                    ruler_duration_steps = 0
+                    for line_data in ruler_data['lines']:
+                        line_duration_steps = LINES_SCALES.note_to_steps(line_data)
+                        ruler_duration_steps = max(ruler_duration_steps, line_duration_steps)
+                    ruler_finish_position_steps = ruler_start_position_steps + ruler_duration_steps
+                    finish_position_steps = max(finish_position_steps, ruler_finish_position_steps)
+                
+            return self._staff.position(finish_position_steps)
+
+        def get_start_position(self):
+
+            if self.len() > 0:
+                start_position_steps = LINES_SCALES.note_to_steps(self._rulers_list[0]['position'])
+                for ruler_data in self._rulers_list:
+                    start_position_steps = min(start_position_steps, LINES_SCALES.note_to_steps(ruler_data['position']))
+                
+                return self._staff.position(start_position_steps)
+
+            return [0, 0]
+
         def group(self):
             rulers_list = self.list()
             rulers_length = len(rulers_list)
@@ -880,7 +908,8 @@ class Staff:
             if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
                 
                 for ruler_line_duration in ruler['lines']:
-                    ruler_duration = max(ruler_duration, ruler_line_duration)
+                    ruler_line_duration_steps = LINES_SCALES.note_to_steps(ruler_line_duration)
+                    ruler_duration = max(ruler_duration, ruler_line_duration_steps)
 
             else:
                 ruler_duration = self._last_action_duration
@@ -888,7 +917,7 @@ class Staff:
             populating_length_steps = LINES_SCALES.note_to_steps(populating_length)
             ruler_duration_steps = LINES_SCALES.note_to_steps(ruler_duration)
 
-            total_rulers = int(ruler_duration_steps / populating_length_steps)
+            total_rulers = int(populating_length_steps / ruler_duration_steps)
 
             for _ in range(total_rulers):
                 ruler_copy = ruler.copy()
@@ -1149,6 +1178,16 @@ class Staff:
 
         def recall(self):
             return self._root_self._recall_self
+
+        def repeat(self, times=3):
+
+            repeated_self = self
+            for _ in range(times):
+                repeated_self_finish_position = repeated_self.get_finish_position()
+                copy_self = repeated_self.copy()
+                repeated_self = copy_self.set_position(repeated_self_finish_position)
+
+            return self
 
         def remove(self):
             self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
