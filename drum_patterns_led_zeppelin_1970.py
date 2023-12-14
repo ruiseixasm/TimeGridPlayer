@@ -15,7 +15,7 @@ import lines_scales as LINES_SCALES
 stage_midi = STAGE_MIDI.StageMidi()
 
 # add a master player to stage
-master = stage_midi.add("master").last().set_time_signature(size_measures=16).set_tempo(85).player()
+master = stage_midi.add("master").last().set_time_signature(size_measures=16).set_tempo(80).player()
 drum_pattern_1 = stage_midi.add("drum_pattern_1").last().set_time_signature(size_measures=1).player()
 
 # Midi Note

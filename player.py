@@ -344,7 +344,7 @@ class Player:
                         if (self._staff.pulse_divisions(self._play_pulse)['measure'] + 1) % 4 == 0 \
                             	and self._staff.pulseRemainders(self._play_pulse + pulses_per_step)['measure'] == 0:
                             print_symbol += f" {self._staff.pulse_divisions(self._play_pulse)['measure'] + 1}" "\r\n"
-                        self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
+                        self._player.stage._play_print(print_symbol, 'staff', tick['clock'].remaining_pulse_ratio())
                         self._delayed_pulse = False
 
                     self._play_pulse += 1
@@ -449,6 +449,11 @@ class Player:
                 json.dump(clock, outfile)
 
             return self
+
+        def remaining_pulse_ratio(self):
+            actual_time = time.time()
+            remaining_duration = self._next_pulse_time - actual_time
+            return remaining_duration / self._pulse_duration
 
         def set(self, beats_per_minute=None, steps_per_beat=None, pulses_per_quarter_note=None):
 
@@ -835,7 +840,7 @@ class Player:
 
     def playerAutomationCleaner(self, tick):
 
-        if tick['overhead'] > 0.7: # avoids unecessary delays
+        if tick['clock'].remaining_pulse_ratio() > 0.7: # avoids unecessary delays
 
             for set_automation in self.set_auto_parameter_values.copy():
 
