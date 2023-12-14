@@ -1829,6 +1829,8 @@ class Staff:
 
     def set(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
 
+        self._rulers.float() # starts by floating all Rulers (makes on_staff = False)
+
         if self._time_signature == {}:
             self._time_signature['size_measures'] = size_measures
             if size_measures == None:
@@ -1858,7 +1860,6 @@ class Staff:
         self._total_pulses = self._time_signature['size_measures'] * \
             self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
 
-        self._rulers.float() # starts by floating all Rulers
         self._staff_list = []
         for pulse in range(self._total_pulses):
             staff_pulse = {

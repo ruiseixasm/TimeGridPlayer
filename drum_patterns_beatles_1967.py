@@ -15,7 +15,7 @@ import lines_scales as LINES_SCALES
 stage_midi = STAGE_MIDI.StageMidi()
 
 # add a master player to stage
-master = stage_midi.add("master").last().set_time_signature(size_measures=4).set_tempo(124).player()
+master = stage_midi.add("master").last().set_time_signature(size_measures=16).set_tempo(124).player()
 drum_pattern_1 = stage_midi.add("drum_pattern_1").last().set_time_signature(size_measures=1).player()
 
 # Midi Note
@@ -26,11 +26,11 @@ drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'position': [0, 4], 'li
 drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"], 'offset': 2}).copy().set_position([0, 8]).copy().set_position([0, 10])
 drum_pattern_1.rulers().print().print_lines()
 
-master.rulers().add({'link': "drum_pattern_1.repeat", 'lines': [2]}).add({'link': "drum_pattern_1"}).print_lines()
+master.rulers().add({'link': "drum_pattern_1.repeat", 'lines': [16]}).add({'link': "drum_pattern_1"}).print_lines()
 
-master.staff().print()
+# master.staff().print()
 
-# stage_midi.set_time_signature(pulses_per_quarter_note=48)
+stage_midi.set_time_signature(pulses_per_quarter_note=48)
 
 # master.staff().print()
 
