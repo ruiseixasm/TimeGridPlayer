@@ -291,29 +291,6 @@ class Player:
 
                     position = self._staff.position(pulses=self._play_pulse)
 
-                    if self._player.stage.play_print_options['message']:
-                        self._total_ticks += tick['pulse_ticks']
-                        self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
-                        if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
-                            self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
-                            self._total_ticks = 0
-                            self._min_ticks = 100000 * 100000
-                    if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['step'] == 0:
-                        staff_time_signature = self._staff.time_signature()
-                        pulses_per_step = staff_time_signature['pulses_per_beat'] / staff_time_signature['steps_per_beat']
-                        print_symbol = "."
-                        if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
-                            print_symbol = ":"
-                        if self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
-                            print_symbol = "|"
-                        if self._delayed_pulse:
-                            print_symbol = " "
-                        if (self._staff.pulse_divisions(self._play_pulse)['measure'] + 1) % 4 == 0 \
-                            	and self._staff.pulseRemainders(self._play_pulse + pulses_per_step)['measure'] == 0:
-                            print_symbol += f" {self._staff.pulse_divisions(self._play_pulse)['measure'] + 1}" "\r\n"
-                        self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
-                        self._delayed_pulse = False
-
                     pulse_data = self._staff.pulse_data(pulse=self._play_pulse)
                     if (pulse_data['arguments']['enabled'] > 0):
                         
@@ -346,6 +323,29 @@ class Player:
                                             arguments_ruler['line'] = None # in case key line is out of range of the triggered action line
 
                                     triggered_action['player'].playerActionTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
+
+                    if self._player.stage.play_print_options['message']:
+                        self._total_ticks += tick['pulse_ticks']
+                        self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
+                        if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
+                            self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
+                            self._total_ticks = 0
+                            self._min_ticks = 100000 * 100000
+                    if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['step'] == 0:
+                        staff_time_signature = self._staff.time_signature()
+                        pulses_per_step = staff_time_signature['pulses_per_beat'] / staff_time_signature['steps_per_beat']
+                        print_symbol = "."
+                        if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
+                            print_symbol = ":"
+                        if self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
+                            print_symbol = "|"
+                        if self._delayed_pulse:
+                            print_symbol = " "
+                        if (self._staff.pulse_divisions(self._play_pulse)['measure'] + 1) % 4 == 0 \
+                            	and self._staff.pulseRemainders(self._play_pulse + pulses_per_step)['measure'] == 0:
+                            print_symbol += f" {self._staff.pulse_divisions(self._play_pulse)['measure'] + 1}" "\r\n"
+                        self._player.stage._play_print(print_symbol, 'staff', tick['overhead'])
+                        self._delayed_pulse = False
 
                     self._play_pulse += 1
 
