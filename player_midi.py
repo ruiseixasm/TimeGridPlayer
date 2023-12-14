@@ -124,7 +124,7 @@ class Note(PLAYER.Player):
                     )
     
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
-        return Note.Action(self, staff.player)
+        return Note.Action(self, staff)
         
 class ControlChange(PLAYER.Player):
     
@@ -186,7 +186,7 @@ class ControlChange(PLAYER.Player):
                 return triggering_staff['action']
         new_triggering_staff = {
             'staff': staff,
-            'action': ControlChange.Action(self, staff.player)
+            'action': ControlChange.Action(self, staff)
         }
         self._triggering_staffs.append(new_triggering_staff)
         return new_triggering_staff['action']
@@ -308,7 +308,7 @@ class Retrigger(PLAYER.Player):
                     self._remaining_pulses_duration -= self_retrig_duration
 
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
-        return Retrigger.Action(self, staff.player)
+        return Retrigger.Action(self, staff)
 
     def string_to_value_converter(self, original_value, parameter):
         converted_value = super().string_to_value_converter(original_value, parameter)
@@ -513,7 +513,7 @@ class Arpeggiator(PLAYER.Player):
                 return triggering_staff['action']
         new_triggering_staff = {
             'staff': staff,
-            'action': Arpeggiator.Action(self, staff.player)
+            'action': Arpeggiator.Action(self, staff)
         }
         self._triggering_staffs.append(new_triggering_staff)
         return new_triggering_staff['action']

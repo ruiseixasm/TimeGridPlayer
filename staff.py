@@ -273,8 +273,8 @@ class Staff:
                         structured_ruler['offset'] = ruler['lines']['offset']
                     else:
                         structured_ruler['lines'] = ruler['lines']
-                    if structured_ruler['type'] == "actions":
-                        structured_ruler['lines'] = self.action_lines_duration_validator(structured_ruler['lines'])
+                if structured_ruler['type'] == "actions":
+                    structured_ruler['lines'] = self.action_lines_duration_validator(structured_ruler['lines'])
                 if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
                     structured_ruler['offset'] = ruler['offset']
                 if (structured_ruler['offset'] == None):

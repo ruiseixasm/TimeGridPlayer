@@ -112,11 +112,12 @@ class Player:
 
     class Action():
 
-        def __init__(self, player, trigger_player):
+        def __init__(self, player, trigger_staff):
 
             self._player = player
             self._staff = self._player.getStaff()
-            self._trigger_player = trigger_player
+            self._trigger_player = trigger_staff.player
+            self._trigger_staff = trigger_staff
 
             self._internal_arguments_rulers = self._player.rulers().empty()
             self._external_arguments_rulers = self._player.rulers().empty()
@@ -129,6 +130,8 @@ class Player:
             self._clocked_actions = []      # clocked actions list
             self._next_clocked_pulse = -1   # next programmed pulse on clocked actions list
             self._next_clock_pulse = -1     # next expected pulse from Clock
+
+            self._last_trigger_action = None
             self._repeat_action = 0
 
             self._delayed_pulse = False
@@ -351,6 +354,8 @@ class Player:
                     if self._repeat_action == 0:
                         self._play_mode = False
                     else:
+                        self.actionTrigger(self._last_trigger_action, self._external_arguments_rulers, self._trigger_staff, tick)
+                        self.pulseStaffAction(tick, first_pulse=True) # first pulse on Action, has to be processed
                         self._repeat_action -= 1
 
                 self._next_clock_pulse += 1
@@ -388,6 +393,8 @@ class Player:
             pass
                  
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
+
+            self._last_trigger_action = triggered_action
             self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
             self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
             self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
@@ -773,7 +780,7 @@ class Player:
             return original_value
 
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick): # Factory Method Pattern
-        return self.Action(self, staff.player) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
+        return self.Action(self, staff) # self. and not Player. because the derived Player class has its own Action (Extended one) !! (DYNAMIC)
 
     def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         if self.enabled and staff.player.enabled:
@@ -857,8 +864,8 @@ class Trigger(Player):
         
     class Action(Player.Action):
         
-        def __init__(self, player, trigger_player):
-            super().__init__(player, trigger_player) # not self init
+        def __init__(self, player, trigger_staff):
+            super().__init__(player, trigger_staff) # not self init
 
         ### ACTION ACTIONS ###
 
