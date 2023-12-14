@@ -589,7 +589,7 @@ class Staff:
 
             finish_position_steps = 0
             for ruler_data in self._rulers_list:
-                ruler_start_position_steps = LINES_SCALES.note_to_steps(ruler_data['position'])
+                ruler_start_position_steps = self._staff.steps(ruler_data['position'])
                 if ruler_data['type'] == "arguments":
                     finish_position_steps = max(finish_position_steps, ruler_start_position_steps)
                 else:
@@ -605,9 +605,9 @@ class Staff:
         def get_start_position(self):
 
             if self.len() > 0:
-                start_position_steps = LINES_SCALES.note_to_steps(self._rulers_list[0]['position'])
+                start_position_steps = self._staff.steps(self._rulers_list[0]['position'])
                 for ruler_data in self._rulers_list:
-                    start_position_steps = min(start_position_steps, LINES_SCALES.note_to_steps(ruler_data['position']))
+                    start_position_steps = min(start_position_steps, self._staff.steps(ruler_data['position']))
                 
                 return self._staff.position(start_position_steps)
 
