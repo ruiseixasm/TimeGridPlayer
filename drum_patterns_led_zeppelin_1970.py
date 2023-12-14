@@ -21,7 +21,7 @@ drum_pattern_1 = stage_midi.add("drum_pattern_1").last().set_time_signature(size
 # Midi Note
 drum_kit = stage_midi.add("drum_kit", type="Note").use_resource("loop").enable_resource().print()
 drum_pattern_1.rulers().add({'link': "drum_kit.key", 'lines': [42, 38, 35]}).add({'link': "drum_kit.channel.staff", 'lines': [10]}).print_lines()
-drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/8"]}).repeat(7).set_lines(["1/16"]).print_lines()
+drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"]}).repeat(7, "1/8").print_lines()
 drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'position': [0, 4], 'lines': ["1/16"], 'offset': 1}).copy().set_position([0, 12])
 drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"], 'offset': 2})\
     .copy().set_position([0, 7]).copy().set_position([0, 10]).copy().set_position([0, 11])

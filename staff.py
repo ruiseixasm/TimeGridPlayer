@@ -1179,19 +1179,22 @@ class Staff:
         def recall(self):
             return self._root_self._recall_self
 
-        def repeat(self, times=3):
+        def repeat(self, times=3, span=None):
 
             repeated_self = self
             for _ in range(times):
-                repeated_self_finish_position = repeated_self.get_finish_position()
-                repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
                 copy_self = repeated_self.copy()
-                copy_self_start_position = copy_self.get_start_position()
-                copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
-                slide_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
+                if span == None:
+                    repeated_self_finish_position = repeated_self.get_finish_position()
+                    repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
+                    copy_self_start_position = copy_self.get_start_position()
+                    copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
+                    span_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
+                else:
+                    span_position_steps = LINES_SCALES.note_to_steps(span)
                 for copy_self_ruler in copy_self:
                     copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
-                    copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + slide_position_steps)
+                    copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + span_position_steps)
                 repeated_self = copy_self
                 self += repeated_self
 
