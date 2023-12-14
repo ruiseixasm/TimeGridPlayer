@@ -1184,8 +1184,15 @@ class Staff:
             repeated_self = self
             for _ in range(times):
                 repeated_self_finish_position = repeated_self.get_finish_position()
+                repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
                 copy_self = repeated_self.copy()
-                repeated_self = copy_self.set_position(repeated_self_finish_position)
+                copy_self_start_position = copy_self.get_start_position()
+                copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
+                slide_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
+                for copy_self_ruler in copy_self:
+                    copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
+                    copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + slide_position_steps)
+                repeated_self = copy_self
                 self += repeated_self
 
             return self
@@ -1360,16 +1367,15 @@ class Staff:
         def slide_position(self, distance_steps=4):
             if distance_steps != 0:
 
-                distance_pulses = self._staff.pulses([0, distance_steps])
-                if distance_pulses > 0:
-                    last_position_pulses = self._staff.len() - 1
+                if distance_steps > 0:
+                    last_position_steps = self._staff.len() - 1
                     for ruler in self._rulers_list:
-                        ruler_position_pulses = self._staff.pulses(ruler['position'])
-                        distance_pulses = min(distance_pulses, last_position_pulses - ruler_position_pulses)
-                elif distance_pulses < 0:
+                        ruler_position_steps = self._staff.steps(ruler['position'])
+                        distance_steps = min(distance_steps, last_position_steps - ruler_position_steps)
+                elif distance_steps < 0:
                     for ruler in self._rulers_list:
-                        ruler_position_pulses = -self._staff.pulses(ruler['position'])
-                        distance_pulses = max(distance_pulses, ruler_position_pulses)
+                        ruler_position_steps = -self._staff.steps(ruler['position'])
+                        distance_steps = max(distance_steps, ruler_position_steps)
                 else:
                     return self
                 
@@ -1377,8 +1383,8 @@ class Staff:
                 on_staff.float()
 
                 for ruler in self._rulers_list:
-                    new_position_pulses = self._staff.pulses(ruler['position']) + distance_pulses # always positive
-                    ruler['position'] = self._staff.position(pulses=new_position_pulses)
+                    new_position_steps = self._staff.steps(ruler['position']) + distance_steps # always positive
+                    ruler['position'] = self._staff.position(steps=new_position_steps)
 
                 on_staff.drop()
 
