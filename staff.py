@@ -1186,6 +1186,7 @@ class Staff:
                 repeated_self_finish_position = repeated_self.get_finish_position()
                 copy_self = repeated_self.copy()
                 repeated_self = copy_self.set_position(repeated_self_finish_position)
+                self += repeated_self
 
             return self
 
