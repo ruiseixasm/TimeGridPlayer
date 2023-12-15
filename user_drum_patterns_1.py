@@ -25,7 +25,7 @@ master.rulers().add({'link': "note", 'lines': ["1/4"]}).add({'link': "note", 'li
 master.rulers().copy().move_position([1, 0]).copy().move_position([2, 0]).copy().move_position([3, 0])
 master.rulers().add({'link': "note.key", 'position': [0, 0], 'lines': [60]})
 master.rulers().add({'link': "note.channel", 'position': [0, 0], 'lines': [10]}).print().print_lines(0, 15)
-master.rulers().recall().copy().print().offset_lines(1).print().root().print().lines(1,5).print()
+master.rulers().recall().copy().print().offset(1).print().root().print().lines(1,5).print()
 master.rulers().print().measures(0).print().root().print().beats(1).print().root().print().steps(8, 9, 12, 14).print()
 #master.staff().print()
 

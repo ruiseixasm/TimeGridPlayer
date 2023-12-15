@@ -242,51 +242,55 @@ class Staff:
 
         def add(self, ruler): # Must be able to remove removed rulers from the main list
             
-            if not self.is_none and ruler != None and len(ruler) > 0 and 'link' in ruler and ruler['link'] != None:
+            if ruler.__class__ == self.__class__:
+                for ruler_data in ruler:
+                    self.add(ruler_data)
+            else:
+                if not self.is_none and ruler != None and len(ruler) > 0 and 'link' in ruler and ruler['link'] != None:
 
-                link_list = ruler['link'].split(".")
-                ruler_type = "arguments"
-                if len(link_list) == 1:
-                    ruler_type = "actions"
+                    link_list = ruler['link'].split(".")
+                    ruler_type = "arguments"
+                    if len(link_list) == 1:
+                        ruler_type = "actions"
 
-                structured_ruler = {
-                    'id': self._root_self._next_id,
-                    'type': ruler_type,
-                    'link': ruler['link'],
-                    'position': [0, 0],
-                    'lines': [],
-                    'offset': None,
-                    'enabled': True,
-                    'on_staff': False, # at the beginning it's not on the Staff
-                    'player': None
-                }
-                self._root_self._next_id += 1
+                    structured_ruler = {
+                        'id': self._root_self._next_id,
+                        'type': ruler_type,
+                        'link': ruler['link'],
+                        'position': [0, 0],
+                        'lines': [],
+                        'offset': None,
+                        'enabled': True,
+                        'on_staff': False, # at the beginning it's not on the Staff
+                        'player': None
+                    }
+                    self._root_self._next_id += 1
 
-                if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
-                    structured_ruler['position'] = ruler['position']
-                else:
-                    next_action_position = self.stack_position(ruler_type)
-                    structured_ruler['position'] = next_action_position
-                if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
-                    if type(ruler['lines']) == type({}):
-                        structured_ruler['lines'] = ruler['lines']['lines']
-                        structured_ruler['offset'] = ruler['lines']['offset']
+                    if 'position' in ruler and ruler['position'] != None and len(ruler['position']) == 2:
+                        structured_ruler['position'] = ruler['position']
                     else:
-                        structured_ruler['lines'] = ruler['lines']
-                if structured_ruler['type'] == "actions":
-                    structured_ruler['lines'] = self.action_lines_duration_validator(structured_ruler['lines'])
-                if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
-                    structured_ruler['offset'] = ruler['offset']
-                if (structured_ruler['offset'] == None):
-                    structured_ruler['offset'] = 0
-                if ('enabled' in ruler and ruler['enabled'] != None):
-                    structured_ruler['enabled'] = ruler['enabled']
+                        next_action_position = self.stack_position(ruler_type)
+                        structured_ruler['position'] = next_action_position
+                    if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
+                        if type(ruler['lines']) == type({}):
+                            structured_ruler['lines'] = ruler['lines']['lines']
+                            structured_ruler['offset'] = ruler['lines']['offset']
+                        else:
+                            structured_ruler['lines'] = ruler['lines']
+                    if structured_ruler['type'] == "actions":
+                        structured_ruler['lines'] = self.action_lines_duration_validator(structured_ruler['lines'])
+                    if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
+                        structured_ruler['offset'] = ruler['offset']
+                    if (structured_ruler['offset'] == None):
+                        structured_ruler['offset'] = 0
+                    if ('enabled' in ruler and ruler['enabled'] != None):
+                        structured_ruler['enabled'] = ruler['enabled']
 
-                self._root_self._rulers_list.append(structured_ruler)
-                if (self != self._root_self):
-                    self._rulers_list.append(structured_ruler)
-                    self._next_id = self._root_self._next_id
-                self._staff.add([structured_ruler])
+                    self._root_self._rulers_list.append(structured_ruler)
+                    if (self != self._root_self):
+                        self._rulers_list.append(structured_ruler)
+                        self._next_id = self._root_self._next_id
+                    self._staff.add([structured_ruler])
 
             return self
         
@@ -359,10 +363,8 @@ class Staff:
 
         def copy(self):
             """Shows just the copied rulers"""
-            source_rulers = self + self.empty() # creates new Ruler object
-            duplicated_rulers = self.duplicate()
-            copied_rulers = duplicated_rulers - source_rulers
-            return copied_rulers
+            copied_rulers = self.empty() # creates new Ruler object
+            return copied_rulers.add(self)
         
         def disable(self):
             disabled_rulers_list = self.filter(enabled=True).unique().list()
@@ -879,7 +881,7 @@ class Staff:
         def next_id(self):
             return self._next_id
 
-        def offset_lines(self, offset=0):
+        def offset(self, offset=0):
             for ruler in self._rulers_list:
                 ruler['offset'] += offset
 
@@ -892,7 +894,7 @@ class Staff:
         def on_staff(self):
             return self.filter(on_staff=True)
 
-        def populate(self, ruler, populating_length=16):
+        def populate(self, ruler, span=16):
 
             link_list = ruler['link'].split(".")
             ruler_type = "arguments"
@@ -914,15 +916,29 @@ class Staff:
             else:
                 ruler_duration = self._last_action_duration
 
-            populating_length_steps = LINES_SCALES.note_to_steps(populating_length)
+            span_steps = LINES_SCALES.note_to_steps(span)
             ruler_duration_steps = LINES_SCALES.note_to_steps(ruler_duration)
 
-            total_rulers = int(populating_length_steps / ruler_duration_steps)
+            total_rulers = int(span_steps / ruler_duration_steps)
 
             for _ in range(total_rulers):
                 ruler_copy = ruler.copy()
                 ruler_copy['lines'] = ruler['lines'].copy()
                 self.add(ruler_copy)
+
+            return self
+
+        def propagate(self, span=16, division=None):
+            span = LINES_SCALES.note_to_steps(span)
+            if division == None:
+                self_start_position_steps = self._staff.steps(self.get_start_position())
+                self_finish_position_steps = self._staff.steps(self.get_finish_position())
+                division = self_finish_position_steps - self_start_position_steps
+            else:
+                division = LINES_SCALES.note_to_steps(division)
+
+            total_repeats = int(span / division) - 1
+            self.repeat(total_repeats, division)
 
             return self
 
@@ -1055,7 +1071,11 @@ class Staff:
                                 for line_index in range(head_offset, head_offset + total_lines):
                                     if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
-                                        key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
+                                        ruler_line_value = ruler['lines'][line_index - ruler['offset']]
+                                        if ruler['type'] == "actions":
+                                            key_value_str = f"{format_note_duration(ruler_line_value)}" if ruler_line_value != None else "_"
+                                        else:
+                                            key_value_str = f"{ruler_line_value}" if ruler_line_value != None else "_"
 
                                         key_value_str = trimString(key_value_str)
 
@@ -1134,7 +1154,11 @@ class Staff:
                                 for line_index in range(head_offset, head_offset + total_lines):
                                     if not (line_index < ruler['offset'] or line_index > ruler['offset'] + len(ruler['lines']) - 1): # if not out of scope
 
-                                        key_value_str = f"{ruler['lines'][line_index - ruler['offset']]}" if ruler['lines'][line_index - ruler['offset']] != None else "_"
+                                        ruler_line_value = ruler['lines'][line_index - ruler['offset']]
+                                        if ruler['type'] == "actions":
+                                            key_value_str = f"{format_note_duration(ruler_line_value)}" if ruler_line_value != None else "_"
+                                        else:
+                                            key_value_str = f"{ruler_line_value}" if ruler_line_value != None else "_"
 
                                         key_value_str = trimString(key_value_str)
 
@@ -1179,24 +1203,25 @@ class Staff:
         def recall(self):
             return self._root_self._recall_self
 
-        def repeat(self, times=3, span=None):
+        def repeat(self, times=3, division=None):
 
-            repeated_self = self
-            for _ in range(times):
-                copy_self = repeated_self.copy()
-                if span == None:
-                    repeated_self_finish_position = repeated_self.get_finish_position()
-                    repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
-                    copy_self_start_position = copy_self.get_start_position()
-                    copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
-                    span_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
-                else:
-                    span_position_steps = LINES_SCALES.note_to_steps(span)
-                for copy_self_ruler in copy_self:
-                    copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
-                    copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + span_position_steps)
-                repeated_self = copy_self
-                self += repeated_self
+            if times > 1:
+                repeated_self = self
+                for _ in range(times):
+                    copy_self = repeated_self.copy()
+                    if division == None:
+                        repeated_self_finish_position = repeated_self.get_finish_position()
+                        repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
+                        copy_self_start_position = copy_self.get_start_position()
+                        copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
+                        division_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
+                    else:
+                        division_position_steps = LINES_SCALES.note_to_steps(division)
+                    for copy_self_ruler in copy_self:
+                        copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
+                        copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + division_position_steps)
+                    repeated_self = copy_self
+                    self += repeated_self
 
             return self
 
@@ -1368,7 +1393,7 @@ class Staff:
             return self
 
         def slide_position(self, distance_steps=4):
-            
+
             distance_steps = LINES_SCALES.note_to_steps(distance_steps)
             if distance_steps != 0:
 
@@ -1974,16 +1999,14 @@ def format_note_duration(note, note_notation=None):
     note_steps = LINES_SCALES.note_to_steps(note)
     if not isinstance(note, str) or (note_notation != None and not note_notation):
         return note_steps
-    if note_steps > 16 and isinstance(note, str):
-        return note + "/1"
     if isinstance(note, str) or note_notation:
-        return note_steps
-    if note_notation:
         # test reversity
         steps_to_note = LINES_SCALES.steps_to_note(note_steps)
         note_to_steps = LINES_SCALES.note_to_steps(steps_to_note)
-        if note_to_steps == note_steps:
+        if note_to_steps == note_steps and note_steps < 16:
             return steps_to_note
-        return note_steps / 16 + "/1"
+        return steps_to_note + "/1"
+    if isinstance(note, str):
+        return note + "/1"
     
     return note
