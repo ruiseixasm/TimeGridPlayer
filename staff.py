@@ -364,7 +364,12 @@ class Staff:
         def copy(self):
             """Shows just the copied rulers"""
             copied_rulers = self.empty() # creates new Ruler object
-            return copied_rulers.add(self)
+            for ruler_data in self:
+                ruler_copy = ruler_data.copy()
+                ruler_copy['lines'] = ruler_data['lines'].copy()
+                copied_rulers.add(ruler_copy)
+
+            return copied_rulers
         
         def disable(self):
             disabled_rulers_list = self.filter(enabled=True).unique().list()
@@ -414,9 +419,11 @@ class Staff:
 
         def duplicate(self, times=1):
             """Duplicates the listed rulers"""
-            for ruler in self._rulers_list[:]:
+            for ruler_data in self._rulers_list[:]:
                 for _ in range(times):
-                    self.add(ruler.copy())
+                    ruler = ruler_data.copy()
+                    ruler['lines'] = ruler_data['lines'].copy()
+                    self.add(ruler)
             return self
         
         def empty(self):
