@@ -1368,6 +1368,8 @@ class Staff:
             return self
 
         def slide_position(self, distance_steps=4):
+            
+            distance_steps = LINES_SCALES.note_to_steps(distance_steps)
             if distance_steps != 0:
 
                 if distance_steps > 0:
