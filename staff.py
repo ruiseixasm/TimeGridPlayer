@@ -852,13 +852,7 @@ class Staff:
 
             return Staff.Rulers(self._staff, merged_rulers, self._root_self, self._next_id, self._last_action_duration)
         
-        def move_lines(self, offset=0):
-            for ruler in self._rulers_list:
-                ruler['offset'] = offset
-
-            return self
-        
-        def move_position(self, position=[None, None]):
+        def move(self, position=[None, None]):
             if position[0] != None and position[1] != None:
                 sorted_rulers = self.sort(key=position)
                 sorted_rulers_size = sorted_rulers.len()
@@ -882,6 +876,12 @@ class Staff:
                 for ruler in self._rulers_list:
                     ruler['position'] = self._staff.add_position(ruler['position'], [0, move_steps])
                 on_staff.drop()
+
+            return self
+        
+        def move_lines(self, offset=0):
+            for ruler in self._rulers_list:
+                ruler['offset'] = offset
 
             return self
         
@@ -1393,13 +1393,7 @@ class Staff:
                 return Staff.Rulers(self._staff, ruler_list, self._root_self, self._next_id, self._last_action_duration)
             return self
 
-        def slide_lines(self, increments=1):
-            for ruler in self._rulers_list:
-                ruler['offset'] += increments
-
-            return self
-
-        def slide_position(self, distance_steps=4):
+        def slide(self, distance_steps=4):
 
             distance_steps = LINES_SCALES.note_to_steps(distance_steps)
             if distance_steps != 0:
@@ -1694,7 +1688,7 @@ class Staff:
 
         for dictionnaire in json_object:
             if dictionnaire['part'] == "staff":
-                size_measures = dictionnaire['time_signature']['size_measures']
+                measures = dictionnaire['time_signature']['measures']
                 beats_per_measure = dictionnaire['time_signature']['beats_per_measure']
                 steps_per_beat = dictionnaire['time_signature']['steps_per_beat']
                 pulses_per_quarter_note = dictionnaire['time_signature']['pulses_per_quarter_note']
@@ -1703,7 +1697,7 @@ class Staff:
                 self.clear()
 
                 self.set_range(start=play_range[0], finish=play_range[1])
-                self.set(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+                self.set(measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
             
                 self._rulers = self._rulers.json_load(file_name, dictionnaire['rulers'])
 
@@ -1871,14 +1865,14 @@ class Staff:
     def rulers(self):
         return self._rulers
 
-    def set(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+    def set(self, measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
 
         self._rulers.float() # starts by floating all Rulers (makes on_staff = False)
 
         if self._time_signature == {}:
-            self._time_signature['size_measures'] = size_measures
-            if size_measures == None:
-                self._time_signature['size_measures'] = 8
+            self._time_signature['measures'] = measures
+            if measures == None:
+                self._time_signature['measures'] = 8
             self._time_signature['beats_per_measure'] = beats_per_measure
             if beats_per_measure == None:
                 self._time_signature['beats_per_measure'] = 4
@@ -1889,8 +1883,8 @@ class Staff:
             if pulses_per_quarter_note == None:
                 self._time_signature['pulses_per_quarter_note'] = 24
         else:
-            if size_measures != None:
-                self._time_signature['size_measures'] = int(max(1, size_measures))                      # staff total size
+            if measures != None:
+                self._time_signature['measures'] = int(max(1, measures))                                # staff total size
             if beats_per_measure != None:
                 self._time_signature['beats_per_measure'] = int(max(1, beats_per_measure))              # beats in each measure
             if steps_per_beat != None:
@@ -1901,7 +1895,7 @@ class Staff:
         self._time_signature['pulses_per_beat'] = self._time_signature['steps_per_beat'] * \
             round(converter_PPQN_PPB(self._time_signature['pulses_per_quarter_note']) / self._time_signature['steps_per_beat'])
 
-        self._total_pulses = self._time_signature['size_measures'] * \
+        self._total_pulses = self._time_signature['measures'] * \
             self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
 
         self._staff_list = []

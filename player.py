@@ -730,6 +730,12 @@ class Player:
         finish_pulses = self._staff.pulses(range_pulses[1])
         return {'start': start_pulses, 'finish': finish_pulses}
 
+    def rename(self, name):
+        if name != None:
+            self._name = name
+            self._stage.update_player_names()
+        return self
+
     def rulers(self):
         return self._staff.rulers()
 
@@ -737,6 +743,7 @@ class Player:
 
         if name != None:
             self._name = name
+            self._stage.update_player_names()
         if description != None:
             self._description = description
         if staff != None:
@@ -744,6 +751,9 @@ class Player:
 
         return self
     
+    def set_length(self, measures=8):
+        return self.set_time_signature(measures)
+
     def set_tempo(self, tempo=None, pulses_per_quarter_note=None):
         self._clock.set(beats_per_minute=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
         self._staff.set(pulses_per_quarter_note=pulses_per_quarter_note)
@@ -756,9 +766,9 @@ class Player:
 
         return self
 
-    def set_time_signature(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+    def set_time_signature(self, measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
         self._clock.set(beats_per_minute=None, steps_per_beat=steps_per_beat, pulses_per_quarter_note=pulses_per_quarter_note)
-        self._staff.set(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+        self._staff.set(measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
 
         return self
 

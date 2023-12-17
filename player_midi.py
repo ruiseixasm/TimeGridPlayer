@@ -89,7 +89,7 @@ class Note(PLAYER.Player):
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
             super().actionTrigger(triggered_action, self_merged_staff_arguments, staff, tick)
 
-            if (not tick['fast_forward']):
+            if (not tick['fast_forward'] and triggered_action != None):
 
                 if triggered_action['line'] != None:
                     note_duration = triggered_action['lines'][triggered_action['line']]
@@ -112,16 +112,16 @@ class Note(PLAYER.Player):
                 if (note_key != None):
                     self._note['key'] = note_key
 
-                    self._player.stage._play_print(f"note ON:\t{self._note}\r\n", 'message')
-                    if self._player.resource != None and not self._player.resource.is_none:
-                        self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                self._player.stage._play_print(f"note ON:\t{self._note}\r\n", 'message')
+                if self._player.resource != None and not self._player.resource.is_none:
+                    self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
-                    self_duration_pulses = self._duration * self._clock_pulses_per_step
-                    
-                    self.addClockedAction(
-                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                            'duration': self_duration_pulses, 'action': self}, tick
-                    )
+                self_duration_pulses = self._duration * self._clock_pulses_per_step
+                
+                self.addClockedAction(
+                    {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
+                        'duration': self_duration_pulses, 'action': self}, tick
+                )
     
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Note.Action(self, staff)

@@ -24,7 +24,7 @@ drum_pattern_1.rulers().add({'link': "drum_kit.key", 'lines': [42, 38, 35]})\
     .add({'link': "drum_kit.velocity", 'lines': [50, 100, 100]}).add({'link': "drum_kit.channel.staff", 'lines': [10]}).print_lines()
 drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"]}).repeat(7, "1/8").print_lines()
 drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'position': [0, 2], 'lines': ["1/16"], 'offset': 1}).copy().set_position([0, 12])
-drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"], 'offset': 2}).copy().slide_position("1/2T")
+drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"], 'offset': 2}).copy().slide("1/2T")
 drum_pattern_1.rulers().print().print_lines()
 
 master.rulers().add({'link': "drum_pattern_1.repeat", 'lines': [15]}).add({'link': "drum_pattern_1"}).print_lines()

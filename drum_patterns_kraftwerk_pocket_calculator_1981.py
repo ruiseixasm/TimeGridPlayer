@@ -21,7 +21,7 @@ snare = stage_midi.add("snare").last().set_time_signature(size_measures=1).playe
 kick = stage_midi.add("kick").last().set_time_signature(size_measures=1).player()
 
 # Midi Resource
-drum_instrument = stage_midi.add("drum_instrument", type="Note").use_resource("loop").enable_resource().print()
+drum_instrument = stage_midi.add("drum_instrument", type="Note").last().player().use_resource("loop").enable_resource().print()
 
 # Ruler arguments and actions
 hat_open.rulers()\
@@ -35,7 +35,7 @@ kick.rulers().add(snare.rulers()).link_find("key").set_lines([35])
 
 # ruler actions
 hat_open.rulers().actions().print().repeat(7, "1/8").print().odd().print().offset(1).root().print_lines()
-snare.rulers().actions().move_position([0, 4]).copy().set_position([0, 12]).root().print_lines()
+snare.rulers().actions().move([0, 4]).copy().set_position([0, 12]).root().print_lines()
 kick.rulers().actions().propagate(16, "1/4").root().print_lines()
 
 # master.staff().print()
@@ -48,7 +48,7 @@ stage_midi.set_time_signature(pulses_per_quarter_note=48)
 
 # master.staff().print()
 
-master.play()
+#master.play()
 
 # for note in range(27, 88):
 #     key_ruler.set_lines([note]).print_lines()

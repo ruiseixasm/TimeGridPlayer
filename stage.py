@@ -352,6 +352,12 @@ class Stage:
 
         return self
     
+    def update_player_names(self):
+        for player_data in self._root_self._players_list:
+            player_data['name'] = player_data['player'].name
+
+        return self
+
     def set_tempo(self, tempo=None, pulses_per_quarter_note=None):
         for player_data in self._players_list:
             player_data['player'].set_tempo(tempo=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
