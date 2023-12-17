@@ -211,13 +211,22 @@ import lines_scales as L_SCALES
 # x2 = string2.split(".")
 # print(x2)
 
-bool1 = False
-bool2 = True
-bool3 = None
+# bool1 = False
+# bool2 = True
+# bool3 = None
 
-if bool1:
-    print("bool1")
-if bool2:
-    print("bool2")
-if bool3:
-    print("bool3")
+# if bool1:
+#     print("bool1")
+# if bool2:
+#     print("bool2")
+# if bool3:
+#     print("bool3")
+
+
+dummy_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+print (dummy_list)
+dummy_list.remove(2)
+print (dummy_list)
+dummy_list.remove(6, 7, 8)
+print (dummy_list)

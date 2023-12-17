@@ -609,8 +609,7 @@ class Player:
 
     def isPlaying(self):
         is_playing = False
-        actions = self._actions[:]
-        for action in actions:
+        for action in self._actions[:]:
             if action.isPlaying():
                 is_playing = True
             else:
