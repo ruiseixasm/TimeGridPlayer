@@ -357,6 +357,7 @@ class Player:
                         self.actionTrigger(self._last_trigger_action, self._external_arguments_rulers, self._trigger_staff, tick)
                         self.pulseStaffAction(tick, first_pulse=True) # first pulse on Action, has to be processed
                         self._repeat_action -= 1
+                        return self
 
                 self._next_clock_pulse += 1
 
@@ -902,6 +903,12 @@ class PlayerNone(Player):
 
         self._resources = RESOURCES.ResourcesNone()
         self._staff = STAFF.StaffNone(self)
+
+    class Action(Player.Action):
+        
+        def __init__(self, player, trigger_staff):
+            super().__init__(player, trigger_staff) # not self init
+            self._play_mode = False # In this case, by default whenever a new Action is created is NOT considered in play mode
 
     def playerActionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
         pass # does nothing

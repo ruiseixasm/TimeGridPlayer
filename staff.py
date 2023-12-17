@@ -945,9 +945,8 @@ class Staff:
                 division = LINES_SCALES.note_to_steps(division)
 
             total_repeats = int(span / division) - 1
-            self.repeat(total_repeats, division)
-
-            return self
+            
+            return self.repeat(total_repeats, division)
 
         def print(self, note_notation=None):
             
