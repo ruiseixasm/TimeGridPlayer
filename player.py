@@ -53,6 +53,14 @@ class Player:
         return self._stage
             
     @property
+    def clock(self):
+        return self._clock
+            
+    @property
+    def internal_clock(self):
+        return self._internal_clock
+            
+    @property
     def name(self):
         return self._name
             
@@ -135,9 +143,6 @@ class Player:
             self._repeat_action = 0
 
             self._delayed_pulse = False
-
-            self._total_ticks = 0
-            self._min_ticks = 100000 * 100000
 
         #region Action Properties
 
@@ -324,13 +329,6 @@ class Player:
 
                                     triggered_action['player'].playerActionTrigger(triggered_action, player_merged_staff_arguments, self._staff, tick) # WHERE ACTION IS TRIGGERED
 
-                    if self._player.stage.play_print_options['message']:
-                        self._total_ticks += tick['pulse_ticks']
-                        self._min_ticks = min(self._min_ticks, tick['pulse_ticks'])
-                        if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
-                            self._staff.printSinglePulse(self._play_pulse, "beat", extra_string=f"\ttotal_ticks: {self._total_ticks}\tmin_ticks: {self._min_ticks}")
-                            self._total_ticks = 0
-                            self._min_ticks = 100000 * 100000
                     if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['step'] == 0:
                         staff_time_signature = self._staff.time_signature()
                         pulses_per_step = staff_time_signature['pulses_per_beat'] / staff_time_signature['steps_per_beat']
@@ -350,10 +348,10 @@ class Player:
                     self._play_pulse += 1
 
                 elif self.pulseSetAutomationsCleaner() and len(self._clocked_actions) == 0:
-                    self._play_pulse = self._start_pulse
                     if self._repeat_action == 0:
                         self._play_mode = False
                     else:
+                        self._play_pulse = self._start_pulse
                         self.actionTrigger(self._last_trigger_action, self._external_arguments_rulers, self._trigger_staff, tick)
                         self.pulseStaffAction(tick, first_pulse=True) # first pulse on Action, has to be processed
                         self._repeat_action -= 1
@@ -489,12 +487,11 @@ class Player:
             if non_fast_forward_range_pulses != None and non_fast_forward_range_pulses != [] and len(non_fast_forward_range_pulses) == 2:
                 self._non_fast_forward_range_pulses = non_fast_forward_range_pulses
 
-            self._pulse_ticks = 0
             self._next_pulse = 0
             self._next_pulse_time = time.time()
 
             self._tick = {'player': self._player, 'tempo': self._tempo,
-                          'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'pulse_ticks': self._pulse_ticks, 'delayed': False, 'overhead': 0}
+                          'pulse': self._next_pulse, 'clock': self, 'fast_forward': False, 'delayed': False}
 
             return self._tick
             
@@ -503,13 +500,10 @@ class Player:
 
         def tick(self, tick = None):
 
-            self._tick['pulse_ticks'] = self._pulse_ticks
-            self._pulse_ticks += 1
-
-            self._tick['delayed'] = False
             if not self._next_pulse_time > time.time():
 
                 self._tick['pulse'] = self._next_pulse
+                self._tick['delayed'] = False
 
                 if tick != None:
                     self._tick['fast_forward'] = tick['fast_forward']
@@ -519,20 +513,14 @@ class Player:
                         or self._non_fast_forward_range_pulses[1] != None and not self._next_pulse < self._non_fast_forward_range_pulses[1])
             
                 if self._tick['fast_forward']:
-                    self._tick['overhead'] = 1
                     self._next_pulse_time = time.time()
                 elif self._next_pulse_time + self._pulse_duration < time.time(): # It has to happen inside pulse duration time window
                     self._tick['delayed'] = True
-                    self._tick['overhead'] = 0
-                    if self._tick['delayed']:
-                        self._player.stage._play_print(f"--------------------- PULSE {self._tick['pulse']} OF PLAYER {self._player}'S CLOCK WAS DELAYED! -----------------------\r\n", 'error')
                     self._next_pulse_time = time.time() + self._pulse_duration
                 else:
-                    self._tick['overhead'] = 1 - (time.time() - self._next_pulse_time) / self._pulse_duration
                     self._next_pulse_time += self._pulse_duration
                     
                 self._next_pulse += 1
-                self._pulse_ticks = 0
 
             else:
                 self._tick['pulse'] = None
@@ -554,11 +542,6 @@ class Player:
         if self._internal_clock and self != tick['player']:
             self._clock.start(tick=tick)
         return self
-
-    def _tick(self, tick):
-        if self._internal_clock and self != tick['player']:
-            return self._clock.tick(tick) # changes the tick for the internal clock one | WHERE INTERNAL CLOCK IS USED
-        return tick
 
     def use_resource(self, name=None):
         if self._resources != None and name != self._resource_name:
@@ -670,14 +653,14 @@ class Player:
 
     def play(self, start=None, finish=None):
 
-        self_player = {'name': self._name, 'player': self}
-        self._clocked_players = [ self_player ]
+        self._clocked_players = [ {'name': self._name, 'player': self, 'clock': self._clock} ]
 
         # Assembling of clockable players
         for enabled_player in self._stage:
             clockable_player = {
                 'name': enabled_player['name'],
-                'player': enabled_player['player']
+                'player': enabled_player['player'],
+                'clock': enabled_player['player'].clock if enabled_player['player'].internal_clock else self._clock
             }
             if not clockable_player in self._clocked_players:
                 self._clocked_players.append(clockable_player)
@@ -698,26 +681,31 @@ class Player:
         while still_playing:
             tick = self._clock.tick() # where it ticks
             for player in self._clocked_players:
-                player_tick = player['player']._tick(tick)
-                if player_tick['pulse'] != None:
-                    for action in player['player']._actions:
-                        action.pulseSetAutomations(player_tick)
+                if player['clock'] == self._clock:
+                    player['tick'] = tick
+                else:
+                    player['tick'] = player['clock'].tick(tick)
             for player in self._clocked_players:
-                player_tick = player['player']._tick(tick)
-                if player_tick['pulse'] != None:
+                if player['tick']['pulse'] != None:
                     for action in player['player']._actions:
-                        action.pulseClockedAction(player_tick)
+                        action.pulseSetAutomations(player['tick'])
             for player in self._clocked_players:
-                player_tick = player['player']._tick(tick)
-                if player_tick['pulse'] != None:
+                if player['tick']['pulse'] != None:
                     for action in player['player']._actions:
-                        action.pulseStaffAction(player_tick)
-                    player['player'].playerAutomationCleaner(player_tick)
-            still_playing = False
+                        action.pulseClockedAction(player['tick'])
             for player in self._clocked_players:
-                if player['player'].isPlaying():
-                    still_playing = True
-        
+                if player['tick']['pulse'] != None:
+                    for action in player['player']._actions:
+                        action.pulseStaffAction(player['tick'])
+                    player['player'].playerAutomationCleaner(player['tick'])
+            
+            still_playing = True
+            if player['tick']['pulse'] != None:
+                still_playing = False
+                for player in self._clocked_players:
+                    if player['player'].isPlaying():
+                        still_playing = True
+
         for player in self._clocked_players:
             player['player']._finish(tick)
         self._clock.stop(tick)
@@ -781,7 +769,7 @@ class Player:
     def time_signature(self):
         return self._staff.time_signature()
 
-    def internal_clock(self, internal_clock=False):
+    def set_internal_clock(self, internal_clock=False):
         self._internal_clock = internal_clock
 
         return self
