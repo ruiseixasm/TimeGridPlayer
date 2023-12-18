@@ -1460,7 +1460,7 @@ class Staff:
                 return self.reverse_lines()
             return self
 
-        def spread_lines(self, increments=1):
+        def spread(self, increments=1):
             rulers_list_size = self.len()
             for ruler_index in range(rulers_list_size):
                 self._rulers_list[ruler_index]['offset'] += ruler_index * increments
