@@ -547,7 +547,7 @@ class Staff:
                 ]
             if (len(lines) > 0 and lines != [None]):
                 filtered_rulers = [
-                    ruler for ruler in filtered_rulers if ruler['offset'] in lines
+                    ruler for ruler in filtered_rulers if overlapping_lists(range(ruler['offset'], ruler['offset'] + len(ruler['lines'])), lines)
                 ]
             if (len(measures) > 0 and measures != [None]):
                 filtered_rulers = [
@@ -2010,3 +2010,10 @@ def format_note_duration(note, note_notation=None):
         return note + "/1"
     
     return note
+
+def overlapping_lists(left_list, right_list):
+    for left_element in left_list:
+        for right_element in right_list:
+            if left_element == right_element:
+                return True
+    return False

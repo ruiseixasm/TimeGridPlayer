@@ -26,7 +26,7 @@ drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'position': [0, 4], 'li
 drum_pattern_1.rulers().empty().add({'link': "drum_kit", 'lines': ["1/16"], 'offset': 2}).copy().set_position([0, 8]).copy().set_position([0, 10])
 drum_pattern_1.rulers().print().print_lines()
 
-master.rulers().add({'link': "drum_pattern_1.repeat", 'lines': [16]}).add({'link': "drum_pattern_1"}).print_lines()
+master.rulers().add({'link': "drum_pattern_1.repeat", 'lines': [15]}).add({'link': "drum_pattern_1"}).print_lines()
 
 # master.staff().print()
 

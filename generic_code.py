@@ -223,10 +223,26 @@ import lines_scales as L_SCALES
 #     print("bool3")
 
 
-dummy_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+# dummy_list = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-print (dummy_list)
-dummy_list.remove(2)
-print (dummy_list)
-dummy_list.remove(6, 7, 8)
-print (dummy_list)
+# print (dummy_list)
+# dummy_list.remove(2)
+# print (dummy_list)
+# dummy_list.remove(6, 7, 8)
+# print (dummy_list)
+
+
+# test in for multiple values:
+#print([1, 2, 3] in [1, 2, 3, 4, 5, 6])
+
+
+def overlapping_lists(left_list, right_list):
+    for left_element in left_list:
+        for right_element in right_list:
+            if left_element == right_element:
+                return True
+    return False
+
+print(overlapping_lists([1, 2, 3], [1, 2, 3, 4, 5, 6]))
+print(overlapping_lists([1, 2, 3], [4, 5, 6]))
+print(overlapping_lists([1, 2, 3, 6], [4, 5, 6]))
