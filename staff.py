@@ -271,12 +271,15 @@ class Staff:
                     else:
                         next_action_position = self.stack_position(ruler_type)
                         structured_ruler['position'] = next_action_position
-                    if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
-                        if type(ruler['lines']) == type({}):
-                            structured_ruler['lines'] = ruler['lines']['lines']
-                            structured_ruler['offset'] = ruler['lines']['offset']
-                        else:
-                            structured_ruler['lines'] = ruler['lines']
+                    if 'lines' in ruler and ruler['lines'] != None:
+                        if type(ruler['lines']) != type([]) and type(ruler['lines']) != type({}):
+                            structured_ruler['lines'] = [ ruler['lines'] ]
+                        elif len(ruler['lines']) > 0:
+                            if type(ruler['lines']) == type({}):
+                                structured_ruler['lines'] = ruler['lines']['lines']
+                                structured_ruler['offset'] = ruler['lines']['offset']
+                            else:
+                                structured_ruler['lines'] = ruler['lines']
                     if structured_ruler['type'] == "actions":
                         structured_ruler['lines'] = self.action_lines_duration_validator(structured_ruler['lines'])
                     if (structured_ruler['offset'] == None and 'offset' in ruler and ruler['offset'] != None):
@@ -1411,7 +1414,9 @@ class Staff:
         
         def set_lines(self, lines, offset=None):
 
-            if type(lines) == type({}):
+            if type(lines) != type([]) and type(lines) != type({}):
+                lines = [ lines ]
+            elif type(lines) == type({}):
                 offset = lines['offset']
                 lines = lines['lines']
 

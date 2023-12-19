@@ -45,8 +45,10 @@ class Player:
 
     @property
     def enabled(self):
-        self_player_data = self._stage.filter(player = self).list()[0]
-        return self_player_data['enabled']
+        self_player_data = self._stage.filter(player = self).list()
+        if len(self_player_data) > 0:
+            return self_player_data[0]['enabled']
+        return False
 
     @property
     def stage(self):
