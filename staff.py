@@ -1209,28 +1209,6 @@ class Staff:
         def recall(self):
             return self._root_self._recall_self
 
-        def repeat(self, times=3, division=None):
-
-            if times > 1:
-                repeated_self = self
-                for _ in range(times):
-                    copy_self = repeated_self.copy()
-                    if division == None:
-                        repeated_self_finish_position = repeated_self.get_finish_position()
-                        repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
-                        copy_self_start_position = copy_self.get_start_position()
-                        copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
-                        division_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
-                    else:
-                        division_position_steps = LINES_SCALES.note_to_steps(division)
-                    for copy_self_ruler in copy_self:
-                        copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
-                        copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + division_position_steps)
-                    repeated_self = copy_self
-                    self += repeated_self
-
-            return self
-
         def remove(self):
             self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
             unique_rulers_list = self.unique().list()
@@ -1264,6 +1242,28 @@ class Staff:
 
             return self
         
+        def repeat(self, times=3, division=None):
+
+            if times > 0:
+                repeated_self = self
+                for _ in range(times):
+                    copy_self = repeated_self.copy()
+                    if division == None:
+                        repeated_self_finish_position = repeated_self.get_finish_position()
+                        repeated_self_finish_position_steps = self._staff.steps(repeated_self_finish_position)
+                        copy_self_start_position = copy_self.get_start_position()
+                        copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
+                        division_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
+                    else:
+                        division_position_steps = LINES_SCALES.note_to_steps(division)
+                    for copy_self_ruler in copy_self:
+                        copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
+                        copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + division_position_steps)
+                    repeated_self = copy_self
+                    self += repeated_self
+
+            return self
+
         def reroot(self):
             extra_root_rulers = (self._root_self - self).unique()
             self._staff.remove(extra_root_rulers.list())
