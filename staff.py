@@ -611,6 +611,22 @@ class Staff:
                 
             return self._staff.position(finish_position_steps)
 
+        def get_first_line(self):
+            first_line = 0
+            if self.len() > 0:
+                first_line = self._rulers_list[0]['offset']
+                for ruler_data in self._rulers_list:
+                    first_line = min(first_line, ruler_data['offset'])
+            return first_line
+
+        def get_last_line(self):
+            last_line = 0
+            if self.len() > 0:
+                last_line = self._rulers_list[0]['offset'] + len(self._rulers_list[0]['lines']) - 1
+                for ruler_data in self._rulers_list:
+                    last_line = max(last_line, ruler_data['offset'] + len(ruler_data['lines']) - 1)
+            return last_line
+
         def get_start_position(self):
 
             if self.len() > 0:
@@ -852,6 +868,19 @@ class Staff:
 
             return Staff.Rulers(self._staff, merged_rulers, self._root_self, self._next_id, self._last_action_duration)
         
+        def mirror(self):
+            if self.len() > 1:
+                first_offset = self.get_first_line()
+                last_offset = first_offset
+                for ruler_data in self._rulers_list:
+                    last_offset = max(last_offset, ruler_data['offset'])
+                reversed_offsets_list = list(range(first_offset, last_offset + 1))
+                reversed_offsets_list.reverse()
+                for ruler_data in self._rulers_list:
+                    ruler_data['offset'] = reversed_offsets_list[ruler_data['offset'] - first_offset]
+
+            return self
+        
         def move(self, position=[None, None]):
             if position[0] != None and position[1] != None:
                 sorted_rulers = self.sort(key=position)
@@ -948,7 +977,7 @@ class Staff:
             
             return self.repeat(total_repeats, division)
 
-        def print(self, first_line=None, last_line=None, note_notation=None, exaustive=False):
+        def print(self, first_line=None, last_line=None, note_notation=None, full=False):
             
             header_char = "-"
             rulers_size = self.len()
@@ -970,7 +999,7 @@ class Staff:
                 total_lines = tail_offset - head_offset + 1
                 
                 string_top_length = {'sequence': 0, 'id': 0, 'link': 0, 'position': 0, 'lines': [0] * total_lines}
-                if exaustive:
+                if full:
                     string_top_length = {'sequence': 0, 'id': 0, 'link': 0, 'position': 0, 'type': 0, 'enabled': 0, 'on_staff': 0, 'lines': [0] * total_lines}
 
                 for key in string_top_length.keys():

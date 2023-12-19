@@ -236,13 +236,20 @@ import lines_scales as L_SCALES
 #print([1, 2, 3] in [1, 2, 3, 4, 5, 6])
 
 
-def overlapping_lists(left_list, right_list):
-    for left_element in left_list:
-        for right_element in right_list:
-            if left_element == right_element:
-                return True
-    return False
+# def overlapping_lists(left_list, right_list):
+#     for left_element in left_list:
+#         for right_element in right_list:
+#             if left_element == right_element:
+#                 return True
+#     return False
 
-print(overlapping_lists([1, 2, 3], [1, 2, 3, 4, 5, 6]))
-print(overlapping_lists([1, 2, 3], [4, 5, 6]))
-print(overlapping_lists([1, 2, 3, 6], [4, 5, 6]))
+# print(overlapping_lists([1, 2, 3], [1, 2, 3, 4, 5, 6]))
+# print(overlapping_lists([1, 2, 3], [4, 5, 6]))
+# print(overlapping_lists([1, 2, 3, 6], [4, 5, 6]))
+
+range_list = list(range(4, 1, -1))
+print (range_list)
+range_list = list(range(1, 5))
+print (range_list)
+range_list = (list(range(1, 5))).reverse()
+print (range_list)
