@@ -130,8 +130,8 @@ class Midi(RESOURCES.Resources):
             parameter_2 = note['velocity']
             message = [command, parameter_1, parameter_2]
             if self._key_presses[(channel - 1)%16][parameter_1] == 0:
-                return self.sendMessage(message)
-            self._key_presses[parameter_1] += 1
+                self.sendMessage(message)
+            self._key_presses[(channel - 1)%16][parameter_1] += 1
             return self
 
         def releaseNote(self, note={'key': "C", 'octave': 4}, channel=1):
@@ -142,7 +142,7 @@ class Midi(RESOURCES.Resources):
             if self._key_presses[(channel - 1)%16][parameter_1] == 0:
                 parameter_2 = 64
                 message = [command, parameter_1, parameter_2]
-                return self.sendMessage(message)
+                self.sendMessage(message)
             return self
             
         def releaseAllNotes(self, channel=1):

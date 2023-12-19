@@ -12,19 +12,21 @@ Lesser General Public License for more details.'''
 import stage_midi as STAGE_MIDI
 import lines_scales as LINES_SCALES
 
-stage_midi = STAGE_MIDI.StageMidi()
+stage = STAGE_MIDI.StageMidi()
 
 # add a master player to stage
-master = stage_midi.add("master").last().player()
+master = stage.add("master").last().player()
 
 # add note with the respective midi resource already enabled
-midi_note = stage_midi.add("note", type="Note").last().player().use_resource("loop").enable_resource()
+note = stage.add("note", type="Note").last().player().use_resource("loop").enable_resource()
 
 # type 'python -i interactive_mode_startup.py' to use the present script in interactive mode
 # type 'exit()' to exit
 
 
-pattern = stage_midi.add("pattern").last().player()
+pattern = stage.add("pattern").last().player()
 pattern.rulers().add({'link': "note", 'lines': ["1/4"]}).print_lines()
-pattern.set_length(4)
-pattern.play()
+pattern.set_length(1)
+
+stage.json_load("james_brown_1.json").print()
+stage.play()
