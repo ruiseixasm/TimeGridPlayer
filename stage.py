@@ -204,6 +204,9 @@ class Stage:
 
                     if player != None:
 
+                        # Populates Players with their Staff, Rulers and Clock data
+                        player.json_load(file_name, [ player_dictionnaire ])
+
                         # Enables Resources as needed
                         if player_dictionnaire['resource_name'] != None:
                             player.use_resource(player_dictionnaire['resource_name'])
@@ -218,19 +221,6 @@ class Stage:
                             'enabled': player_dictionnaire['enabled']
                         }
                         self._root_self._players_list.append(player_data)
-                        
-                break
-
-        for stage_dictionnaire in json_object:
-            if stage_dictionnaire['part'] == "stage":
-                
-                for player_dictionnaire in stage_dictionnaire['players']:
-
-                    player_staged = self._root_self.filter(ids=[player_dictionnaire['id']])
-                    if player_staged.len() > 0:
-
-                        # Rewires Players with their Groups
-                        player_staged.list()[0]['player'].json_load(file_name, [ player_dictionnaire ])
                         
                 break
 
