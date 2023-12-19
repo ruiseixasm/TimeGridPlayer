@@ -25,10 +25,13 @@ note = stage.add("note", type="Note").last().player().use_resource("loop").enabl
 
 
 pattern = stage.add("pattern").last().player()
-pattern.rulers().add({'link': "note", 'lines': ["1/4"]}).print_lines()
+pattern.rulers().add({'link': "note", 'lines': ["1/4"]}).print()
 pattern.set_length(1)
 
 stage.json_load("james_brown_1.json")
 master = stage.player("master")
 note = stage.player("note")
-pattern = stage.player("pattern").play()
+pattern = stage.player("pattern")
+
+pattern.rulers().print()
+pattern.rulers().print(exaustive=True)
