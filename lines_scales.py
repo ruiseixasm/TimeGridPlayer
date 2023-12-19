@@ -17,10 +17,10 @@ class Scales(LINES.Lines):
     def __init__(self):
         super().__init__()
 
-    def chromatic(self, size):
-        return self.scale("chromatic", size)
+    def chromatic(self, octaves):
+        return self.scale("chromatic", octaves)
     
-    def scale(self, name, root_note="C", size=3):
+    def scale(self, name, root_note="C", octaves=3, center_midi_octave=None):
         root_note = int_to_key(root_note)
         root_note = convert_key(root_note)
         bin_scale = get_scale(name, root_note)
@@ -31,9 +31,17 @@ class Scales(LINES.Lines):
                 break
             local_scale_keys = local_scale_keys[1:block_size] + local_scale_keys[0:1]
 
-        offset_blocks = int((size - 1) / 2)
+        offset_blocks = int((octaves - 1) / 2)
         self._lines['offset'] = -(block_size * offset_blocks)
-        self._lines['lines'] = local_scale_keys * size
+        self._lines['lines'] = local_scale_keys * octaves
+
+        if center_midi_octave != None and isinstance(center_midi_octave, int):
+            midi_octave = max(0, center_midi_octave + 1 - offset_blocks)
+            for line_index in range(block_size * octaves):
+                self._lines['lines'][line_index] = get_key_position_12(self._lines['lines'][line_index]) + midi_octave * 12
+                if line_index > 0 and self._lines['lines'][line_index - 1] > self._lines['lines'][line_index]:
+                    self._lines['lines'][line_index] += 12
+                    midi_octave += 1
 
         return self
     

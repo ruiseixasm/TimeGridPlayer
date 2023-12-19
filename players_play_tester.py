@@ -12,6 +12,8 @@ Lesser General Public License for more details.'''
 import stage_midi as STAGE_MIDI
 import lines_scales as LINES_SCALES
 
+scales = LINES_SCALES.Scales()
+keys_major_scale = scales.scale("major", "A", 5).lines()
 stage = STAGE_MIDI.StageMidi()
 
 # add a master player to stage
@@ -35,6 +37,6 @@ pattern = stage.player("pattern")
 
 pattern.rulers().actions().print()
 #pattern.rulers().print(full=True)
-pattern.rulers().actions().mirror().print()
+#pattern.rulers().actions().mirror().print()
 stage.set_tempo(90)
-stage.play()
+#stage.play()
