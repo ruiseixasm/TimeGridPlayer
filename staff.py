@@ -1008,6 +1008,8 @@ class Staff:
                 for key in string_top_length.keys():
                     if key != 'lines' and key != 'sequence':
                         string_top_length[key] = len(f"{key}")
+                    # elif key == 'lines' and total_lines > 0:
+                    #     string_top_length[key][0] = len(f"{key}")
 
                 # TOTALS +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1076,7 +1078,7 @@ class Staff:
 
                 spaces_between = 4
 
-                header_char_length = (total_length_headers + total_length_lines + total_headers * 4 + total_lines * 3 + 2)
+                header_char_length = (total_length_headers + total_length_lines + (total_headers + total_lines) * spaces_between - 2)
 
                 header_type = "  " + self.player.name + "  "
                 header_type_length = len(header_type)
@@ -1449,10 +1451,34 @@ class Staff:
                 return Staff.Rulers(self._staff, ruler_list, self._root_self, self._next_id, self._last_action_duration)
             return self
 
-        def slide(self, distance_steps=4):
+        def slide(self, distance=4, division=None):
 
-            distance_steps = LINES_SCALES.note_to_steps(distance_steps)
+            distance_steps = LINES_SCALES.note_to_steps(distance)
+
+
+            # if division != None:
+            #     division = LINES_SCALES.note_to_steps(division)
+            #     if division >= distance_steps:
+            #         if distance_steps > 0:
+            #             distance_steps %= division
+            #         elif distance_steps < 0:
+
+
             if distance_steps != 0:
+
+                if division != None:
+                    division_steps = LINES_SCALES.note_to_steps(division)
+                    division_divisions = self._staff.step_divisions(division_steps)
+                    time_signature = self._staff.time_signature()
+                    if division_divisions['measure'] > 0:
+                        steps_per_measure = time_signature['steps_per_beat'] * time_signature['beats_per_measure']
+                        division_quantized = division_divisions['measure'] * steps_per_measure
+                    elif division_divisions['beat'] > 0:
+                        division_quantized = division_divisions['beat'] * time_signature['steps_per_beat']
+                    else:
+                        division_quantized = division_steps
+
+                    distance_steps %= division_quantized
 
                 if distance_steps > 0:
                     last_position_steps = self._staff.len() - 1
@@ -2010,6 +2036,14 @@ class Staff:
 
     def time_signature(self):
         return self._time_signature
+    
+        # self._time_signature = {
+        #     'measures'                  # staff total size
+        #     'beats_per_measure'         # beats in each measure
+        #     'steps_per_beat'            # how many steps take each beat
+        #     'pulses_per_quarter_note'   # sets de resolution of clock pulses
+        #     'pulses_per_beat'
+        # }
 
 class StaffNone(Staff):
 
