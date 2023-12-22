@@ -58,7 +58,7 @@ class Stage:
 
     def _play_print(self, message, type, overhead = 1):
         if self._play_print_options[type]:
-            if overhead > 0.95:
+            if overhead > 0.90:
                 print(message, end="", flush=True)
             else:
                 print(message, end="")

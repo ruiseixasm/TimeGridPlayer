@@ -885,6 +885,9 @@ class Staff:
             return self
         
         def move(self, position=[None, None]):
+            if isinstance(position, int):
+                position = [0, position]
+
             if position[0] != None and position[1] != None:
                 sorted_rulers = self.sort(key=position)
                 sorted_rulers_size = sorted_rulers.len()
@@ -1261,6 +1264,16 @@ class Staff:
                 print(header_char * 7)
                 print("[EMPTY]")
                 print(header_char * 7)
+            return self
+
+        def quantize(self):
+            on_staff = self.on_staff()
+            on_staff.float()
+            for ruler in self._rulers_list:
+                position_steps = self._staff.steps(ruler['position'])
+                position_steps = int(round(position_steps))
+                ruler['position'] = self._staff.position(position_steps)
+            on_staff.drop()
             return self
 
         def recall(self):
