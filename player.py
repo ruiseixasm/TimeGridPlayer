@@ -318,6 +318,9 @@ class Player:
                         
                         pulse_actions_rulers = self._player.actions_rulers.filter(positions=[position], enabled=True)
                         merged_staff_arguments = (self._external_arguments_rulers + self._internal_arguments_rulers).merge() # Where external arguments are merged
+                        # removes, filers out, non hereditary arguments like repeat
+                        merged_staff_arguments -= self._external_arguments_rulers.link_find(".repeat")
+                        #merged_staff_arguments = self._internal_arguments_rulers
 
                         for triggered_action in pulse_actions_rulers: # single ruler actions
                             player_merged_staff_arguments = merged_staff_arguments.filter(player=triggered_action['player'], enabled=True)
