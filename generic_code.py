@@ -146,7 +146,7 @@ Lesser General Public License for more details.'''
 # print(rotation_1)
 # print(rotation_2)
 
-import lines_scales as L_SCALES
+# import lines_scales as L_SCALES
 
 # bin_scale = L_SCALES.get_scale("melodic")
 # keys_scale = L_SCALES.scale_keys(bin_scale)
@@ -255,5 +255,37 @@ import lines_scales as L_SCALES
 # print (range_list)
 
 
-number_1 = 34
-print (len(number_1))
+# number_1 = 34
+# print (len(number_1))
+
+
+# class dummy:
+#     def __init__(self):
+#         self._something = "something"
+
+#     def print_something(self):
+#         print (self._something)
+        
+#     def print_other_something(self):
+#         print (self._something)
+
+# many_dummies = [ dummy() ] * 10
+# lambda_function_1 = lambda some_dummy : some_dummy.print_something()
+# lambda_function_2 = lambda some_dummy : some_dummy.print_other_something()
+# function_1 = dummy.print_something
+# function_2 = dummy.print_other_something
+
+# for one_dummy in many_dummies:
+#     print("object")
+#     one_dummy.print_something()
+#     print("lambda")
+#     lambda_function_1(one_dummy)
+#     lambda_function_2(one_dummy)
+#     print("class")
+#     function_1(one_dummy)
+#     function_2(one_dummy)
+#     print("NEXT\n")
+
+
+for i in range(0):
+    print (i)

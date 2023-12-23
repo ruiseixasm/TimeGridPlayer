@@ -354,9 +354,9 @@ class Stage:
             
         return self
 
-    def set_time_signature(self, size_measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+    def set_time_signature(self, measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
         for player_data in self._players_list:
-            player_data['player'].set_time_signature(size_measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+            player_data['player'].set_time_signature(measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
             
         return self
 

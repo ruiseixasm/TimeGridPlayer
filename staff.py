@@ -41,15 +41,15 @@ class Staff:
 
         def __init__(self, staff, rulers_list=None, root_self=None, start_id=0, last_action_duration=4):
 
-            self._staff = staff
-            self._rulers_list = []
-            if rulers_list != None:
-                self._rulers_list = rulers_list
             self._root_self = self
             self._recall_self = self
             if root_self != None:
                 self._root_self = root_self # type Rulers
                 self._root_self._recall_self = self
+            self._staff = staff
+            self._rulers_list = []
+            if rulers_list != None:
+                self._rulers_list = rulers_list
 
             self._next_id = start_id
             self._last_action_duration = last_action_duration # steps
@@ -654,8 +654,8 @@ class Staff:
             head_rulers_list = self._rulers_list[:elements]
             return Staff.Rulers(self._staff, head_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
-        def id(self, id=0):
-            return self.filter(ids=[id])
+        def ids(self, *ids):
+            return self.filter(ids=ids)
 
         def insert_lines(self, line, lines=[None], id=None):
             target_rulers = self
@@ -923,7 +923,7 @@ class Staff:
         def next_id(self):
             return self._next_id
 
-        def offset(self, offset=0):
+        def offset(self, offset=1):
             for ruler in self._rulers_list:
                 ruler['offset'] += offset
 
@@ -1280,17 +1280,16 @@ class Staff:
             return self._root_self._recall_self
 
         def remove(self):
-            self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
             unique_rulers_list = self.unique().list()
             self._staff.remove(unique_rulers_list)
+            self._root_self._rulers_list = [ ruler for ruler in self._root_self._rulers_list if ruler not in self._rulers_list ]
+            #self._root_self -= self # this will change the root_self to other instance!
             self._rulers_list = []
             return self
         
-        def remove_lines(self, line, amount=1, id=None):
-            target_rulers = self
-            if id != None:
-                target_rulers = self.filter(ids=[id])
-            for ruler in target_rulers:
+        def remove_lines(self, line, amount=1):
+            
+            for ruler in self._rulers_list:
 
                 lines_size = len(ruler['lines'])
                 first_line = ruler['offset']
@@ -1307,6 +1306,9 @@ class Staff:
                             new_lines[line_index] = ruler['lines'][line_index]
                         else:
                             new_lines[line_index] = ruler['lines'][line_index + amount]
+
+                    if new_lines_size > amount and ruler['offset'] == line:
+                        ruler['offset'] += amount
 
                     ruler['lines'] = new_lines
 
