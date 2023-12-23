@@ -147,53 +147,52 @@ def int_to_key(key_int=0):
         return chromatic_keys[ key_int % 12 ]
     return key_int
 
-def note_to_steps(note="1/4"):
+def note_to_steps(note="1/4", steps_per_note=16, resolution=6):
     if isinstance(note, str):
         try:
-            return 16 * float(note)
+            return steps_per_note * float(note)
         except ValueError:
             match note:
-                case "1": return 16
-                case "1T": return 12
-                case "1/2": return 8
-                case "1/2T": return 6
-                case "1/4": return 4
-                case "1/4T": return 3
-                case "1/8": return 2
-                case "1/8T": return 1.5
-                case "1/16": return 1
-                case "1/16T": return 0.75
-                case "1/32": return 0.5
-                case "1/32T": return 0.375
-                case "1/64": return 0.25
-                case "1/64T": return 0.1875
-                case "1/128": return 0.125
-                case "1/128T": return 0.09375
-                case default: return 4
+                case "1": return steps_per_note
+                case "1T": return round(12 * steps_per_note/16, resolution)
+                case "1/2": return round(8 * steps_per_note/16, resolution)
+                case "1/2T": return round(6 * steps_per_note/16, resolution)
+                case "1/4": return round(4 * steps_per_note/16, resolution)
+                case "1/4T": return round(3 * steps_per_note/16, resolution)
+                case "1/8": return round(2 * steps_per_note/16, resolution)
+                case "1/8T": return round(1.5 * steps_per_note/16, resolution)
+                case "1/16": return round(1 * steps_per_note/16, resolution)
+                case "1/16T": return round(0.75 * steps_per_note/16, resolution)
+                case "1/32": return round(0.5 * steps_per_note/16, resolution)
+                case "1/32T": return round(0.375 * steps_per_note/16, resolution)
+                case "1/64": return round(0.25 * steps_per_note/16, resolution)
+                case "1/64T": return round(0.1875 * steps_per_note/16, resolution)
+                case "1/128": return round(0.125 * steps_per_note/16, resolution)
+                case "1/128T": return round(0.09375 * steps_per_note/16, resolution)
+                case default: return round(4 * steps_per_note/16, resolution)
     return note
         
-def steps_to_note(steps=4):
-    if steps > 16:
-        return str(steps/16)
+def steps_to_note(steps=4, steps_per_note=16, resolution=6):
+    if steps > steps_per_note:
+        return str(steps/steps_per_note)
     else:
-        match steps:
-            case 16: return "1"
-            case 12: return "1T"
-            case 8: return "1/2"
-            case 6: return "1/2T"
-            case 4: return "1/4"
-            case 3: return "1/4T"
-            case 2: return "1/8"
-            case 1.5: return "1/8T"
-            case 1: return "1/16"
-            case 0.75: return "1/16T"
-            case 0.5: return "1/32"
-            case 0.375: return "1/32T"
-            case 0.25: return "1/64"
-            case 0.1875: return "1/64T"
-            case 0.125: return "1/128"
-            case 0.09375: return "1/128T"
-            case default: return "1/4"
+        if steps == steps_per_note: return "1"
+        if steps == round(12 * steps_per_note/16, resolution): return "1T"
+        if steps == round(8 * steps_per_note/16, resolution): return "1/2"
+        if steps == round(6 * steps_per_note/16, resolution): return "1/2T"
+        if steps == round(4 * steps_per_note/16, resolution): return "1/4"
+        if steps == round(3 * steps_per_note/16, resolution): return "1/4T"
+        if steps == round(2 * steps_per_note/16, resolution): return "1/8"
+        if steps == round(1.5 * steps_per_note/16, resolution): return "1/8T"
+        if steps == round(1 * steps_per_note/16, resolution): return "1/16"
+        if steps == round(0.75 * steps_per_note/16, resolution): return "1/16T"
+        if steps == round(0.5 * steps_per_note/16, resolution): return "1/32"
+        if steps == round(0.375 * steps_per_note/16, resolution): return "1/32T"
+        if steps == round(0.25 * steps_per_note/16, resolution): return "1/64"
+        if steps == round(0.1875 * steps_per_note/16, resolution): return "1/64T"
+        if steps == round(0.125 * steps_per_note/16, resolution): return "1/128"
+        if steps == round(0.09375 * steps_per_note/16, resolution): return "1/128T"
+        return "1/4"
 
 def round_steps(steps=4, triplets=False):
     rounded_steps = round(math.log2(steps))**2
