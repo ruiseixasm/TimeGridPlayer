@@ -1271,7 +1271,7 @@ class Staff:
             on_staff.float()
             for ruler in self._rulers_list:
                 position_steps = self._staff.steps(ruler['position'])
-                position_steps = int(round(position_steps))
+                position_steps = round(position_steps)
                 ruler['position'] = self._staff.position(position_steps)
             on_staff.drop()
             return self
@@ -1486,10 +1486,9 @@ class Staff:
                     division_divisions = self._staff.step_divisions(division_steps)
                     time_signature = self._staff.time_signature()
                     if division_divisions['measure'] > 0:
-                        steps_per_measure = time_signature['steps_per_beat'] * time_signature['beats_per_measure']
-                        division_quantized = division_divisions['measure'] * steps_per_measure
+                        division_quantized = division_divisions['measure'] * time_signature['steps_per_measure']
                     elif division_divisions['beat'] > 0:
-                        division_quantized = division_divisions['beat'] * time_signature['steps_per_beat']
+                        division_quantized = division_divisions['beat'] * time_signature['steps_per_quarternote']
                     else:
                         division_quantized = division_steps
 
@@ -1787,14 +1786,15 @@ class Staff:
             if dictionnaire['part'] == "staff":
                 measures = dictionnaire['time_signature']['measures']
                 beats_per_measure = dictionnaire['time_signature']['beats_per_measure']
-                steps_per_beat = dictionnaire['time_signature']['steps_per_beat']
-                pulses_per_quarter_note = dictionnaire['time_signature']['pulses_per_quarter_note']
+                beats_per_note = dictionnaire['time_signature']['beats_per_note']
+                steps_per_quarternote = dictionnaire['time_signature']['steps_per_quarternote']
+                pulses_per_quarternote = dictionnaire['time_signature']['pulses_per_quarternote']
                 play_range = dictionnaire['play_range']
                 
                 self.clear()
 
                 self.set_range(start=play_range[0], finish=play_range[1])
-                self.set(measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+                self.set(measures, beats_per_measure, beats_per_note, steps_per_quarternote, pulses_per_quarternote)
             
                 self._rulers = self._rulers.json_load(file_name, dictionnaire['rulers'])
 
@@ -1815,7 +1815,7 @@ class Staff:
         return self._total_pulses
     
     def len_steps(self):
-        return self._total_pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat']
+        return round(self._total_pulses / self._time_signature['pulses_per_step'])
     
     def list(self):
         return self._staff_list
@@ -1830,18 +1830,12 @@ class Staff:
 
     def position(self, steps=None, pulses=None):
         if (steps != None):
-            measures = int(steps / (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
-            steps = steps % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])
-            if steps < 0:
-                steps = -(-steps % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
+            step_divisions = self.step_divisions(steps)
+            return [step_divisions['measure'], step_divisions['step']]
         elif (pulses != None):
-            measures = int(pulses / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']))
-            steps = pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat'] % \
-                (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])
-            if pulses < 0:
-                steps = -(-pulses * self._time_signature['steps_per_beat'] / self._time_signature['pulses_per_beat'] % \
-                          (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']))
-        return [measures, steps]
+            pulse_divisions = self.pulse_divisions(pulses)
+            return [pulse_divisions['measure'], pulse_divisions['step']]
+        return [0, 0]
     
     def position_on_staff(self, position):
         position_pulses = self.pulses(position)
@@ -1907,18 +1901,17 @@ class Staff:
 
     def pulse_divisions(self, pulse=0):
         return {
-            'measure': int(pulse / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure'])),
+            'measure': int(pulse / self._time_signature['pulses_per_measure']),
             'beat': int(pulse / self._time_signature['pulses_per_beat']) % self._time_signature['beats_per_measure'],
-            'step': int(pulse / (self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])) \
-                % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']),
+            'step': int(pulse / self._time_signature['pulses_per_step']) % self._time_signature['steps_per_measure'],
             'pulse': pulse # by definition pulse is pulse
         }
     
     def pulseRemainders(self, pulse=0):
         return {
-            'measure': pulse % (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']),
+            'measure': pulse % self._time_signature['pulses_per_measure'],
             'beat': pulse % self._time_signature['pulses_per_beat'],
-            'step': pulse % (self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat']),
+            'step': pulse % self._time_signature['pulses_per_step'],
             'pulse': 0 # by definition is pulse % pulse = 0
         }
     
@@ -1953,8 +1946,7 @@ class Staff:
         return pulse_sums
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
-        return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat'] + \
-            round(LINES_SCALES.note_to_steps(position[1]) * self._time_signature['pulses_per_beat'] / self._time_signature['steps_per_beat'])
+        return position[0] * self._time_signature['pulses_per_measure'] + round(LINES_SCALES.note_to_steps(position[1]) * self._time_signature['pulses_per_step'])
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -1962,7 +1954,7 @@ class Staff:
     def rulers(self):
         return self._rulers
 
-    def set(self, measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+    def set(self, measures=None, beats_per_measure=None, beats_per_note=None, steps_per_quarternote=None, pulses_per_quarternote=None):
 
         self._rulers.float() # starts by floating all Rulers (makes on_staff = False)
 
@@ -1973,40 +1965,39 @@ class Staff:
             self._time_signature['beats_per_measure'] = beats_per_measure
             if beats_per_measure == None:
                 self._time_signature['beats_per_measure'] = 4
-            self._time_signature['steps_per_beat'] = steps_per_beat
-            if steps_per_beat == None:
-                self._time_signature['steps_per_beat'] = 4
-            self._time_signature['pulses_per_quarter_note'] = pulses_per_quarter_note
-            if pulses_per_quarter_note == None:
-                self._time_signature['pulses_per_quarter_note'] = 24
+            if beats_per_note == None:
+                self._time_signature['beats_per_note'] = 4
+            self._time_signature['steps_per_quarternote'] = steps_per_quarternote
+            if steps_per_quarternote == None:
+                self._time_signature['steps_per_quarternote'] = 4
+            self._time_signature['pulses_per_quarternote'] = pulses_per_quarternote
+            if pulses_per_quarternote == None:
+                self._time_signature['pulses_per_quarternote'] = 24
         else:
             if measures != None:
-                self._time_signature['measures'] = int(max(1, measures))                                # staff total size
+                self._time_signature['measures'] = int(max(1, measures))                                                    # staff total size
             if beats_per_measure != None:
-                self._time_signature['beats_per_measure'] = int(max(1, beats_per_measure))              # beats in each measure
-            if steps_per_beat != None:
-                self._time_signature['steps_per_beat'] = 1 if steps_per_beat == 0 else steps_per_beat   # how many steps take each beat
-            if pulses_per_quarter_note != None:
-                self._time_signature['pulses_per_quarter_note'] = pulses_per_quarter_note               # sets de resolution of clock pulses
+                self._time_signature['beats_per_measure'] = int(max(1, beats_per_measure))                                  # beats in each measure
+            if beats_per_note != None:
+                self._time_signature['beats_per_note'] = int(max(1, beats_per_note))                                        # beats in each note
+            if steps_per_quarternote != None:
+                self._time_signature['steps_per_quarternote'] = 1 if steps_per_quarternote == 0 else steps_per_quarternote  # how many steps take each beat
+            if pulses_per_quarternote != None:
+                self._time_signature['pulses_per_quarternote'] = pulses_per_quarternote                                     # sets de resolution of clock pulses
 
-        self._time_signature['pulses_per_beat'] = self._time_signature['steps_per_beat'] * \
-            round(converter_PPQN_PPB(self._time_signature['pulses_per_quarter_note']) / self._time_signature['steps_per_beat'])
+        self._time_signature['steps_per_beat'] = round(self._time_signature['steps_per_quarternote'] / (self._time_signature['beats_per_note'] / 4))
+        self._time_signature['steps_per_measure'] = self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']
+        self._time_signature['pulses_per_beat'] = round(self._time_signature['pulses_per_quarternote'] / (self._time_signature['beats_per_note'] / 4))
+        self._time_signature['pulses_per_measure'] = self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']
+        self._time_signature['pulses_per_step'] = round(self._time_signature['pulses_per_quarternote'] / self._time_signature['steps_per_quarternote'])
 
-        self._total_pulses = self._time_signature['measures'] * \
-            self._time_signature['beats_per_measure'] * self._time_signature['pulses_per_beat']
+        self._total_pulses = round(self._time_signature['measures'] * self._time_signature['pulses_per_measure'])
 
         self._staff_list = []
         for pulse in range(self._total_pulses):
-            staff_pulse = {
-                'measure': int(pulse / (self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure'])),
-                'beat': int(pulse / self._time_signature['pulses_per_beat']) % self._time_signature['beats_per_measure'],
-                'step': int(pulse * self._time_signature['steps_per_beat'] / \
-                            self._time_signature['pulses_per_beat']) % \
-                                (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']),
-                'pulse': pulse,
-                'arguments': {'enabled': 0, 'total': 0},
-                'actions': {'enabled': 0, 'total': 0}
-            }
+            staff_pulse = self.pulse_divisions(pulse)
+            staff_pulse['arguments'] = {'enabled': 0, 'total': 0}
+            staff_pulse['actions'] = {'enabled': 0, 'total': 0}
             self._staff_list.append(staff_pulse)
 
         self._rulers.drop() # ends by dropping all Rulers
@@ -2037,14 +2028,14 @@ class Staff:
 
     def step_divisions(self, step=0):
         return {
-            'measure': int(step / (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])),
+            'measure': int(step / self._time_signature['steps_per_measure']),
             'beat': int(step / self._time_signature['steps_per_beat']) % self._time_signature['beats_per_measure'],
-            'step': step % (self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure'])
+            'step': step % self._time_signature['steps_per_measure']
         }
     
     def steps(self, position=[0, 0]): # position: [measure, step]
         position[1] = LINES_SCALES.note_to_steps(position[1])
-        return position[0] * self._time_signature['beats_per_measure'] * self._time_signature['steps_per_beat'] + position[1]
+        return position[0] * self._time_signature['steps_per_measure'] + position[1]
 
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))
@@ -2053,11 +2044,18 @@ class Staff:
         return self._time_signature
     
         # self._time_signature = {
-        #     'measures'                  # staff total size
-        #     'beats_per_measure'         # beats in each measure
-        #     'steps_per_beat'            # how many steps take each beat
-        #     'pulses_per_quarter_note'   # sets de resolution of clock pulses
+        #     'measures'                    # staff total size
+        #     'beats_per_measure'           # beats in each measure
+        #     'beats_per_note'              # beats in each measure
+        #     'steps_per_quarternote'       # how many steps take each beat
+        #     'pulses_per_quarternote'      # sets de resolution of clock pulses
+
+        #     'steps_per_beat'
+        #     'steps_per_measure'
         #     'pulses_per_beat'
+        #     'pulses_per_measure'
+        #     'pulses_per_step'
+
         # }
 
 class StaffNone(Staff):
@@ -2095,11 +2093,11 @@ def position_lt(left_position, right_position):
                 return True
     return False
 
-def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
-    '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
-    STEPS_PER_QUARTER_NOTE = 4
-    pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
-    return int(pulses_per_beat)
+# def converter_PPQN_PPB(pulses_per_quarternote=24, steps_per_quarternote=4): # 4 steps per beat is a constant
+#     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
+#     STEPS_PER_QUARTER_NOTE = 4
+#     pulses_per_beat = pulses_per_quarternote * (steps_per_quarternote / STEPS_PER_QUARTER_NOTE)
+#     return int(pulses_per_beat)
 
 def format_note_duration(note, note_notation=None):
     note_steps = LINES_SCALES.note_to_steps(note)

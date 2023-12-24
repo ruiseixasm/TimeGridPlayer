@@ -25,7 +25,6 @@ class Clock(PLAYER.Player):
     class Clock(PLAYER.Player.Clock):
         def __init__(self, player):
             super().__init__(player)
-            self.set(beats_per_minute=120, steps_per_beat=4, pulses_per_quarter_note=24)
 
         def stop(self, tick = None):
             self._tick = super().stop(tick)

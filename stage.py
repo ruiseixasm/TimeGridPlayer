@@ -348,15 +348,15 @@ class Stage:
 
         return self
 
-    def set_tempo(self, tempo=None, pulses_per_quarter_note=None):
+    def set_tempo(self, tempo=None):
         for player_data in self._players_list:
-            player_data['player'].set_tempo(tempo=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
+            player_data['player'].set_tempo(tempo=tempo)
             
         return self
 
-    def set_time_signature(self, measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
+    def set_time_signature(self, measures=None, beats_per_measure=None, beats_per_note=None, steps_per_quarternote=None, pulses_per_quarternote=None):
         for player_data in self._players_list:
-            player_data['player'].set_time_signature(measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+            player_data['player'].set_time_signature(measures, beats_per_measure, beats_per_note, steps_per_quarternote, pulses_per_quarternote)
             
         return self
 

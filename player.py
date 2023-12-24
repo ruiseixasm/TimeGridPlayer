@@ -336,7 +336,7 @@ class Player:
 
                     if tick['player'] == self._player and self._staff.pulseRemainders(self._play_pulse)['step'] == 0:
                         staff_time_signature = self._staff.time_signature()
-                        pulses_per_step = staff_time_signature['pulses_per_beat'] / staff_time_signature['steps_per_beat']
+                        pulses_per_step = staff_time_signature['pulses_per_step']
                         print_symbol = "."
                         if self._staff.pulseRemainders(self._play_pulse)['beat'] == 0:
                             print_symbol = ":"
@@ -399,10 +399,9 @@ class Player:
         def actionTrigger(self, triggered_action, self_merged_staff_arguments, staff, tick):
 
             self._last_trigger_action = triggered_action
-            self._trigger_steps_per_beat = staff.time_signature()['steps_per_beat']
-            self._clock_steps_per_beat = tick['tempo']['steps_per_beat']
-            self._clock_pulses_per_step = tick['tempo']['pulses_per_beat'] / tick['tempo']['steps_per_beat']
-            self._clock_trigger_steps_per_beat_ratio = self._clock_steps_per_beat / self._trigger_steps_per_beat
+            clock_player_staff = tick['player'].staff()
+            clock_player_time_signature = clock_player_staff.time_signature()
+            self._clock_pulses_per_step = clock_player_time_signature['pulses_per_step']
 
             repeat_action = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "repeat")
             if (repeat_action != None and self._repeat_action == 0):
@@ -459,29 +458,21 @@ class Player:
             remaining_duration = self._next_pulse_time - actual_time
             return remaining_duration / self._pulse_duration
 
-        def set(self, beats_per_minute=None, steps_per_beat=None, pulses_per_quarter_note=None):
+        def set(self, beats_per_minute=None, pulses_per_beat=None):
 
             if self._tempo == {}:
                 self._tempo['beats_per_minute'] = beats_per_minute
                 if beats_per_minute == None:
                     self._tempo['beats_per_minute'] = 120
-                self._tempo['steps_per_beat'] = steps_per_beat
-                if steps_per_beat == None:
-                    self._tempo['steps_per_beat'] = 4
-                self._tempo['pulses_per_quarter_note'] = pulses_per_quarter_note
-                if pulses_per_quarter_note == None:
-                    self._tempo['pulses_per_quarter_note'] = 24
+                self._tempo['pulses_per_beat'] = pulses_per_beat
+                if pulses_per_beat == None:
+                    self._tempo['pulses_per_beat'] = 24
             else:
                 if beats_per_minute != None:
                     self._tempo['beats_per_minute'] = beats_per_minute
-                if steps_per_beat != None:
-                    self._tempo['steps_per_beat'] = steps_per_beat
-                if pulses_per_quarter_note != None:
-                    self._tempo['pulses_per_quarter_note'] = pulses_per_quarter_note
+                if pulses_per_beat != None:
+                    self._tempo['pulses_per_beat'] = pulses_per_beat
 
-            pulses_per_beat = self._tempo['steps_per_beat'] * round(converter_PPQN_PPB(self._tempo['pulses_per_quarter_note']) / self._tempo['steps_per_beat'])
-            self._tempo['pulses_per_beat'] = pulses_per_beat
-            
             self._pulse_duration = self.getPulseDuration(self._tempo['beats_per_minute'], self._tempo['pulses_per_beat']) # in seconds
 
             return self
@@ -747,21 +738,21 @@ class Player:
     def set_length(self, measures=8):
         return self.set_time_signature(measures)
 
-    def set_tempo(self, tempo=None, pulses_per_quarter_note=None):
-        self._clock.set(beats_per_minute=tempo, pulses_per_quarter_note=pulses_per_quarter_note)
-        self._staff.set(pulses_per_quarter_note=pulses_per_quarter_note)
+    def set_tempo(self, tempo=None):
+        self._clock.set(beats_per_minute=tempo)
         return self
 
     def set_staff(self, staff):
         self._staff = staff
         time_signature = self._staff.time_signature()
-        self._clock.set(beats_per_minute=None, steps_per_beat=time_signature['steps_per_beat'], pulses_per_quarter_note=time_signature['pulses_per_quarter_note'])
+        self._clock.set(beats_per_minute=None, pulses_per_beat=time_signature['pulses_per_beat'])
 
         return self
 
-    def set_time_signature(self, measures=None, beats_per_measure=None, steps_per_beat=None, pulses_per_quarter_note=None):
-        self._clock.set(beats_per_minute=None, steps_per_beat=steps_per_beat, pulses_per_quarter_note=pulses_per_quarter_note)
-        self._staff.set(measures, beats_per_measure, steps_per_beat, pulses_per_quarter_note)
+    def set_time_signature(self, measures=None, beats_per_measure=None, beats_per_note=None, steps_per_quarternote=None, pulses_per_beat=None):
+        self._staff.set(measures, beats_per_measure, beats_per_note, steps_per_quarternote, pulses_per_beat)
+        time_signature = self._staff.time_signature()
+        self._clock.set(beats_per_minute=None, pulses_per_beat=time_signature['pulses_per_beat'])
 
         return self
 
@@ -907,11 +898,11 @@ class PlayerNone(Player):
 
 # GLOBAL CLASS METHODS
 
-def converter_PPQN_PPB(pulses_per_quarter_note=24, steps_per_beat=4): # 4 steps per beat is a constant
-    '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
-    STEPS_PER_QUARTER_NOTE = 4
-    pulses_per_beat = pulses_per_quarter_note * (steps_per_beat / STEPS_PER_QUARTER_NOTE)
-    return int(pulses_per_beat)
+# def converter_PPQN_PPB(pulses_per_beat=24, steps_per_quarternote=4): # 4 steps per beat is a constant
+#     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
+#     STEPS_PER_QUARTER_NOTE = 4
+#     pulses_per_beat = pulses_per_beat * (steps_per_quarternote / STEPS_PER_QUARTER_NOTE)
+#     return int(pulses_per_beat)
 
 def trimString(full_string):
     string_maxum_size = 60
