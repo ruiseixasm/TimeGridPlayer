@@ -738,8 +738,8 @@ class Player:
     def set_length(self, measures=8):
         return self.set_time_signature(measures)
 
-    def set_tempo(self, tempo=None):
-        self._clock.set(beats_per_minute=tempo)
+    def set_tempo(self, beats_per_minute=None):
+        self._clock.set(beats_per_minute=beats_per_minute)
         return self
 
     def set_staff(self, staff):

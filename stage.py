@@ -348,9 +348,9 @@ class Stage:
 
         return self
 
-    def set_tempo(self, tempo=None):
+    def set_tempo(self, beats_per_minute=None):
         for player_data in self._players_list:
-            player_data['player'].set_tempo(tempo=tempo)
+            player_data['player'].set_tempo(beats_per_minute=beats_per_minute)
             
         return self
 

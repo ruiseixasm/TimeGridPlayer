@@ -85,6 +85,7 @@ master.rulers().add({'link': "cc.value.auto", 'position': [8, 0], 'lines': [64]}
 
 
 stage_midi.use_resource("loop").enable_resource()
+stage_midi.set_time_signature(pulses_per_quarternote=48)
 stage_midi.print()
 
 stage_midi.json_save("stage_2.json")
