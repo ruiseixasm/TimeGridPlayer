@@ -26,17 +26,6 @@ class Clock(PLAYER.Player):
         def __init__(self, player):
             super().__init__(player)
 
-        def start(self, non_fast_forward_range_pulses = [], tick = None): # Where a non fast forward range is set
-            self._tick = super().start(non_fast_forward_range_pulses, tick)
-            
-            source_tempo = tick['tempo']
-            self._tempo['beats_per_minute'] = source_tempo['beats_per_minute']
-            self._tempo['pulses_per_beat'] = source_tempo['pulses_per_beat']
-            
-            self._pulse_duration = self.getPulseDuration(self._tempo['beats_per_minute'], self._tempo['pulses_per_beat']) # in seconds
-
-            return self._tick
-        
         def stop(self, tick = None):
             self._tick = super().stop(tick)
             if self._player.resource != None and not self._player.resource.is_none:
@@ -48,8 +37,8 @@ class Clock(PLAYER.Player):
             return self._tick
             
         def tick(self, tick = None):
-            if tick != None:
-                self._pulse_duration = self.getPulseDuration(tick['tempo']['beats_per_minute'], 24) # in seconds
+            if tick != None: # adjusts BPMs accordingly to the master clock
+                self._pulse_duration = self.getPulseDuration(tick['tempo']['beats_per_minute'], 24) # in seconds. 24ppqn is the midi standard
 
             self._tick = super().tick(tick)
 

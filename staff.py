@@ -366,8 +366,8 @@ class Staff:
 
         def copy(self):
             """Shows just the copied rulers"""
-            copied_rulers = self.empty() # creates new Ruler object
-            for ruler_data in self:
+            copied_rulers = self.empty() # creates new empty Ruler object
+            for ruler_data in self.list().copy():
                 ruler_copy = ruler_data.copy()
                 ruler_copy['lines'] = ruler_data['lines'].copy()
                 copied_rulers.add(ruler_copy)
@@ -1337,10 +1337,8 @@ class Staff:
             return self
 
         def reroot(self):
-            extra_root_rulers = (self._root_self - self).unique()
-            self._staff.remove(extra_root_rulers.list())
-            self._root_self = self
-            self._staff.setRuler(self) # avoids broken links
+            (self._root_self - self).unique().float()
+            self._root_self._rulers_list = self._rulers_list
             return self
         
         def reset(self):

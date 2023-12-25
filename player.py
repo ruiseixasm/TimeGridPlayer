@@ -749,8 +749,8 @@ class Player:
 
         return self
 
-    def set_time_signature(self, measures=None, beats_per_measure=None, beats_per_note=None, steps_per_quarternote=None, pulses_per_beat=None):
-        self._staff.set(measures, beats_per_measure, beats_per_note, steps_per_quarternote, pulses_per_beat)
+    def set_time_signature(self, measures=None, beats_per_measure=None, beats_per_note=None, steps_per_quarternote=None, pulses_per_quarternote=None):
+        self._staff.set(measures, beats_per_measure, beats_per_note, steps_per_quarternote, pulses_per_quarternote)
         time_signature = self._staff.time_signature()
         self._clock.set(beats_per_minute=None, pulses_per_beat=time_signature['pulses_per_beat'])
 

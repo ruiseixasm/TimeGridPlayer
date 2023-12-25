@@ -34,6 +34,15 @@ class Stage:
         self._next_id = start_id
         self.current_player = 0
 
+        self._beats_per_minute = 120
+        self._time_signature = {
+            'measures': 8,                  # staff total size
+            'beats_per_measure': 4,         # beats in each measure
+            'beats_per_note': 4,            # beats in each measure
+            'steps_per_quarternote': 4,     # how many steps take each beat
+            'pulses_per_quarternote': 24    # sets de resolution of clock pulses
+        }
+
         self._play_print_options = {
             'staff': True,
             'error': False,
@@ -104,6 +113,14 @@ class Stage:
         existent_player = self._root_self.filter(names=[name]) # name is the identifier
         if existent_player.len() == 0:
             player = self.playerFactoryMethod(name, description, resources, type) # Factory Method
+            player.set_tempo(self._beats_per_minute)
+            player.set_time_signature(
+                    self._time_signature['measures'],
+                    self._time_signature['beats_per_measure'],
+                    self._time_signature['beats_per_note'],
+                    self._time_signature['steps_per_quarternote'],
+                    self._time_signature['pulses_per_quarternote']
+                )
             player_data = {
                 'id': self._next_id,
                 'type': player.__class__.__name__,
@@ -169,6 +186,8 @@ class Stage:
                 'part': "stage",
                 'type': self._root_self.__class__.__name__,
                 'next_id': self._root_self._next_id,
+                'beats_per_minute': self._beats_per_minute,
+                'time_signature': self._time_signature,
                 'players': []
             }
         
@@ -196,6 +215,8 @@ class Stage:
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
                 self._root_self._next_id = stage_dictionnaire['next_id']
+                self._root_self._beats_per_minute = stage_dictionnaire['beats_per_minute']
+                self._root_self._time_signature = stage_dictionnaire['time_signature']
                 for player_dictionnaire in stage_dictionnaire['players']:
                     player_type = player_dictionnaire['type']
                     player_name = player_dictionnaire['name']
@@ -348,13 +369,24 @@ class Stage:
 
         return self
 
-    def set_tempo(self, beats_per_minute=None):
+    def set_tempo(self, beats_per_minute):
+        self._beats_per_minute = beats_per_minute
         for player_data in self._players_list:
             player_data['player'].set_tempo(beats_per_minute=beats_per_minute)
             
         return self
 
     def set_time_signature(self, measures=None, beats_per_measure=None, beats_per_note=None, steps_per_quarternote=None, pulses_per_quarternote=None):
+        if measures != None:
+            self._time_signature['measures'] = measures
+        if beats_per_measure != None:
+            self._time_signature['beats_per_measure'] = beats_per_measure
+        if beats_per_note != None:
+            self._time_signature['beats_per_note'] = beats_per_note
+        if steps_per_quarternote != None:
+            self._time_signature['steps_per_quarternote'] = steps_per_quarternote
+        if pulses_per_quarternote != None:
+            self._time_signature['pulses_per_quarternote'] = pulses_per_quarternote
         for player_data in self._players_list:
             player_data['player'].set_time_signature(measures, beats_per_measure, beats_per_note, steps_per_quarternote, pulses_per_quarternote)
             

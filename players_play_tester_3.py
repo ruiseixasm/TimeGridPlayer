@@ -14,31 +14,20 @@ import lines_scales as LINES_SCALES
 
 scales = LINES_SCALES.Scales()
 keys_major_scale = scales.scale("major", "A", 5).lines()
+
+# add a master player to a new stage
 stage = STAGE_MIDI.StageMidi()
-
-# add a master player to stage
-master = stage.add("master").last().player()
-
-# add note with the respective midi resource already enabled
-note = stage.add("note", type="Note").last().player().use_resource("loop").enable_resource()
-
-# type 'python -i interactive_mode_startup.py' to use the present script in interactive mode
-# type 'exit()' to exit
-
-pattern = stage.add("pattern").last().player()
-pattern.rulers().add({'link': "note", 'lines': ["1/4"]}).print()
-pattern.set_length(1)
+# stage.set_tempo(90)
+# stage.set_time_signature(steps_per_quarternote=6, pulses_per_quarternote=48)
+# master = stage.add("master").last().player()
+# note = stage.add("note", type="Note").last().player()
+# pattern = stage.add("pattern").last().player().set_length(1)
+# stage.add("clock", type="Clock").use_resource("loop").enable_resource()
 
 stage.json_load("players_play_tester_3.json")
 master = stage.player("master")
 note = stage.player("note")
 pattern = stage.player("pattern")
-
 pattern.rulers().actions().print()
-#pattern.rulers().print(full=True)
-#pattern.rulers().actions().mirror().print()
-stage.set_time_signature(steps_per_quarternote=6)
-stage.set_tempo(90, 48)
-#stage.play()
-# pattern.rulers().actions().remove().root().print()
-# pattern.rulers().print()
+
+stage.play()
