@@ -240,10 +240,11 @@ class Staff:
 
             return self._staff.position(start_argument_position_steps)
 
-        def add(self, ruler): # Must be able to remove removed rulers from the main list
-            
+        def add(self, ruler=None): # Must be able to remove removed rulers from the main list
+            if ruler == None:
+                ruler = self
             if ruler.__class__ == self.__class__:
-                for ruler_data in ruler:
+                for ruler_data in ruler.list().copy():
                     self.add(ruler_data)
             else:
                 if not self.is_none and ruler != None and len(ruler) > 0 and 'link' in ruler and ruler['link'] != None:
@@ -416,6 +417,26 @@ class Staff:
 
             return sorted_rulers
         
+        def drag(self, tail=None, length=None):
+
+            for ruler_data in self._rulers_list:
+                ruler_lines_length = len(ruler_data['lines'])
+                ruler_lines_tail = tail
+                if ruler_lines_tail == None:
+                    ruler_lines_tail = ruler_lines_length
+                new_lines_length = length
+                if new_lines_length == None:
+                    new_lines_length = ruler_lines_length
+                
+                new_lines = [None] * new_lines_length
+                for new_lines_index in range(new_lines_length):
+                    tail_lines_index = ruler_lines_length - ruler_lines_tail + new_lines_index % ruler_lines_tail
+                    new_lines[new_lines_index] = ruler_data['lines'][tail_lines_index]
+                
+                ruler_data['lines'] += new_lines
+
+            return self
+
         def drop(self):
             self._staff.add(self.unique().list())
             return self
@@ -835,7 +856,7 @@ class Staff:
                         tail_offset = len(ruler['lines']) - 1 + ruler['offset']
 
                 merged_ruler = {
-                    'id': subject_rulers_list[0]['id'],
+                    'id': '-',
                     'type': type_link['type'],
                     'link': type_link['link'],
                     'position': subject_rulers_list[0]['position'],

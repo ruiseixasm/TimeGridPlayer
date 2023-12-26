@@ -28,6 +28,6 @@ stage.json_load("players_play_tester_3.json")
 master = stage.player("master")
 note = stage.player("note")
 pattern = stage.player("pattern")
-pattern.rulers().actions().print()
+pattern.rulers().print().ids(2).drag(2,3).root().print()
 
-stage.play()
+#stage.play()
