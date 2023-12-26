@@ -443,8 +443,8 @@ class Staff:
 
         def duplicate(self, times=1):
             """Duplicates the listed rulers"""
-            for ruler_data in self._rulers_list[:]:
-                for _ in range(times):
+            for _ in range(times):
+                for ruler_data in self._rulers_list[:]:
                     ruler = ruler_data.copy()
                     ruler['lines'] = ruler_data['lines'].copy()
                     self.add(ruler)
@@ -504,12 +504,16 @@ class Staff:
             return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def every(self, multiple, first=0):
-            every_rulers = []
-            for ruler_index in range(self.len()):
-                if (ruler_index - first) % multiple and ruler_index >= first:
-                    every_rulers.append(self._rulers_list[ruler_index])
-
-            return Staff.Rulers(self._staff, every_rulers, self._root_self, self._next_id, self._last_action_duration)
+            if multiple > 0:
+                if first == None:
+                    first = multiple - 1
+                if first >= 0:
+                    every_rulers = []
+                    for ruler_index in range(self.len()):
+                        if (ruler_index - first + 1) % multiple == 0 and ruler_index >= first:
+                            every_rulers.append(self._rulers_list[ruler_index])
+                    return Staff.Rulers(self._staff, every_rulers, self._root_self, self._next_id, self._last_action_duration)
+            return self
 
         def exclude(self, index=0):
             if (self.len() > index):

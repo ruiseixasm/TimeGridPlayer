@@ -294,6 +294,13 @@ class Stage:
             return selected_player.list()[0]['player']
         return PLAYER.PlayerNone(self)
 
+    def players(self):
+        players_data_list = self.unique().list()
+        players_list = []
+        for player_data in players_data_list:
+            players_list.append(player_data['player'])
+        return players_list
+
     def print(self):
 
         header_char = "="
