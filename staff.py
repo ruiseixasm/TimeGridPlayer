@@ -1300,6 +1300,19 @@ class Staff:
         def recall(self):
             return self._root_self._recall_self
 
+        def relink(self, link):
+            
+            link_list = link.split(".")
+            link_type = "arguments"
+            if len(link_list) == 1:
+                link_type = "actions"
+
+            rulers_type = self.filter(type=link_type)
+            for ruler_data in rulers_type:
+                ruler_data['link'] = link
+
+            return self
+
         def remove(self):
             unique_rulers_list = self.unique().list()
             self._staff.remove(unique_rulers_list)
@@ -1448,6 +1461,11 @@ class Staff:
 
             return self.rotate(increments)
         
+        def set_line(self, line, value):
+
+
+            return self
+
         def set_lines(self, lines, offset=None):
 
             if type(lines) != type([]) and type(lines) != type({}):

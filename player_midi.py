@@ -108,19 +108,19 @@ class Note(PLAYER.Player):
                     self._note['octave'] = note_octave
 
                 note_key = self.pickTriggeredLineArgumentValue(self_merged_staff_arguments, "key") # key is mandatory
-                if (note_key != None):
+                if (note_key != None): # requires a key note to play
                     self._note['key'] = note_key
 
-                self._player.stage._play_print(f"note ON:\t{self._note}\r\n", 'message')
-                if self._player.resource != None and not self._player.resource.is_none:
-                    self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
+                    self._player.stage._play_print(f"note ON:\t{self._note}\r\n", 'message')
+                    if self._player.resource != None and not self._player.resource.is_none:
+                        self._player.resource.pressNote(self._note, self._note['channel']) # WERE THE MIDI NOTE IS TRIGGERED
 
-                self_duration_pulses = self._duration * self._clock_pulses_per_step
-                
-                self.addClockedAction(
-                    {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
-                        'duration': self_duration_pulses, 'action': self}, tick
-                )
+                    self_duration_pulses = self._duration * self._clock_pulses_per_step
+                    
+                    self.addClockedAction(
+                        {'triggered_action': triggered_action, 'staff_arguments': self_merged_staff_arguments,
+                            'duration': self_duration_pulses, 'action': self}, tick
+                    )
     
     def actionFactoryMethod(self, triggered_action, self_merged_staff_arguments, staff, tick):
         return Note.Action(self, staff)

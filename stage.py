@@ -32,6 +32,7 @@ class Stage:
         self._resources = RESOURCES.Resources()
 
         self._next_id = start_id
+        self._default_player_id = start_id
         self.current_player = 0
 
         self._beats_per_minute = 120
@@ -85,7 +86,7 @@ class Stage:
             player_data['player'].enable_resource()
 
         return self
-            
+           
     def disable_resource(self):
         for player_data in self._players_list:
             player_data['player'].disable_resource()
@@ -107,7 +108,7 @@ class Stage:
             return PLAYER.Player(self, name, resources=resources)
         return PLAYER.Player(self, name, description, resources)
 
-    def add(self, name, description=None, resources=None, type=None):
+    def add(self, name, description=None, resources=None, type=None, default=False):
         if type == None:
             type = "Player"
         existent_player = self._root_self.filter(names=[name]) # name is the identifier
@@ -122,13 +123,15 @@ class Stage:
                     self._time_signature['pulses_per_quarternote']
                 )
             player_data = {
-                'id': self._next_id,
+                'id': self._root_self._next_id,
                 'type': player.__class__.__name__,
                 'name': player.name,
                 'player': player,
                 'enabled': True
             }
 
+            if default:
+                self._root_self._default_player_id = self._root_self._next_id
             self._root_self._next_id += 1
             self._root_self._players_list.append(player_data)
             if self != self._root_self:
@@ -136,7 +139,10 @@ class Stage:
                 self._next_id = self._root_self._next_id
 
         return self
-    
+     
+    def default_player(self):
+        return self._root_self.player(id=self._root_self._default_player_id)
+
     def disable(self):
         for player_data in self._players_list:
             player_data['enabled'] = False
@@ -186,6 +192,7 @@ class Stage:
                 'part': "stage",
                 'type': self._root_self.__class__.__name__,
                 'next_id': self._root_self._next_id,
+                'default_player_id': self._root_self._default_player_id,
                 'beats_per_minute': self._beats_per_minute,
                 'time_signature': self._time_signature,
                 'players': []
@@ -215,6 +222,7 @@ class Stage:
         for stage_dictionnaire in json_object:
             if stage_dictionnaire['part'] == "stage":
                 self._root_self._next_id = stage_dictionnaire['next_id']
+                self._root_self._default_player_id = stage_dictionnaire['default_player_id']
                 self._root_self._beats_per_minute = stage_dictionnaire['beats_per_minute']
                 self._root_self._time_signature = stage_dictionnaire['time_signature']
                 for player_dictionnaire in stage_dictionnaire['players']:
@@ -269,15 +277,19 @@ class Stage:
     def play(self, start=None, finish=None, id=None):
         if len(self._players_list) > 0:
             if id != None:
-                stage_player = self.filter(ids = [id], enabled=True)
+                stage_player = self.filter(ids=[id], enabled=True)
                 if stage_player.len() > 0:
                     stage_player.list()[0]['player'].play(start=start, finish=finish)
+            elif self == self._root_self:
+                defualt_player = self._root_self.filter(ids=[self._root_self._default_player_id])
+                if defualt_player.len() > 0 and defualt_player.list()[0]['enabled']:
+                    defualt_player.list()[0]['player'].play(start=start, finish=finish)
             elif self._players_list[0]['enabled']:
                 self._players_list[0]['player'].play(start=start, finish=finish)
         return self
         
-    def player(self, name=None, enabled=None) -> (PLAYER.Player | PLAYER.PlayerNone):
-        selected_player = self.filter(names=[name], enabled=enabled)
+    def player(self, id=None, name=None, enabled=None) -> (PLAYER.Player | PLAYER.PlayerNone):
+        selected_player = self.filter(ids=[id], names=[name], enabled=enabled)
         if selected_player.len() > 0:
             return selected_player.list()[0]['player']
         return PLAYER.PlayerNone(self)
@@ -286,7 +298,7 @@ class Stage:
 
         header_char = "="
         if len(self._players_list) > 0:
-            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'enabled': 0}
+            string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'enabled': 0, 'default': 0}
             sequence_index = 0
             for player_data in self: # get maximum sizes
                 
@@ -298,6 +310,9 @@ class Stage:
                         key_value_length = len(f"{player_data['player'].__class__.__name__}")
                     elif key == 'description':
                         key_value_length = len(f"{player_data['player'].description}")
+                    elif key == 'default':
+                        default_player = (player_data['id'] == self._root_self._default_player_id)
+                        key_value_length = len(f"{default_player}")
                     else:
                         key_value_length = len(f"{player_data[key]}")
 
@@ -308,7 +323,7 @@ class Stage:
                 full_string_top_length += value
 
             spaces_between = 4
-            header_char_length = full_string_top_length + 60
+            header_char_length = full_string_top_length + 73
 
             header_type = "   " + self.__class__.__name__ + "   "
             header_type_length = len(header_type)
@@ -331,15 +346,15 @@ class Stage:
                             key_value_str = f"{player_data['player'].__class__.__name__}"
                         elif key == 'description':
                             key_value_str = trimString(f"{player_data['player'].description}")
+                        elif key == 'default':
+                            default_player = (player_data['id'] == self._root_self._default_player_id)
+                            key_value_str = f"{default_player}"
                         else:
                             key_value_str = f"{player_data[key]}"
 
-                        if key == 'sub-players':
-                            key_value_str = f"{key}: " + (" " * (string_top_length[key] - len(key_value_str))) + key_value_str
-                        else:
-                            key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
+                        key_value_str = f"{key}: " + key_value_str + (" " * (string_top_length[key] - len(key_value_str)))
 
-                        if key != 'enabled':
+                        if key != 'default':
                             key_value_str += " " * spaces_between
 
                     player_str +=  key_value_str
@@ -367,6 +382,13 @@ class Stage:
         for player_data in self._root_self._players_list:
             player_data['name'] = player_data['player'].name
 
+        return self
+
+    def set_default_player(self, player):
+        root_player = self._root_self.filter(player=player)
+        if root_player.len() > 0:
+            self._root_self._default_player_id = root_player.list()[0]['id']
+        
         return self
 
     def set_tempo(self, beats_per_minute):
