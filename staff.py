@@ -503,6 +503,14 @@ class Staff:
             even_rulers_list = self._rulers_list[::2]
             return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
+        def every(self, multiple, first=0):
+            every_rulers = []
+            for ruler_index in range(self.len()):
+                if (ruler_index - first) % multiple and ruler_index >= first:
+                    every_rulers.append(self._rulers_list[ruler_index])
+
+            return Staff.Rulers(self._staff, every_rulers, self._root_self, self._next_id, self._last_action_duration)
+
         def exclude(self, index=0):
             if (self.len() > index):
                 excluding_rulers = self.single(self, index)
