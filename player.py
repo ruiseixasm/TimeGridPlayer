@@ -898,12 +898,6 @@ class PlayerNone(Player):
 
 # GLOBAL CLASS METHODS
 
-# def converter_PPQN_PPB(pulses_per_beat=24, steps_per_quarternote=4): # 4 steps per beat is a constant
-#     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
-#     STEPS_PER_QUARTER_NOTE = 4
-#     pulses_per_beat = pulses_per_beat * (steps_per_quarternote / STEPS_PER_QUARTER_NOTE)
-#     return int(pulses_per_beat)
-
 def trimString(full_string):
     string_maxum_size = 60
     long_string_termination = "…"

@@ -2148,11 +2148,6 @@ def position_lt(left_position, right_position):
                 return True
     return False
 
-# def converter_PPQN_PPB(pulses_per_quarternote=24, steps_per_quarternote=4): # 4 steps per beat is a constant
-#     '''Converts Pulses Per Quarter Note into Pulses Per Beat'''
-#     STEPS_PER_QUARTER_NOTE = 4
-#     pulses_per_beat = pulses_per_quarternote * (steps_per_quarternote / STEPS_PER_QUARTER_NOTE)
-#     return int(pulses_per_beat)
 
 def format_note_duration(note, note_notation=None):
     note_steps = LINES_SCALES.note_to_steps(note)
