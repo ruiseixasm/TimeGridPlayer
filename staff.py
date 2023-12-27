@@ -500,7 +500,7 @@ class Staff:
             return self
         
         def even(self):
-            even_rulers_list = self._rulers_list[::2]
+            even_rulers_list = self._rulers_list[1::2]
             return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def every(self, multiple, first=0):
@@ -963,7 +963,7 @@ class Staff:
             return self
 
         def odd(self):
-            odd_rulers_list = self._rulers_list[1::2]
+            odd_rulers_list = self._rulers_list[::2]
             return Staff.Rulers(self._staff, odd_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def on_staff(self):
@@ -1474,7 +1474,11 @@ class Staff:
             return self.rotate(increments)
         
         def set_line(self, line, value):
-
+            for ruler_data in self._rulers_list:
+                ruler_first_line = ruler_data['offset']
+                ruler_last_line = ruler_first_line + len(ruler_data['lines']) - 1
+                if not (line < ruler_first_line or line > ruler_last_line):
+                    ruler_data['lines'][line] = value
 
             return self
 
