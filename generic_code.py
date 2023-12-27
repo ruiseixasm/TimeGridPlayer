@@ -286,5 +286,10 @@ Lesser General Public License for more details.'''
 #     function_2(one_dummy)
 #     print("NEXT\n")
 
+# print (round(1.1))
 
-print (round(1.1))
+some_list = [1, 3]
+another_list = some_list - [1, 1] # ERROR
+print(another_list)
+
+

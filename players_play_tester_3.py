@@ -37,4 +37,4 @@ pattern.rulers().print()
 
 #pattern.rulers().print().ids(2).drag(2,3).root().print()
 
-#stage.play()
+stage.play()

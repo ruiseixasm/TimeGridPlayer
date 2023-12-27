@@ -63,6 +63,10 @@ class Staff:
         @property
         def player(self):
             return self._staff.player
+        
+        @property
+        def time_signature(self):
+            return self._staff.time_signature()
             
         def __iter__(self):
             return self
@@ -126,7 +130,7 @@ class Staff:
                         enabled_ruler_data['player'] = PLAYER.PlayerNone(self.player.stage)
 
                 # also convert positions from notes duration to steps
-                enabled_ruler_data['position'][1] = LINES_SCALES.note_to_steps(enabled_ruler_data['position'][1])
+                enabled_ruler_data['position'][1] = LINES_SCALES.note_to_steps(enabled_ruler_data['position'][1], self.time_signature['steps_per_note'])
 
             return self
 
@@ -396,7 +400,7 @@ class Staff:
                     start_pulses = self._staff.pulses(range_positions[0])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
                 elif range_steps != None:
-                    range_steps = LINES_SCALES.note_to_steps(range_steps)
+                    range_steps = LINES_SCALES.note_to_steps(range_steps, self.time_signature['steps_per_note'])
                     distance_pulses = self._staff.pulses([0, range_steps]) # total distance
                     start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
@@ -571,13 +575,13 @@ class Staff:
                 ]
             if (len(positions) > 0 and positions != [None]): # Check for as None for NOT enabled
                 for position_index in range(len(positions)):
-                    positions[position_index] = LINES_SCALES.note_to_steps(positions[position_index])
+                    positions[position_index] = LINES_SCALES.note_to_steps(positions[position_index], self.time_signature['steps_per_note'])
                 filtered_rulers = [
-                    ruler for ruler in filtered_rulers if LINES_SCALES.note_to_steps(ruler['position']) in positions
+                    ruler for ruler in filtered_rulers if LINES_SCALES.note_to_steps(ruler['position'], self.time_signature['steps_per_note']) in positions
                 ]
             if (len(position_range) == 2 and len(position_range[0]) == 2 and len(position_range[1]) == 2):
-                position_range[0][1] = LINES_SCALES.note_to_steps(position_range[0][1])
-                position_range[1][1] = LINES_SCALES.note_to_steps(position_range[1][1])
+                position_range[0][1] = LINES_SCALES.note_to_steps(position_range[0][1], self.time_signature['steps_per_note'])
+                position_range[1][1] = LINES_SCALES.note_to_steps(position_range[1][1], self.time_signature['steps_per_note'])
                 # Using list comprehension
                 filtered_rulers = [
                     ruler for ruler in filtered_rulers
@@ -642,7 +646,7 @@ class Staff:
                 else:
                     ruler_duration_steps = 0
                     for line_data in ruler_data['lines']:
-                        line_duration_steps = LINES_SCALES.note_to_steps(line_data)
+                        line_duration_steps = LINES_SCALES.note_to_steps(line_data, self.time_signature['steps_per_note'])
                         ruler_duration_steps = max(ruler_duration_steps, line_duration_steps)
                     ruler_finish_position_steps = ruler_start_position_steps + ruler_duration_steps
                     finish_position_steps = max(finish_position_steps, ruler_finish_position_steps)
@@ -987,14 +991,14 @@ class Staff:
             if 'lines' in ruler and ruler['lines'] != None and len(ruler['lines']) > 0:
                 
                 for ruler_line_duration in ruler['lines']:
-                    ruler_line_duration_steps = LINES_SCALES.note_to_steps(ruler_line_duration)
+                    ruler_line_duration_steps = LINES_SCALES.note_to_steps(ruler_line_duration, self.time_signature['steps_per_note'])
                     ruler_duration = max(ruler_duration, ruler_line_duration_steps)
 
             else:
                 ruler_duration = self._last_action_duration
 
-            span_steps = LINES_SCALES.note_to_steps(span)
-            ruler_duration_steps = LINES_SCALES.note_to_steps(ruler_duration)
+            span_steps = LINES_SCALES.note_to_steps(span, self.time_signature['steps_per_note'])
+            ruler_duration_steps = LINES_SCALES.note_to_steps(ruler_duration, self.time_signature['steps_per_note'])
 
             total_rulers = int(span_steps / ruler_duration_steps)
 
@@ -1006,13 +1010,13 @@ class Staff:
             return self
 
         def propagate(self, span=16, division=None):
-            span = LINES_SCALES.note_to_steps(span)
+            span = LINES_SCALES.note_to_steps(span, self.time_signature['steps_per_note'])
             if division == None:
                 self_start_position_steps = self._staff.steps(self.get_start_position())
                 self_finish_position_steps = self._staff.steps(self.get_finish_position())
                 division = self_finish_position_steps - self_start_position_steps
             else:
-                division = LINES_SCALES.note_to_steps(division)
+                division = LINES_SCALES.note_to_steps(division, self.time_signature['steps_per_note'])
 
             total_repeats = int(span / division) - 1
             
@@ -1076,7 +1080,7 @@ class Staff:
 
                                         ruler_line_value = ruler['lines'][line_index - ruler['offset']]
                                         if ruler['type'] == "actions":
-                                            key_value_str = f"{format_note_duration(ruler_line_value)}" if ruler_line_value != None else "_"
+                                            key_value_str = f"{format_note_duration(ruler_line_value, self.time_signature['steps_per_note'])}" if ruler_line_value != None else "_"
                                         else:
                                             key_value_str = f"{ruler_line_value}" if ruler_line_value != None else "_"
 
@@ -1176,7 +1180,7 @@ class Staff:
 
                                         ruler_line_value = ruler['lines'][line_index - ruler['offset']]
                                         if ruler['type'] == "actions":
-                                            key_value_str = f"{format_note_duration(ruler_line_value)}" if ruler_line_value != None else "_"
+                                            key_value_str = f"{format_note_duration(ruler_line_value, self.time_signature['steps_per_note'])}" if ruler_line_value != None else "_"
                                         else:
                                             key_value_str = f"{ruler_line_value}" if ruler_line_value != None else "_"
 
@@ -1375,7 +1379,7 @@ class Staff:
                         copy_self_start_position_steps = self._staff.steps(copy_self_start_position)
                         division_position_steps = repeated_self_finish_position_steps - copy_self_start_position_steps
                     else:
-                        division_position_steps = LINES_SCALES.note_to_steps(division)
+                        division_position_steps = LINES_SCALES.note_to_steps(division, self.time_signature['steps_per_note'])
                     for copy_self_ruler in copy_self:
                         copy_self_ruler_position_steps = self._staff.steps(copy_self_ruler['position'])
                         copy_self_ruler['position'] = self._staff.position(copy_self_ruler_position_steps + division_position_steps)
@@ -1523,21 +1527,12 @@ class Staff:
 
         def slide(self, distance=4, division=None):
 
-            distance_steps = LINES_SCALES.note_to_steps(distance)
-
-
-            # if division != None:
-            #     division = LINES_SCALES.note_to_steps(division)
-            #     if division >= distance_steps:
-            #         if distance_steps > 0:
-            #             distance_steps %= division
-            #         elif distance_steps < 0:
-
+            distance_steps = LINES_SCALES.note_to_steps(distance, self.time_signature['steps_per_note'])
 
             if distance_steps != 0:
 
                 if division != None:
-                    division_steps = LINES_SCALES.note_to_steps(division)
+                    division_steps = LINES_SCALES.note_to_steps(division, self.time_signature['steps_per_note'])
                     division_divisions = self._staff.step_divisions(division_steps)
                     time_signature = self._staff.time_signature()
                     if division_divisions['measure'] > 0:
@@ -1620,7 +1615,7 @@ class Staff:
             return self
 
         def stack(self, slack=0):
-            slack = LINES_SCALES.note_to_steps(slack)
+            slack = LINES_SCALES.note_to_steps(slack, self.time_signature['steps_per_note'])
             actions_rulers_list = self.actions().list()
             actions_rulers_length = len(actions_rulers_list)
             if actions_rulers_length > 0:
@@ -1629,7 +1624,7 @@ class Staff:
                     actions_ruler_start_position = actions_rulers_list[actions_ruler_index]['position']
                     actions_ruler_duration_steps = 0
                     for line_duration in actions_rulers_list[actions_ruler_index]['lines']:
-                        line_duration_steps = LINES_SCALES.note_to_steps(line_duration)
+                        line_duration_steps = LINES_SCALES.note_to_steps(line_duration, self.time_signature['steps_per_note'])
                         actions_ruler_duration_steps = max(actions_ruler_duration_steps, line_duration_steps)
                     actions_ruler_finish_position = self._staff.add_position(actions_ruler_start_position, [0, actions_ruler_duration_steps])
                     actions_ruler_next_position = self._staff.add_position(actions_ruler_finish_position, [0, slack])
@@ -1761,8 +1756,8 @@ class Staff:
         return self._setTopLengths_Sums()
     
     def add_position(self, left_position=[0, 0], right_position=[0, 0]):
-        left_position[1] = LINES_SCALES.note_to_steps(left_position[1])
-        right_position[1] = LINES_SCALES.note_to_steps(right_position[1])
+        left_position[1] = LINES_SCALES.note_to_steps(left_position[1], self.time_signature()['steps_per_note'])
+        right_position[1] = LINES_SCALES.note_to_steps(right_position[1], self.time_signature()['steps_per_note'])
         left_position_steps = self.steps(left_position)
         right_position_steps = self.steps(right_position)
         total_steps = left_position_steps + right_position_steps
@@ -2001,7 +1996,8 @@ class Staff:
         return pulse_sums
     
     def pulses(self, position=[0, 0]): # position: [measure, step]
-        return position[0] * self._time_signature['pulses_per_measure'] + round(LINES_SCALES.note_to_steps(position[1]) * self._time_signature['pulses_per_step'])
+        return position[0] * self._time_signature['pulses_per_measure'] \
+            + round(LINES_SCALES.note_to_steps(position[1]) * self._time_signature['pulses_per_step'], self.time_signature()['steps_per_note'])
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -2042,8 +2038,11 @@ class Staff:
 
         self._time_signature['steps_per_beat'] = round(self._time_signature['steps_per_quarternote'] / (self._time_signature['beats_per_note'] / 4))
         self._time_signature['steps_per_measure'] = self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']
+        self._time_signature['steps_per_note'] = self._time_signature['steps_per_beat'] * self._time_signature['beats_per_note']
+
         self._time_signature['pulses_per_beat'] = round(self._time_signature['pulses_per_quarternote'] / (self._time_signature['beats_per_note'] / 4))
         self._time_signature['pulses_per_measure'] = self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']
+        self._time_signature['pulses_per_note'] = self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_note']
         self._time_signature['pulses_per_step'] = round(self._time_signature['pulses_per_quarternote'] / self._time_signature['steps_per_quarternote'])
 
         self._total_pulses = round(self._time_signature['measures'] * self._time_signature['pulses_per_measure'])
@@ -2089,7 +2088,7 @@ class Staff:
         }
     
     def steps(self, position=[0, 0]): # position: [measure, step]
-        position[1] = LINES_SCALES.note_to_steps(position[1])
+        position[1] = LINES_SCALES.note_to_steps(position[1], self.time_signature()['steps_per_note'])
         return position[0] * self._time_signature['steps_per_measure'] + position[1]
 
     def str_position(self, position):
@@ -2107,8 +2106,10 @@ class Staff:
 
         #     'steps_per_beat'
         #     'steps_per_measure'
+        #     'steps_per_note'
         #     'pulses_per_beat'
         #     'pulses_per_measure'
+        #     'pulses_per_note'
         #     'pulses_per_step'
 
         # }
@@ -2130,33 +2131,40 @@ def trimString(full_string):
         trimmed_string = full_string[:string_maxum_size] + long_string_termination
     return trimmed_string
 
-def position_gt(left_position, right_position):
+def position_gt(left_position, right_position, steps_per_note=16):
     if len(left_position) == 2 and len(right_position) == 2:
         if (left_position[0] > right_position[0]):
             return True
         if (left_position[0] == right_position[0]):
-            if (LINES_SCALES.note_to_steps(left_position[1]) > LINES_SCALES.note_to_steps(right_position[1])):
+            if (LINES_SCALES.note_to_steps(left_position[1], steps_per_note) > LINES_SCALES.note_to_steps(right_position[1], steps_per_note)):
                 return True
     return False
 
-def position_lt(left_position, right_position):
+def position_lt(left_position, right_position, steps_per_note=16):
     if len(left_position) == 2 and len(right_position) == 2:
         if (left_position[0] < right_position[0]):
             return True
         if (left_position[0] == right_position[0]):
-            if (left_position[1] < right_position[1]):
+            if (LINES_SCALES.note_to_steps(left_position[1], steps_per_note) < LINES_SCALES.note_to_steps(right_position[1], steps_per_note)):
                 return True
     return False
 
+def position_from_1_to_0(position_1, steps_per_note):
+    position_1_steps = LINES_SCALES.note_to_steps(position_1[1], steps_per_note)
+    return [position_1[0] - 1, position_1_steps - 1]
 
-def format_note_duration(note, note_notation=None):
-    note_steps = LINES_SCALES.note_to_steps(note)
+def position_from_0_to_1(position_0, steps_per_note):
+    position_0_steps = LINES_SCALES.note_to_steps(position_0[1], steps_per_note)
+    return [position_0[0] + 1, position_0_steps + 1]
+
+def format_note_duration(note, steps_per_note, note_notation=None):
+    note_steps = LINES_SCALES.note_to_steps(note, steps_per_note)
     if not isinstance(note, str) or (note_notation != None and not note_notation):
         return note_steps
     if isinstance(note, str) or note_notation:
         # test reversity
-        steps_to_note = LINES_SCALES.steps_to_note(note_steps)
-        note_to_steps = LINES_SCALES.note_to_steps(steps_to_note)
+        steps_to_note = LINES_SCALES.steps_to_note(note_steps, steps_per_note)
+        note_to_steps = LINES_SCALES.note_to_steps(steps_to_note, steps_per_note)
         if note_to_steps == note_steps and note_steps < 16:
             return steps_to_note
         return steps_to_note + "/1"
