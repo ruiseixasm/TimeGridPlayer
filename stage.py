@@ -20,7 +20,7 @@ import player as PLAYER
 
 class Stage:
     
-    def __init__(self, players_list=None, root_self=None, start_id=0):
+    def __init__(self, players_list=None, root_self=None, start_id=1):
 
         self._players_list = []
         if players_list != None:
@@ -306,7 +306,7 @@ class Stage:
         header_char = "="
         if len(self._players_list) > 0:
             string_top_length = {'sequence': 0, 'id': 0, 'type': 0, 'name': 0, 'description': 0, 'enabled': 0, 'default': 0}
-            sequence_index = 0
+            sequence_index = 1
             for player_data in self: # get maximum sizes
                 
                 for key, value in string_top_length.items():
@@ -338,7 +338,7 @@ class Stage:
             header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
 
             print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
-            sequence_index = 0
+            sequence_index = 1
             for player_data in self._players_list:
 
                 player_str = ""

@@ -15,7 +15,7 @@ import player_midi as PLAYER_MIDI
 
 class StageMidi(STAGE.Stage):
     
-    def __init__(self, players_list=None, root_self=None, start_id=0):
+    def __init__(self, players_list=None, root_self=None, start_id=1):
         super().__init__(players_list, root_self, start_id)
         self._resources = RESOURCES_MIDI.Midi()
 

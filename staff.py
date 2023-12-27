@@ -39,7 +39,7 @@ class Staff:
             
     class Rulers():
 
-        def __init__(self, staff, rulers_list=None, root_self=None, start_id=0, last_action_duration=4):
+        def __init__(self, staff, rulers_list=None, root_self=None, start_id=1, last_action_duration=4):
 
             self._root_self = self
             self._recall_self = self
@@ -1057,7 +1057,7 @@ class Staff:
                     full_string_length += key_value_length
                     string_top_length['lines'][line_index - head_offset] = max(string_top_length['lines'][line_index - head_offset], key_value_length)
 
-                sequence_index = 0
+                sequence_index = 1
                 for ruler in self._rulers_list: # get maximum sizes
 
                     for key, value in string_top_length.items():
@@ -1156,7 +1156,7 @@ class Staff:
 
                 # BODY CONTENT
 
-                sequence_index = 0
+                sequence_index = 1
                 for ruler in self._rulers_list:
 
                     lines_str = ""
@@ -1223,7 +1223,7 @@ class Staff:
             header_char = "'"
             if len(self._rulers_list) > 0:
                 string_top_length = {'sequence': 0, 'id': 0, 'link': 0, 'position': 0, 'lines': 0, 'offset': 0, 'type': 0, 'enabled': 0, 'on_staff': 0}
-                sequence_index = 0
+                sequence_index = 1
                 for ruler in self._rulers_list: # get maximum sizes
                     
                     for key, value in string_top_length.items():
@@ -1257,7 +1257,7 @@ class Staff:
                 header_right_half_length = header_left_half_length + (header_char_length - header_type_length) % 2
 
                 print(header_char * header_left_half_length + header_type + header_char * header_right_half_length)
-                sequence_index = 0
+                sequence_index = 1
                 for ruler in self._rulers_list:
 
                     ruler_str = ""
