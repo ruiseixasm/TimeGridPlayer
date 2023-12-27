@@ -33,7 +33,7 @@ master = stage.player(name="master")
 note = stage.player(name="note")
 pattern = stage.player(name="pattern")
 
-pattern.rulers().print().every(3).print()
+pattern.rulers().print()
 
 #pattern.rulers().print().ids(2).drag(2,3).root().print()
 

@@ -443,8 +443,9 @@ class Staff:
 
         def duplicate(self, times=1):
             """Duplicates the listed rulers"""
+            source_rulers_list = self._rulers_list[:]
             for _ in range(times):
-                for ruler_data in self._rulers_list[:]:
+                for ruler_data in source_rulers_list:
                     ruler = ruler_data.copy()
                     ruler['lines'] = ruler_data['lines'].copy()
                     self.add(ruler)
