@@ -509,16 +509,10 @@ class Staff:
             return Staff.Rulers(self._staff, even_rulers_list, self._root_self, self._next_id, self._last_action_duration)
         
         def every(self, nth_ruler, first=1):
-            if nth_ruler > 0:
-                if first == None:
-                    first = nth_ruler
-                if first > 0:
-                    first_0 = first - 1
-                    every_rulers = []
-                    for ruler_index in range(self.len()):
-                        if (ruler_index - first_0) % nth_ruler == 0 and ruler_index >= first_0:
-                            every_rulers.append(self._rulers_list[ruler_index])
-                    return Staff.Rulers(self._staff, every_rulers, self._root_self, self._next_id, self._last_action_duration)
+            if nth_ruler > 0 and first > 0:
+                every_rulers_list = self._rulers_list[first - 1::nth_ruler]
+                return Staff.Rulers(self._staff, every_rulers_list, self._root_self, self._next_id, self._last_action_duration)
+ 
             return self
 
         def exclude(self, index=0):
@@ -2036,14 +2030,15 @@ class Staff:
             if pulses_per_quarternote != None:
                 self._time_signature['pulses_per_quarternote'] = pulses_per_quarternote                                     # sets de resolution of clock pulses
 
-        self._time_signature['steps_per_beat'] = round(self._time_signature['steps_per_quarternote'] / (self._time_signature['beats_per_note'] / 4))
-        self._time_signature['steps_per_measure'] = self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']
-        self._time_signature['steps_per_note'] = self._time_signature['steps_per_beat'] * self._time_signature['beats_per_note']
+        self._time_signature['steps_per_note'] = self._time_signature['steps_per_quarternote'] * 4
+        self._time_signature['pulses_per_note'] = self._time_signature['pulses_per_quarternote'] * 4
 
-        self._time_signature['pulses_per_beat'] = round(self._time_signature['pulses_per_quarternote'] / (self._time_signature['beats_per_note'] / 4))
+        self._time_signature['steps_per_beat'] = round(self._time_signature['steps_per_note'] / self._time_signature['beats_per_note'])
+        self._time_signature['steps_per_measure'] = self._time_signature['steps_per_beat'] * self._time_signature['beats_per_measure']
+
+        self._time_signature['pulses_per_beat'] = round(self._time_signature['pulses_per_note'] / self._time_signature['beats_per_note'])
         self._time_signature['pulses_per_measure'] = self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_measure']
-        self._time_signature['pulses_per_note'] = self._time_signature['pulses_per_beat'] * self._time_signature['beats_per_note']
-        self._time_signature['pulses_per_step'] = round(self._time_signature['pulses_per_quarternote'] / self._time_signature['steps_per_quarternote'])
+        self._time_signature['pulses_per_step'] = round(self._time_signature['pulses_per_note'] / self._time_signature['steps_per_note'])
 
         self._total_pulses = round(self._time_signature['measures'] * self._time_signature['pulses_per_measure'])
 
