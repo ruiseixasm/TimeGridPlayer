@@ -18,8 +18,8 @@ keys_major_scale = scales.scale("major", "A", 5).lines()
 # add a master player to a new stage
 stage = STAGE_MIDI.StageMidi()
 
-stage.set_tempo(90).add("clock", type="Clock")
-#stage.set_time_signature(steps_per_quarternote=6, pulses_per_quarternote=48)
+stage.set_tempo(120).add("clock", type="Clock")
+stage.set_time_signature(steps_per_quarternote=6, pulses_per_quarternote=48)
 master = stage.add("master", default=True).last().player()
 note = stage.add("note", type="Note").last().player()
 pattern = stage.add("pattern").last().player().set_length(1)

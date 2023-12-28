@@ -2069,16 +2069,16 @@ class Staff:
             if start == None or start == [] or self._play_range[0] == []:
                 self._play_range[0] = [1, 1]
             elif start != None:
-                start_pulses = max(0, min(self._total_pulses, self.pulses(start)))
+                start_pulses = max(1, min(self._total_pulses, self.pulses(start)))
                 self._play_range[0] = self.position(pulses=start_pulses)
 
 
             if finish == None or finish == [] or self._play_range[1] == []:
-                finish_pulses = self._total_pulses
+                finish_pulses = self._total_pulses + 1 # it's the non playable pulse where the staff ends
                 self._play_range[1] = self.position(pulses=finish_pulses)
             elif finish != None:
                 start_pulses = self.pulses(self._play_range[0])
-                finish_pulses = max(start_pulses, min(self._total_pulses, self.pulses(finish)))
+                finish_pulses = max(start_pulses, min(self._total_pulses + 1, self.pulses(finish)))
                 self._play_range[1] = self.position(pulses=finish_pulses)
 
         return self
