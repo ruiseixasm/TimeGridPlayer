@@ -224,7 +224,7 @@ class Staff:
             return action_lines
 
         def _stack_position(self, type="actions"):
-            finish_action_position_steps = 0
+            finish_action_position_steps = 1
             for action_ruler in self.actions():
                 action_ruler_position_steps = self._staff.steps(action_ruler['position'])
                 for action_duration in action_ruler['lines']:
@@ -243,7 +243,7 @@ class Staff:
 
         def _get_finish_position(self):
 
-            finish_position_steps = 0
+            finish_position_steps = 1
             for ruler_data in self._rulers_list:
                 ruler_start_position_steps = self._staff.steps(ruler_data['position'])
                 if ruler_data['type'] == "arguments":
@@ -283,7 +283,7 @@ class Staff:
                 
                 return self._staff.position(start_position_steps)
 
-            return [0, 0]
+            return [1, 1]
 
         def actions(self):
             return self.type(type="actions")
@@ -306,7 +306,7 @@ class Staff:
                         'id': self._root_self._next_id,
                         'type': ruler_type,
                         'link': ruler['link'],
-                        'position': [0, 0],
+                        'position': [1, 1],
                         'lines': [],
                         'offset': None,
                         'enabled': True,
@@ -938,7 +938,7 @@ class Staff:
                     slack_steps = last_staff_step - last_ruler_step
                     move_steps = min(slack_steps, move_steps)
                 else:
-                    first_staff_step = 0
+                    first_staff_step = 1
                     first_ruler_step = self._staff.steps(first_ruler_position)
                     slack_steps = first_ruler_step - first_staff_step
                     move_steps = -min(slack_steps, -move_steps)
@@ -1738,22 +1738,23 @@ class Staff:
     def add(self, rulers, enabled_one=1, total_one=1):
         for ruler in rulers:
             pulses = self.pulses(ruler['position'])
-            if pulses < self.len():
+            pulse_0 = pulses - 1
+            if pulse_0 < self.len():
                 if total_one == 1 and ruler['on_staff'] == False:
                     ruler['on_staff'] = True
-                    self._staff_list[pulses][ruler['type']]['total'] += total_one
+                    self._staff_list[pulse_0][ruler['type']]['total'] += total_one
                 if ruler['on_staff']:
                     if ruler['enabled']:
-                        self._staff_list[pulses][ruler['type']]['enabled'] += enabled_one
+                        self._staff_list[pulse_0][ruler['type']]['enabled'] += enabled_one
                     if total_one == -1:
                         ruler['on_staff'] = False
-                        self._staff_list[pulses][ruler['type']]['total'] += total_one
+                        self._staff_list[pulse_0][ruler['type']]['total'] += total_one
             else:
                 ruler['on_staff'] = False
         
         return self._setTopLengths_Sums()
     
-    def add_position(self, left_position=[0, 0], right_position=[0, 0]):
+    def add_position(self, left_position=[1, 1], right_position=[1, 1]):
         left_position[1] = LINES_SCALES.note_to_steps(left_position[1], self.time_signature()['steps_per_note'])
         right_position[1] = LINES_SCALES.note_to_steps(right_position[1], self.time_signature()['steps_per_note'])
         left_position_steps = self.steps(left_position)
@@ -1782,7 +1783,7 @@ class Staff:
     def enabled(self, rulers):
         return self.add(rulers, total_one=0)
 
-    def filterList(self, measure=None, beat=None, step=None, pulse=None, list=None):
+    def filter(self, measure=None, beat=None, step=None, pulse=None, list=None):
         if list != None:
             filtered_list = list[:]
             if pulse != None:
@@ -1883,7 +1884,7 @@ class Staff:
         elif (pulses != None):
             pulse_divisions = self.pulse_divisions(pulses)
             return [pulse_divisions['measure'], pulse_divisions['step']]
-        return [0, 0]
+        return [1, 1]
     
     def position_on_staff(self, position):
         position_pulses = self.pulses(position)
@@ -1905,11 +1906,12 @@ class Staff:
             print("[EMPTY]")
         return self
     
-    def printSinglePulse(self, pulse=0, sums='pulse', extra_string=""):
+    def printSinglePulse(self, pulse=1, sums='pulse', extra_string=""):
 
+        pulse_0 = pulse - 1
         spaces_between = 6
 
-        staff_pulse = self._staff_list[pulse]
+        staff_pulse = self._staff_list[pulse_0]
         pulse_sums = self.pulseSums(staff_pulse['pulse'], sums)
 
         pulse_str = "{ "
@@ -1944,46 +1946,50 @@ class Staff:
         return self
 
     def pulse_data(self, pulse):
-        pulse = min(len(self._staff_list) - 1, pulse)
-        return self._staff_list[pulse]
+        pulse = min(len(self._staff_list), pulse)
+        pulse_0 = pulse - 1
+        return self._staff_list[pulse_0]
 
-    def pulse_divisions(self, pulse=0):
+    def pulse_divisions(self, pulse=1):
+        pulse_0 = pulse - 1
         return {
-            'measure': int(pulse / self._time_signature['pulses_per_measure']),
-            'beat': int(pulse / self._time_signature['pulses_per_beat']) % self._time_signature['beats_per_measure'],
-            'step': int(pulse / self._time_signature['pulses_per_step']) % self._time_signature['steps_per_measure'],
-            'pulse': pulse # by definition pulse is pulse
+            'measure': int(pulse_0 / self._time_signature['pulses_per_measure']) + 1,
+            'beat': int(pulse_0 / self._time_signature['pulses_per_beat']) % self._time_signature['beats_per_measure'] + 1,
+            'step': int(pulse_0 / self._time_signature['pulses_per_step']) % self._time_signature['steps_per_measure'] + 1,
+            'pulse': pulse_0 + 1 # by definition pulse is pulse
         }
     
-    def pulseRemainders(self, pulse=0):
+    def pulseRemainders(self, pulse=1):
+        pulse_0 = pulse - 1
         return {
-            'measure': pulse % self._time_signature['pulses_per_measure'],
-            'beat': pulse % self._time_signature['pulses_per_beat'],
-            'step': pulse % self._time_signature['pulses_per_step'],
+            'measure': pulse_0 % self._time_signature['pulses_per_measure'],
+            'beat': pulse_0 % self._time_signature['pulses_per_beat'],
+            'step': pulse_0 % self._time_signature['pulses_per_step'],
             'pulse': 0 # by definition is pulse % pulse = 0
         }
     
-    def pulseSums(self, pulse=0, sums='pulse'):
+    def pulseSums(self, pulse=1, sums='pulse'):
+        pulse_0 = pulse - 1
         pulse_sums = {'arguments': {'enabled': 0, 'total': 0}, 'actions': {'enabled': 0, 'total': 0}}
 
-        measure = self._staff_list[pulse]['measure']
-        beat = self._staff_list[pulse]['beat']
-        step = self._staff_list[pulse]['step']
+        measure = self._staff_list[pulse_0]['measure']
+        beat = self._staff_list[pulse_0]['beat']
+        step = self._staff_list[pulse_0]['step']
 
         match sums:
             case 'measure':
-                measure = self._staff_list[pulse]['measure']
-                filtered_list = self.filterList(measure=measure)
+                measure = self._staff_list[pulse_0]['measure']
+                filtered_list = self.filter(measure=measure)
             case 'beat':
-                measure = self._staff_list[pulse]['measure']
-                beat = self._staff_list[pulse]['beat']
-                filtered_list = self.filterList(measure=measure, beat=beat)
+                measure = self._staff_list[pulse_0]['measure']
+                beat = self._staff_list[pulse_0]['beat']
+                filtered_list = self.filter(measure=measure, beat=beat)
             case 'step':
-                measure = self._staff_list[pulse]['measure']
-                step = self._staff_list[pulse]['step']
-                filtered_list = self.filterList(measure=measure, beat=beat, step=step)
+                measure = self._staff_list[pulse_0]['measure']
+                step = self._staff_list[pulse_0]['step']
+                filtered_list = self.filter(measure=measure, beat=beat, step=step)
             case default:
-                filtered_list = [ self._staff_list[pulse] ]
+                filtered_list = [ self._staff_list[pulse_0] ]
 
         for staff_pulse in filtered_list:
             pulse_sums['arguments']['enabled'] += staff_pulse['arguments']['enabled']
@@ -1993,9 +1999,10 @@ class Staff:
 
         return pulse_sums
     
-    def pulses(self, position=[0, 0]): # position: [measure, step]
-        return position[0] * self._time_signature['pulses_per_measure'] \
-            + round(LINES_SCALES.note_to_steps(position[1]) * self._time_signature['pulses_per_step'], self.time_signature()['steps_per_note'])
+    def pulses(self, position=[1, 1]): # position: [measure, step]
+        position_0 = position_from_1_to_0(position, self._time_signature['steps_per_note'])
+        return position_0[0] * self._time_signature['pulses_per_measure'] \
+            + round(position_0[1] * self._time_signature['pulses_per_step']) + 1
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -2047,7 +2054,8 @@ class Staff:
         self._total_pulses = round(self._time_signature['measures'] * self._time_signature['pulses_per_measure'])
 
         self._staff_list = []
-        for pulse in range(self._total_pulses):
+        for pulse_0 in range(self._total_pulses):
+            pulse = pulse_0 + 1
             staff_pulse = self.pulse_divisions(pulse)
             staff_pulse['arguments'] = {'enabled': 0, 'total': 0}
             staff_pulse['actions'] = {'enabled': 0, 'total': 0}
@@ -2059,7 +2067,7 @@ class Staff:
     def set_range(self, start=None, finish=None):
         if self._total_pulses > 0:
             if start == None or start == [] or self._play_range[0] == []:
-                self._play_range[0] = [0, 0]
+                self._play_range[0] = [1, 1]
             elif start != None:
                 start_pulses = max(0, min(self._total_pulses, self.pulses(start)))
                 self._play_range[0] = self.position(pulses=start_pulses)
@@ -2079,16 +2087,17 @@ class Staff:
         self._rulers = rulers
         return self
 
-    def step_divisions(self, step=0):
+    def step_divisions(self, step=1):
+        step_0 = step - 1
         return {
-            'measure': int(step / self._time_signature['steps_per_measure']),
-            'beat': int(step / self._time_signature['steps_per_beat']) % self._time_signature['beats_per_measure'],
-            'step': step % self._time_signature['steps_per_measure']
+            'measure': int(step_0 / self._time_signature['steps_per_measure']) + 1,
+            'beat': int(step_0 / self._time_signature['steps_per_beat']) % self._time_signature['beats_per_measure'] + 1,
+            'step': step_0 % self._time_signature['steps_per_measure'] + 1
         }
     
-    def steps(self, position=[0, 0]): # position: [measure, step]
-        position[1] = LINES_SCALES.note_to_steps(position[1], self.time_signature()['steps_per_note'])
-        return position[0] * self._time_signature['steps_per_measure'] + position[1]
+    def steps(self, position=[1, 1]): # position: [measure, step]
+        position_0 = position_from_1_to_0(position, self.time_signature()['steps_per_note'])
+        return position_0[0] * self._time_signature['steps_per_measure'] + position_0[1] + 1
 
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))
@@ -2103,12 +2112,13 @@ class Staff:
         #     'steps_per_quarternote'       # how many steps take each beat
         #     'pulses_per_quarternote'      # sets de resolution of clock pulses
 
+        #     'steps_per_note'
+        #     'pulses_per_note'
+    
         #     'steps_per_beat'
         #     'steps_per_measure'
-        #     'steps_per_note'
         #     'pulses_per_beat'
         #     'pulses_per_measure'
-        #     'pulses_per_note'
         #     'pulses_per_step'
 
         # }

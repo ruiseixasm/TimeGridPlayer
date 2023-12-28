@@ -344,12 +344,12 @@ class Player:
                             print_symbol = "|"
                         if self._delayed_pulse:
                             print_symbol = " "
-                        if self._staff.pulse_divisions(self._play_pulse)['measure'] > 0 and self._staff.pulse_divisions(self._play_pulse)['measure'] % 4 == 0 \
+                        if self._staff.pulse_divisions(self._play_pulse)['measure'] > 1 and (self._staff.pulse_divisions(self._play_pulse)['measure'] - 1) % 4 == 0 \
                             	and self._staff.pulseRemainders(self._play_pulse)['measure'] == 0:
                             print_symbol = "\r\n" + print_symbol
-                        elif (self._staff.pulse_divisions(self._play_pulse)['measure'] + 1) % 4 == 0 \
+                        elif (self._staff.pulse_divisions(self._play_pulse)['measure'] + 1 - 1) % 4 == 0 \
                             	and self._staff.pulseRemainders(self._play_pulse + pulses_per_step)['measure'] == 0:
-                            print_symbol += f" {self._staff.pulse_divisions(self._play_pulse)['measure'] + 1}"
+                            print_symbol += f" {self._staff.pulse_divisions(self._play_pulse)['measure']}"
                         self._player.stage._play_print(print_symbol, 'staff', tick['clock'].remaining_pulse_ratio())
                         self._delayed_pulse = False
 
@@ -486,7 +486,7 @@ class Player:
             if non_fast_forward_range_pulses != None and non_fast_forward_range_pulses != [] and len(non_fast_forward_range_pulses) == 2:
                 self._non_fast_forward_range_pulses = non_fast_forward_range_pulses
 
-            self._next_pulse = 0
+            self._next_pulse = 1
             self._next_pulse_time = time.time()
 
             self._tick = {'player': self._player, 'tempo': self._tempo,
