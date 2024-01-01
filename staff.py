@@ -204,8 +204,8 @@ class Staff:
             return Staff.Rulers(self._staff, sets_and_automations_rulers_list, self._root_self, self._next_id, self._last_action_duration)
 
         def _str_position(self, position, note_notation=None):
-            
-            position[1] = format_note_duration(position[1], note_notation)
+            steps_per_note = self.time_signature['steps_per_note']
+            position[1] = format_note_duration(position[1], steps_per_note, note_notation)
             position_value = [position[0], position[1] if isinstance(position[1], str) else round(position[1], 3)]
             if not isinstance(position[1], str) and position_value[1] % 1 == 0:
                 position_value = [position_value[0], int(position_value[1])]
@@ -446,7 +446,7 @@ class Staff:
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
                 elif range_steps != None:
                     range_steps = LINES_SCALES.note_to_steps(range_steps, self.time_signature['steps_per_note'])
-                    distance_pulses = self._staff.pulses([0, range_steps]) # total distance
+                    distance_pulses = self._staff.pulses(range_steps + 1) # total distance
                     start_pulses = self._staff.pulses(sorted_rulers.list()[0]['position'])
                     finish_pulses = start_pulses + round(distance_pulses * (number_intervals - 1) / number_intervals)
                 else:
@@ -2000,9 +2000,13 @@ class Staff:
         return pulse_sums
     
     def pulses(self, position=[1, 1]): # position: [measure, step]
-        position_0 = position_from_1_to_0(position, self._time_signature['steps_per_note'])
-        return position_0[0] * self._time_signature['pulses_per_measure'] \
-            + round(position_0[1] * self._time_signature['pulses_per_step']) + 1
+        if type(position) == type([]):
+            position_0 = position_from_1_to_0(position, self._time_signature['steps_per_note'])
+            return position_0[0] * self._time_signature['pulses_per_measure'] \
+                + round(position_0[1] * self._time_signature['pulses_per_step']) + 1
+        else:
+            step_0 = position - 1
+            return round(step_0 * self._time_signature['pulses_per_step']) + 1
 
     def remove(self, rulers, enabled_one=-1, total_one=-1):
         return self.add(rulers, enabled_one, total_one)
@@ -2096,8 +2100,11 @@ class Staff:
         }
     
     def steps(self, position=[1, 1]): # position: [measure, step]
-        position_0 = position_from_1_to_0(position, self.time_signature()['steps_per_note'])
-        return position_0[0] * self._time_signature['steps_per_measure'] + position_0[1] + 1
+        if type(position) == type([]):
+            position_0 = position_from_1_to_0(position, self.time_signature()['steps_per_note'])
+            return position_0[0] * self._time_signature['steps_per_measure'] + position_0[1] + 1
+        else:
+            return position
 
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))
