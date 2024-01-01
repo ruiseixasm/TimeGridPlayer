@@ -24,7 +24,7 @@ class Resources:
         return (self.__class__ == ResourcesNone)
     
     def resourceFactoryMethod(self, name):
-        return Resources.ResourceNone()
+        return Resources.Resource()
 
     def add(self, name):
 
