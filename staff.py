@@ -572,7 +572,7 @@ class Staff:
             on_staff = self.on_staff()
             on_staff.float()
             for ruler_index in range(1, self.len()):
-                self._rulers_list[ruler_index]['position'] = self._staff.add_position(first_position, [0, ruler_index * increments])
+                self._rulers_list[ruler_index]['position'] = self._staff.add_position(first_position, ruler_index * increments)
             on_staff.drop()
             return self
         
@@ -946,7 +946,7 @@ class Staff:
                 on_staff = self.on_staff()
                 on_staff.float()
                 for ruler in self._rulers_list:
-                    ruler['position'] = self._staff.add_position(ruler['position'], [0, move_steps])
+                    ruler['position'] = self._staff.add_position(ruler['position'], move_steps)
                 on_staff.drop()
 
             return self
@@ -1624,12 +1624,12 @@ class Staff:
                     for line_duration in actions_rulers_list[actions_ruler_index]['lines']:
                         line_duration_steps = LINES_SCALES.note_to_steps(line_duration, self.time_signature['steps_per_note'])
                         actions_ruler_duration_steps = max(actions_ruler_duration_steps, line_duration_steps)
-                    actions_ruler_finish_position = self._staff.add_position(actions_ruler_start_position, [0, actions_ruler_duration_steps])
-                    actions_ruler_next_position = self._staff.add_position(actions_ruler_finish_position, [0, slack])
+                    actions_ruler_finish_position = self._staff.add_position(actions_ruler_start_position, actions_ruler_duration_steps)
+                    actions_ruler_next_position = self._staff.add_position(actions_ruler_finish_position, slack)
 
                     actions_rulers_list[actions_ruler_index + 1]['position'] = actions_ruler_next_position
 
-                arguments_start_position = self._staff.add_position(actions_stack_position, [0, slack])
+                arguments_start_position = self._staff.add_position(actions_stack_position, slack)
                 for arguments_ruler_data in self.arguments():
                     arguments_ruler_data['position'] = arguments_start_position
 
@@ -1755,8 +1755,6 @@ class Staff:
         return self._setTopLengths_Sums()
     
     def add_position(self, left_position=[1, 1], right_position=[1, 1]):
-        left_position[1] = LINES_SCALES.note_to_steps(left_position[1], self.time_signature()['steps_per_note'])
-        right_position[1] = LINES_SCALES.note_to_steps(right_position[1], self.time_signature()['steps_per_note'])
         left_position_steps = self.steps(left_position)
         right_position_steps = self.steps(right_position)
         total_steps = left_position_steps + right_position_steps
@@ -2005,6 +2003,7 @@ class Staff:
             return position_0[0] * self._time_signature['pulses_per_measure'] \
                 + round(position_0[1] * self._time_signature['pulses_per_step']) + 1
         else:
+            position = LINES_SCALES.note_to_steps(position, self._time_signature['steps_per_note'])
             step_0 = position - 1
             return round(step_0 * self._time_signature['pulses_per_step']) + 1
 
@@ -2104,7 +2103,7 @@ class Staff:
             position_0 = position_from_1_to_0(position, self.time_signature()['steps_per_note'])
             return position_0[0] * self._time_signature['steps_per_measure'] + position_0[1] + 1
         else:
-            return position
+            return LINES_SCALES.note_to_steps(position, self._time_signature['steps_per_note'])
 
     def str_position(self, position):
         return str(position[0]) + " " + str(round(position[1], 6))
